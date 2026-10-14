@@ -138,59 +138,9 @@ class MobileShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
-    // On actual mobile phones, render 100% full screen
-    if (width <= 500) {
-      return Scaffold(
-        body: SafeArea(child: child),
-      );
-    }
-
-    // On desktop browsers (like Chrome), render inside a realistic phone frame
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: Center(
-        child: Container(
-          width: 420,
-          height: 870,
-          margin: const EdgeInsets.symmetric(vertical: 20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(36),
-            border: Border.all(color: const Color(0xFF334155), width: 8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.55),
-                blurRadius: 40,
-                spreadRadius: 8,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              // Phone speaker / dynamic island notch simulation
-              Container(
-                height: 28,
-                color: Colors.white,
-                child: Center(
-                  child: Container(
-                    width: 120,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFCBD5E1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(child: child),
-            ],
-          ),
-        ),
-      ),
+      backgroundColor: const Color(0xFF090D16),
+      body: child,
     );
   }
 }
@@ -803,6 +753,7 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
 
   String _selectedShuttleId = 'vit_general_bus_101';
   String _shuttleFilter = 'all'; // 'all', 'general', 'faculty'
+  bool _isDrawerExpanded = false;
   
   List<Map<String, dynamic>> _allRoutes = [];
   String _selectedRouteId = 'all';
@@ -1438,146 +1389,140 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
           ),
         ),
 
-        // 2. Top Header Bar with Portal Badge & Route Dropdown
+        // 2. Ultra-Compact Floating Top Pill Bar (~44px high)
         Positioned(
           top: 14,
           left: 14,
           right: 14,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))],
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.logout_rounded, size: 20, color: Color(0xFFEF4444)),
-                      onPressed: _logout,
-                      tooltip: 'Logout to Role Selection',
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 520),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xEE0F172A),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black38, blurRadius: 14, offset: Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // VIT Transit Badge & Role
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isFacultyUser ? const Color(0xFF059669) : const Color(0xFF0284C7),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                isFacultyUser ? 'Faculty Portal' : 'Student Portal',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: isFacultyUser ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: isFacultyUser ? const Color(0xFFDCFCE7) : const Color(0xFFE0F2FE),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  isFacultyUser ? 'FREE PASS' : '₹20 FARE',
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.bold,
-                                    color: isFacultyUser ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: _selectedRouteId,
-                              isDense: true,
-                              isExpanded: true,
-                              style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13),
-                              onChanged: (val) {
-                                if (val != null) setState(() => _selectedRouteId = val);
-                              },
-                              items: [
-                                const DropdownMenuItem(value: 'all', child: Text('All Campus Routes')),
-                                ..._allRoutes.map((r) => DropdownMenuItem(
-                                  value: r['id'].toString(),
-                                  child: Text(r['route_name'] ?? 'Route ${r['id']}'),
-                                )),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          isFacultyUser ? 'Faculty' : 'Student',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                        ),
+                      ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // Route dropdown pill
+                  Expanded(
+                    child: Container(
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
                       decoration: BoxDecoration(
-                        color: _isConnected ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.white.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: _isConnected ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _isConnected ? 'LIVE' : 'OFFLINE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: _isConnected ? const Color(0xFF15803D) : const Color(0xFFB91C1C),
-                            ),
-                          ),
-                        ],
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedRouteId,
+                          isDense: true,
+                          isExpanded: true,
+                          dropdownColor: const Color(0xFF1E293B),
+                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 16),
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedRouteId = val);
+                          },
+                          items: [
+                            const DropdownMenuItem(value: 'all', child: Text('All Campus Routes', style: TextStyle(color: Colors.white))),
+                            ..._allRoutes.map((r) => DropdownMenuItem(
+                              value: r['id'].toString(),
+                              child: Text(r['route_name'] ?? 'Route ${r['id']}', style: const TextStyle(color: Colors.white)),
+                            )),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                  const SizedBox(width: 8),
 
-              const SizedBox(height: 8),
+                  // Live Status Pill
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _isConnected ? const Color(0x2222C55E) : const Color(0x22EF4444),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: _isConnected ? const Color(0x5522C55E) : const Color(0x55EF4444),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: _isConnected ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          _isConnected ? 'LIVE' : 'OFFLINE',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _isConnected ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-              // Filter Tabs: [All] [General Bus (₹20)] [Faculty Shuttle (Free)]
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.95),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2))],
-                ),
-                child: Row(
-                  children: [
-                    _buildFilterTab('all', 'All Fleet'),
-                    _buildFilterTab('general', '🚌 General (₹20)'),
-                    _buildFilterTab('faculty', '⭐ Faculty (Free)'),
-                  ],
-                ),
+                  // Logout Button
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFF87171)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    constraints: const BoxConstraints(),
+                    onPressed: _logout,
+                    tooltip: 'Logout',
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
 
         // 3. Floating Map Controls (Zoom In, Zoom Out, Center)
         Positioned(
           right: 14,
-          bottom: 275,
+          bottom: 148,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xEE0F172A),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white12),
                   boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
                 ),
                 child: Column(
@@ -1590,10 +1535,10 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                       child: const Padding(
                         padding: EdgeInsets.all(9),
-                        child: Icon(Icons.add, color: Color(0xFF0F172A), size: 20),
+                        child: Icon(Icons.add, color: Colors.white, size: 18),
                       ),
                     ),
-                    Container(height: 1, width: 26, color: const Color(0xFFE2E8F0)),
+                    Container(height: 1, width: 24, color: Colors.white10),
                     InkWell(
                       onTap: () {
                         final currentZoom = _mapController.camera.zoom;
@@ -1602,7 +1547,7 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
                       child: const Padding(
                         padding: EdgeInsets.all(9),
-                        child: Icon(Icons.remove, color: Color(0xFF0F172A), size: 20),
+                        child: Icon(Icons.remove, color: Colors.white, size: 18),
                       ),
                     ),
                   ],
@@ -1611,15 +1556,16 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: const Color(0xEE0F172A),
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12),
                   boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
                 ),
                 child: IconButton(
                   icon: Icon(
                     Icons.my_location_rounded,
-                    color: selectedShuttle.isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                    size: 20,
+                    color: selectedShuttle.isFaculty ? const Color(0xFF34D399) : const Color(0xFF38BDF8),
+                    size: 18,
                   ),
                   tooltip: 'Center on Selected Shuttle',
                   onPressed: () {
@@ -1631,290 +1577,273 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
           ),
         ),
 
-        // 4. Bottom Sheet: Selected Shuttle Telemetry, Stop ETAs, Ticket Actions & Crowding
+        // 4. Sleek Floating Bottom Tray (leaves 85%+ visible map space)
         Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(18, 14, 18, 14),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -4))],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Shuttle Selector Toggle Chips
-                SizedBox(
-                  height: 38,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: _activeShuttles.values.map((s) {
-                      final isSelected = s.shuttleId == _selectedShuttleId;
-                      final isFac = s.isFaculty;
-                      final activeColor = isFac ? const Color(0xFF059669) : const Color(0xFF0284C7);
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() => _selectedShuttleId = s.shuttleId);
-                          _mapController.move(s.location, 16.5);
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: isSelected ? activeColor.withOpacity(0.12) : const Color(0xFFF1F5F9),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: isSelected ? activeColor : const Color(0xFFE2E8F0),
-                              width: isSelected ? 1.5 : 1.0,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                isFac ? Icons.stars_rounded : Icons.directions_bus_rounded,
-                                size: 16,
-                                color: isSelected ? activeColor : const Color(0xFF64748B),
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                isFac ? 'Faculty Shuttle (Free)' : 'General Bus (₹20)',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSelected ? activeColor : const Color(0xFF475569),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Selected Shuttle Details & Fare Badge
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedShuttle.name,
-                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            selectedShuttle.isFaculty
-                                ? 'Privilege: Faculty Only • Fare: Free (₹0)'
-                                : 'Available for Everyone • Fare: ₹20 fixed',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: selectedShuttle.isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '${selectedShuttle.speed.toStringAsFixed(1)} km/h',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: selectedShuttle.isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-
-                // Stop ETAs Horizontal List
-                if (selectedShuttle.stopETAs.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 6),
-                    child: Text('Calculating stop ETAs...', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                  )
-                else
-                  SizedBox(
-                    height: 66,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: selectedShuttle.stopETAs.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, i) {
-                        final stop = selectedShuttle.stopETAs[i];
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF8FAFC),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: const Color(0xFFE2E8F0)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(stop['stopName'] ?? 'Stop', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                              const SizedBox(height: 2),
-                              Text(
-                                '${stop['etaMinutes']} min away',
-                                style: TextStyle(
-                                  color: selectedShuttle.isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 11,
-                                ),
-                              ),
-                              Text('${stop['distanceKm']} km', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-
-                const SizedBox(height: 10),
-
-                // ACTION ROW: TICKET BUTTON / FACULTY PASS / RESTRICTION WARNING
-                if (!selectedShuttle.isFaculty) ...[
-                  // General Bus: Available for everyone, ₹20 Ticket
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showGeneralBusTicketModal(selectedShuttle),
-                      icon: const Icon(Icons.qr_code_rounded, size: 18),
-                      label: const Text('Book / Pay Ticket (₹20)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0284C7),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 11),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ] else if (isFacultyUser) ...[
-                  // Faculty Shuttle & User IS Faculty: FREE PASS
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showFacultyPassModal(selectedShuttle),
-                      icon: const Icon(Icons.verified_rounded, size: 18),
-                      label: const Text('Show Faculty Transit Pass (FREE)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF059669),
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 11),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                  ),
-                ] else ...[
-                  // Faculty Shuttle but User is STUDENT: Show Restriction Alert & Quick Switch
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEF3C7),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFF59E0B).withOpacity(0.5)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.lock_rounded, color: Color(0xFFB45309), size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Faculty-Only Service',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
-                              ),
-                              Text(
-                                'Free for faculty. Students must board General Bus (₹20).',
-                                style: TextStyle(fontSize: 10, color: Color(0xFFB45309)),
-                              ),
-                            ],
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
+          left: 12,
+          right: 12,
+          bottom: 12,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 500),
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              decoration: BoxDecoration(
+                color: const Color(0xEE0F172A),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white12),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black45, blurRadius: 20, offset: Offset(0, 6)),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Row 1: Shuttle Quick Switcher (General Bus ₹20 vs Faculty Shuttle Free)
+                  Row(
+                    children: [
+                      // General Bus Pill
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
                             setState(() => _selectedShuttleId = 'vit_general_bus_101');
+                            final s = _activeShuttles['vit_general_bus_101'];
+                            if (s != null) _mapController.move(s.location, 16.5);
                           },
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: _selectedShuttleId == 'vit_general_bus_101'
+                                  ? const Color(0xFF0284C7).withOpacity(0.22)
+                                  : const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _selectedShuttleId == 'vit_general_bus_101'
+                                    ? const Color(0xFF0284C7)
+                                    : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: const [
+                                    Text('🚌', style: TextStyle(fontSize: 14)),
+                                    SizedBox(width: 5),
+                                    Text('General', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF0284C7),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text('₹20', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Faculty Shuttle Pill
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedShuttleId = 'vit_faculty_shuttle_201');
+                            final s = _activeShuttles['vit_faculty_shuttle_201'];
+                            if (s != null) _mapController.move(s.location, 16.5);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: _selectedShuttleId == 'vit_faculty_shuttle_201'
+                                  ? const Color(0xFF059669).withOpacity(0.22)
+                                  : const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _selectedShuttleId == 'vit_faculty_shuttle_201'
+                                    ? const Color(0xFF059669)
+                                    : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: const [
+                                    Text('⭐', style: TextStyle(fontSize: 14)),
+                                    SizedBox(width: 5),
+                                    Text('Faculty', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF059669),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text('FREE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  // Row 2: Telemetry Snapshot & Action Button
+                  Row(
+                    children: [
+                      // Next stop & speed chip
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFFEF4444), shape: BoxShape.circle)),
+                                const SizedBox(width: 5),
+                                Flexible(
+                                  child: Text(
+                                    selectedShuttle.stopETAs.isNotEmpty
+                                        ? 'Next: ${selectedShuttle.stopETAs[0]['stopName']}'
+                                        : 'Next: MB (Main Bldg)',
+                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  selectedShuttle.stopETAs.isNotEmpty
+                                      ? '• ${selectedShuttle.stopETAs[0]['etaMinutes']}m'
+                                      : '• 2m',
+                                  style: TextStyle(
+                                    color: selectedShuttle.isFaculty ? const Color(0xFF34D399) : const Color(0xFF38BDF8),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Speed: ${selectedShuttle.speed.toStringAsFixed(0)} km/h • Live Tracking',
+                              style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Action button
+                      if (!selectedShuttle.isFaculty)
+                        ElevatedButton(
+                          onPressed: () => _showGeneralBusTicketModal(selectedShuttle),
+                          style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF0284C7),
                             foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
                           ),
-                          child: const Text('Switch', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                          child: const Text('🎫 Pass (₹20)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        )
+                      else if (isFacultyUser)
+                        ElevatedButton(
+                          onPressed: () => _showFacultyPassModal(selectedShuttle),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF059669),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          child: const Text('⭐ Pass (FREE)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        )
+                      else
+                        ElevatedButton(
+                          onPressed: () => setState(() => _selectedShuttleId = 'vit_general_bus_101'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFD97706),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            elevation: 0,
+                          ),
+                          child: const Text('Switch ₹20', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                         ),
-                      ],
+                    ],
+                  ),
+
+                  // Row 3: Tap to expand stops & crowding
+                  GestureDetector(
+                    onTap: () => setState(() => _isDrawerExpanded = !_isDrawerExpanded),
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Text(
+                        _isDrawerExpanded ? 'Hide stops ▴' : 'Show all stops & crowd info ▾',
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
-                ],
 
-                const SizedBox(height: 10),
-
-                // Crowding Reporting Buttons
-                Row(
-                  children: [
-                    const Text('Crowding:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFDCFCE7),
-                          foregroundColor: const Color(0xFF15803D),
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () => _reportCrowding('Low'),
-                        child: const Text('Low', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                  // Collapsible Section: Stops List & Crowding
+                  if (_isDrawerExpanded) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      height: 52,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: selectedShuttle.stopETAs.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 6),
+                        itemBuilder: (context, i) {
+                          final stop = selectedShuttle.stopETAs[i];
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(stop['stopName'] ?? 'Stop', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white)),
+                                Text(
+                                  '${stop['etaMinutes']} min away',
+                                  style: TextStyle(
+                                    color: selectedShuttle.isFaculty ? const Color(0xFF34D399) : const Color(0xFF38BDF8),
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFEF3C7),
-                          foregroundColor: const Color(0xFFB45309),
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () => _reportCrowding('Moderate'),
-                        child: const Text('Med', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFEE2E2),
-                          foregroundColor: const Color(0xFFB91C1C),
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        ),
-                        onPressed: () => _reportCrowding('Full'),
-                        child: const Text('Full', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Text('Crowd: ', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                        const SizedBox(width: 4),
+                        _buildCrowdChip('Low', '🟢 Low', const Color(0xFF22C55E)),
+                        const SizedBox(width: 4),
+                        _buildCrowdChip('Moderate', '🟡 Med', const Color(0xFFF59E0B)),
+                        const SizedBox(width: 4),
+                        _buildCrowdChip('Full', '🔴 Full', const Color(0xFFEF4444)),
+                      ],
                     ),
                   ],
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -1922,25 +1851,21 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
     );
   }
 
-  Widget _buildFilterTab(String filterKey, String label) {
-    final isSelected = _shuttleFilter == filterKey;
+  Widget _buildCrowdChip(String level, String label, Color color) {
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _shuttleFilter = filterKey),
+        onTap: () => _reportCrowding(level),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 4),
           decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFF0F172A) : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: color.withOpacity(0.18),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: color.withOpacity(0.4)),
           ),
           child: Center(
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: isSelected ? Colors.white : const Color(0xFF64748B),
-              ),
+              style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: color),
             ),
           ),
         ),
@@ -1964,7 +1889,9 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
   bool _isTracking = false;
   StreamSubscription<Position>? _positionStream;
   double _currentSpeed = 0.0;
-  String _coords = "Waiting to start shift...";
+  String _coords = "Ready to start shift";
+  final MapController _mapController = MapController();
+  LatLng _driverLocation = const LatLng(12.9715, 79.1595);
 
   // Selected vehicle for the shift
   String _selectedShuttleType = 'general'; // 'general' or 'faculty'
@@ -2004,7 +1931,9 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
           setState(() {
             _currentSpeed = speedKmH;
             _coords = "${position.latitude.toStringAsFixed(4)}, ${position.longitude.toStringAsFixed(4)}";
+            _driverLocation = LatLng(position.latitude, position.longitude);
           });
+          _mapController.move(_driverLocation, 16.5);
 
           final payload = {
             'type': 'LOCATION_UPDATE',
@@ -2053,189 +1982,233 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
     final isFaculty = _selectedShuttleType == 'faculty';
     final themeColor = isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text('Driver Console', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444), size: 20),
-                onPressed: _logout,
-                tooltip: 'Logout to Role Selection',
-              ),
-            ],
+    return Stack(
+      children: [
+        // 1. Fullscreen Map (covering 100% of viewport)
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _driverLocation,
+            initialZoom: 16.5,
           ),
-
-          const SizedBox(height: 12),
-
-          // Vehicle Type Selector (General Bus ₹20 vs Faculty Free)
-          const Text('Assigned Vehicle Service', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: _isTracking ? null : () => setState(() => _selectedShuttleType = 'general'),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: !isFaculty ? const Color(0xFF0284C7).withOpacity(0.12) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: !isFaculty ? const Color(0xFF0284C7) : const Color(0xFFE2E8F0),
-                        width: !isFaculty ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('🚌 General Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0284C7))),
-                        SizedBox(height: 2),
-                        Text('Fare: ₹20 • For Everyone', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: GestureDetector(
-                  onTap: _isTracking ? null : () => setState(() => _selectedShuttleType = 'faculty'),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isFaculty ? const Color(0xFF059669).withOpacity(0.12) : const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isFaculty ? const Color(0xFF059669) : const Color(0xFFE2E8F0),
-                        width: isFaculty ? 1.5 : 1.0,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text('⭐ Faculty Shuttle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF059669))),
-                        SizedBox(height: 2),
-                        Text('Fare: FREE • Faculty Only', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Operational Guidelines Notice
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isFaculty ? const Color(0xFFECFDF5) : const Color(0xFFF0F9FF),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: isFaculty ? const Color(0xFFA7F3D0) : const Color(0xFFBAE6FD)),
+          children: [
+            TileLayer(
+              urlTemplate: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+              subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
+              userAgentPackageName: 'com.example.shuttle_flutter_app',
+              maxZoom: 20,
             ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline_rounded, size: 16, color: themeColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    isFaculty
-                        ? 'Instruction: Free boarding for faculty members. Verify faculty ID pass.'
-                        : 'Instruction: Collect ₹20 per passenger or verify digital QR ticket.',
-                    style: TextStyle(fontSize: 11, color: themeColor, fontWeight: FontWeight.w600),
+            MarkerLayer(
+              markers: [
+                Marker(
+                  point: _driverLocation,
+                  width: 52,
+                  height: 52,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: themeColor,
+                      border: Border.all(color: Colors.white, width: 3),
+                      boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 10, offset: Offset(0, 3))],
+                    ),
+                    child: Icon(
+                      isFaculty ? Icons.stars_rounded : Icons.directions_bus_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
+          ],
+        ),
 
-          const Spacer(),
-
-          // Speedometer Dial
-          Center(
+        // 2. Ultra-Compact Floating Top Bar
+        Positioned(
+          top: 14,
+          left: 14,
+          right: 14,
+          child: Align(
+            alignment: Alignment.topCenter,
             child: Container(
-              width: 170,
-              height: 170,
+              constraints: const BoxConstraints(maxWidth: 520),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: _isTracking
-                      ? (isFaculty ? [const Color(0xFF059669), const Color(0xFF10B981)] : [const Color(0xFF0284C7), const Color(0xFF38BDF8)])
-                      : [const Color(0xFF64748B), const Color(0xFF475569)],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: (_isTracking ? themeColor : Colors.black).withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  )
+                color: const Color(0xEE0F172A),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white12),
+                boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 14, offset: Offset(0, 4))],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.white),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Driver Console',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _isTracking ? const Color(0x2222C55E) : const Color(0x22EF4444),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: _isTracking ? const Color(0x5522C55E) : const Color(0x55EF4444)),
+                        ),
+                        child: Text(
+                          _isTracking ? 'BROADCASTING' : 'OFFLINE',
+                          style: TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _isTracking ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: const Icon(Icons.logout_rounded, color: Color(0xFFF87171), size: 18),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        onPressed: _logout,
+                        tooltip: 'Logout',
+                      ),
+                    ],
+                  ),
                 ],
+              ),
+            ),
+          ),
+        ),
+
+        // 3. Floating Bottom Controls: Vehicle Selector, Speedometer & Shift Button
+        Positioned(
+          left: 14,
+          right: 14,
+          bottom: 14,
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 500),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xEE0F172A),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white12),
+                boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 20, offset: Offset(0, 6))],
               ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    _currentSpeed.toStringAsFixed(0),
-                    style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Colors.white),
+                  // Vehicle Service Switcher
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _isTracking ? null : () => setState(() => _selectedShuttleType = 'general'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: !isFaculty ? const Color(0xFF0284C7).withOpacity(0.22) : const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: !isFaculty ? const Color(0xFF0284C7) : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text('🚌 General Bus', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF38BDF8))),
+                                Text('₹20', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: _isTracking ? null : () => setState(() => _selectedShuttleType = 'faculty'),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isFaculty ? const Color(0xFF059669).withOpacity(0.22) : const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isFaculty ? const Color(0xFF059669) : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: const [
+                                Text('⭐ Faculty Shuttle', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF34D399))),
+                                Text('FREE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white70)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  const Text('KM / H', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white70)),
+
+                  const SizedBox(height: 12),
+
+                  // Speed & Coordinates row
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: themeColor.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: themeColor),
+                            ),
+                            child: Text(
+                              '${_currentSpeed.toStringAsFixed(0)} KM/H',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: themeColor),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(_coords, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                        ],
+                      ),
+                      ElevatedButton(
+                        onPressed: _toggleTracking,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _isTracking ? const Color(0xFFEF4444) : themeColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          _isTracking ? 'END SHIFT' : 'START SHIFT',
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 20),
-
-          Center(
-            child: Text(
-              _isTracking ? 'BROADCASTING $currentShuttleId'.toUpperCase() : 'DRIVER SHIFT INACTIVE',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-                letterSpacing: 1.0,
-                color: _isTracking ? themeColor : const Color(0xFF64748B),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Center(
-            child: Text(_coords, style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8))),
-          ),
-
-          const Spacer(),
-
-          // Start / End Shift Button
-          ElevatedButton(
-            onPressed: _toggleTracking,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isTracking ? const Color(0xFFEF4444) : themeColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-              elevation: 4,
-            ),
-            child: Text(
-              _isTracking ? 'END DRIVING SHIFT' : 'START DRIVING SHIFT',
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-            ),
-          ),
-          const SizedBox(height: 10),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

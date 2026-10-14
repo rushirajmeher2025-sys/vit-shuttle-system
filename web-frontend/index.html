@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>VIT Shuttle Tracker • Real-Time Campus Transit</title>
   
   <!-- Modern Typography -->
@@ -18,234 +18,159 @@
   <style>
     :root {
       --primary-blue: #0284c7;
-      --primary-blue-dark: #0369a1;
       --primary-emerald: #059669;
-      --primary-emerald-dark: #047857;
       --gold-accent: #f59e0b;
-      --bg-dark: #0f172a;
-      --bg-card: rgba(15, 23, 42, 0.88);
-      --glass-border: rgba(255, 255, 255, 0.12);
+      --bg-glass: rgba(15, 23, 42, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.14);
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     
-    body {
-      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-      height: 100vh;
-      width: 100vw;
-      background: #090d16;
-      color: var(--text-main);
+    html, body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      background: #090d16;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      color: var(--text-main);
     }
 
-    /* 1. Fullscreen Map Layer */
+    /* 1. Fullscreen Map (Fills 100% of Viewport) */
     #map {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       z-index: 1;
     }
 
-    /* Custom Leaflet Controls Placement */
-    .leaflet-control-zoom { display: none; }
+    .leaflet-control-zoom { display: none !important; }
     .leaflet-control-attribution {
-      background: rgba(15, 23, 42, 0.75) !important;
+      background: rgba(15, 23, 42, 0.7) !important;
       color: #94a3b8 !important;
-      font-size: 9px !important;
+      font-size: 8px !important;
       backdrop-filter: blur(8px);
     }
     .leaflet-control-attribution a { color: #38bdf8 !important; }
 
-    /* 2. Floating Top Header & Role Switcher Bar */
+    /* 2. Ultra-Compact Floating Top Bar (Only ~46px high) */
     .top-floating-bar {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      right: 14px;
-      max-width: 520px;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 480px;
       margin: 0 auto;
       z-index: 1000;
+      pointer-events: none;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      pointer-events: none;
+      gap: 6px;
     }
 
-    .glass-header {
+    .glass-nav {
       pointer-events: auto;
-      background: rgba(15, 23, 42, 0.85);
+      background: var(--bg-glass);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--glass-border);
       border-radius: 18px;
-      padding: 10px 14px;
+      padding: 6px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
-    .brand-group {
+    .brand-pill {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 7px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
     }
-
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       background: linear-gradient(135deg, #0284c7, #0369a1);
-      border-radius: 11px;
+      border-radius: 9px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+      font-size: 15px;
     }
 
-    .brand-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.05rem;
-      font-weight: 800;
-      color: #fff;
-      letter-spacing: -0.01em;
-      line-height: 1.1;
+    /* Role Switcher Pills */
+    .role-pills {
+      display: flex;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 2.5px;
+      gap: 2px;
     }
-
-    .brand-subtitle {
+    .role-pill-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
       font-size: 0.72rem;
-      font-weight: 600;
-      color: #38bdf8;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
     }
+    .role-pill-btn.active.student { background: #0284c7; color: white; }
+    .role-pill-btn.active.faculty { background: #059669; color: white; }
+    .role-pill-btn.active.driver { background: #d97706; color: white; }
 
-    /* Live Telemetry Status Pill */
-    .live-status-pill {
-      display: inline-flex;
+    /* Live Pulse Badge */
+    .live-badge {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
-      border-radius: 20px;
+      gap: 5px;
       background: rgba(34, 197, 94, 0.15);
       border: 1px solid rgba(34, 197, 94, 0.4);
       color: #4ade80;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 14px;
     }
-
     .pulse-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: #22c55e;
       animation: pulseGlow 1.6s infinite;
     }
     @keyframes pulseGlow {
       0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-      70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
-    /* Role Selection Segmented Control */
-    .role-segmented-control {
-      pointer-events: auto;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px;
-      padding: 4px;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 4px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    }
-
-    .role-btn {
-      padding: 7px 4px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-    }
-
-    .role-btn.active.student {
-      background: #0284c7;
-      color: white;
-      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.45);
-    }
-
-    .role-btn.active.faculty {
-      background: #059669;
-      color: white;
-      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.45);
-    }
-
-    .role-btn.active.driver {
-      background: #d97706;
-      color: white;
-      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.45);
-    }
-
-    /* Floating Shuttle Category Filter Chips */
-    .filter-chips-row {
-      pointer-events: auto;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 2px;
-    }
-    .filter-chips-row::-webkit-scrollbar { display: none; }
-
-    .chip-btn {
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--glass-border);
-      background: rgba(15, 23, 42, 0.82);
-      backdrop-filter: blur(16px);
-      color: var(--text-muted);
-      font-size: 0.74rem;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    .chip-btn.active {
-      background: #fff;
-      color: #0f172a;
-      border-color: #fff;
-      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
-    }
-
-    /* 3. Floating Map Controls (Zoom + Center) */
+    /* 3. Floating Map Controls (Right Edge) */
     .floating-map-controls {
       position: absolute;
-      right: 14px;
-      bottom: 275px;
+      right: 12px;
+      top: 75px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
-
     .map-btn {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 12px;
-      background: rgba(15, 23, 42, 0.9);
+      background: var(--bg-glass);
       backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       color: white;
@@ -253,7 +178,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
       transition: all 0.2s;
@@ -261,265 +186,244 @@
     .map-btn:hover { background: #1e293b; transform: scale(1.05); }
     .map-btn:active { transform: scale(0.95); }
 
-    /* 4. Bottom Sliding Telemetry & Action Sheet */
-    .bottom-sheet {
+    /* 4. Sleek Compact Floating Bottom Tray (~140px tall, leaves 85%+ screen for map) */
+    .bottom-compact-tray {
       position: absolute;
       bottom: 12px;
       left: 12px;
       right: 12px;
-      max-width: 520px;
+      max-width: 480px;
       margin: 0 auto;
       z-index: 1000;
-      background: rgba(15, 23, 42, 0.92);
+      background: var(--bg-glass);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 16px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 22px;
+      padding: 12px 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* Shuttle Selector Toggle Bar inside Sheet */
-    .shuttle-selector-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .shuttle-card {
-      padding: 10px 12px;
-      border-radius: 14px;
-      border: 1.5px solid transparent;
-      background: rgba(30, 41, 59, 0.7);
-      cursor: pointer;
-      transition: all 0.2s;
+    /* Quick Shuttle Selector Pill Row */
+    .shuttle-quick-selector {
       display: flex;
-      flex-direction: column;
-      gap: 3px;
+      gap: 6px;
+      margin-bottom: 9px;
     }
-    .shuttle-card.active.general {
+
+    .shuttle-select-btn {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 12px;
+      border: 1.5px solid transparent;
+      background: rgba(30, 41, 59, 0.75);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+    .shuttle-select-btn.active.general {
       background: rgba(2, 132, 199, 0.18);
       border-color: #0284c7;
+      color: #38bdf8;
     }
-    .shuttle-card.active.faculty {
+    .shuttle-select-btn.active.faculty {
       background: rgba(5, 150, 105, 0.18);
       border-color: #059669;
+      color: #34d399;
     }
-
-    .shuttle-card-title {
-      font-size: 0.82rem;
+    .shuttle-name-label {
+      font-size: 0.78rem;
       font-weight: 700;
-      color: #fff;
       display: flex;
       align-items: center;
       gap: 5px;
     }
-
-    .fare-tag {
-      align-self: flex-start;
-      font-size: 0.68rem;
+    .shuttle-fare-badge {
+      font-size: 0.65rem;
       font-weight: 800;
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 6px;
-      letter-spacing: 0.02em;
     }
-    .fare-tag.paid { background: #0284c7; color: white; }
-    .fare-tag.free { background: #059669; color: white; }
+    .fare-paid { background: #0284c7; color: white; }
+    .fare-free { background: #059669; color: white; }
 
-    /* Selected Shuttle Telemetry Header */
-    .telemetry-row {
+    /* Live ETA & Speed Snapshot Row */
+    .telemetry-snapshot-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
       margin-bottom: 10px;
     }
+    .next-stop-info {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .stop-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    .next-stop-title { font-size: 0.78rem; font-weight: 700; color: #f1f5f9; }
+    .next-stop-eta { font-size: 0.75rem; font-weight: 800; color: #38bdf8; }
 
-    .telemetry-name {
+    .live-speed-chip {
       font-family: 'Outfit', sans-serif;
-      font-size: 1.1rem;
+      font-size: 0.85rem;
       font-weight: 800;
-      color: #fff;
-    }
-
-    .telemetry-desc {
-      font-size: 0.74rem;
-      font-weight: 600;
-      color: var(--text-muted);
-    }
-
-    .speed-badge {
-      padding: 6px 12px;
-      border-radius: 12px;
+      color: #38bdf8;
       background: rgba(30, 41, 59, 0.9);
       border: 1px solid var(--glass-border);
-      text-align: right;
+      padding: 3px 8px;
+      border-radius: 8px;
     }
-    .speed-val {
-      font-family: 'Outfit', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #38bdf8;
-      line-height: 1;
-    }
-    .speed-unit { font-size: 0.65rem; font-weight: 700; color: #94a3b8; }
+    .live-speed-chip span { font-size: 0.62rem; color: #94a3b8; font-weight: 600; }
 
-    /* Upcoming Stop ETAs Horizontal List */
-    .stop-etas-container {
-      margin-bottom: 12px;
-    }
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: #64748b;
-      margin-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .stop-etas-scroll {
+    /* Main Action Area */
+    .action-row {
       display: flex;
       gap: 8px;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding-bottom: 2px;
     }
-    .stop-etas-scroll::-webkit-scrollbar { display: none; }
-
-    .stop-eta-box {
-      min-width: 125px;
-      padding: 8px 10px;
+    .action-btn {
+      flex: 1;
+      padding: 10px 14px;
       border-radius: 12px;
-      background: rgba(30, 41, 59, 0.6);
-      border: 1px solid var(--glass-border);
-      flex-shrink: 0;
-    }
-    .stop-eta-name {
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: #f1f5f9;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .stop-eta-mins {
-      font-size: 0.78rem;
-      font-weight: 800;
-      color: #38bdf8;
-      margin-top: 2px;
-    }
-    .stop-eta-dist { font-size: 0.68rem; color: #94a3b8; }
-
-    /* Action Buttons */
-    .action-btn-main {
-      width: 100%;
-      padding: 13px;
-      border-radius: 14px;
       border: none;
       font-family: 'Outfit', sans-serif;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       font-weight: 800;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .action-btn-main:active { transform: scale(0.98); }
-    .action-btn-main.blue {
+    .action-btn:active { transform: scale(0.98); }
+    .action-btn.blue {
       background: linear-gradient(135deg, #0284c7, #0369a1);
       color: white;
-      box-shadow: 0 6px 20px rgba(2, 132, 199, 0.4);
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
     }
-    .action-btn-main.emerald {
+    .action-btn.emerald {
       background: linear-gradient(135deg, #059669, #047857);
       color: white;
-      box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
     }
 
-    /* Restriction Alert Notice */
-    .restriction-alert {
-      padding: 10px 12px;
+    .restriction-pill {
+      flex: 1;
+      padding: 7px 10px;
       border-radius: 12px;
-      background: rgba(245, 158, 11, 0.12);
+      background: rgba(245, 158, 11, 0.14);
       border: 1px solid rgba(245, 158, 11, 0.35);
       color: #fbbf24;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 600;
-      line-height: 1.35;
     }
-    .switch-btn-pill {
+    .quick-switch-btn {
       background: #0284c7;
       color: white;
       border: none;
-      padding: 5px 10px;
-      border-radius: 8px;
+      padding: 4px 8px;
+      border-radius: 6px;
       font-weight: 700;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       cursor: pointer;
-      white-space: nowrap;
     }
 
-    /* Crowding Ticker Bar */
+    /* Expand / Collapse Details Drawer */
+    .expand-toggle {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 6px;
+      cursor: pointer;
+      padding: 2px 0;
+      transition: color 0.2s;
+    }
+    .expand-toggle:hover { color: #94a3b8; }
+
+    .drawer-details {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--glass-border);
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .drawer-details.open { display: block; }
+
+    /* Horizontal Stops Scroller inside drawer */
+    .drawer-stops-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-bottom: 8px;
+    }
+    .drawer-stops-scroll::-webkit-scrollbar { display: none; }
+
+    .drawer-stop-box {
+      min-width: 105px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--glass-border);
+      flex-shrink: 0;
+    }
+    .drawer-stop-name { font-size: 0.72rem; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-stop-mins { font-size: 0.74rem; font-weight: 800; color: #38bdf8; margin-top: 1px; }
+
+    /* Crowding Buttons inside drawer */
     .crowding-bar {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 10px;
+      gap: 5px;
     }
-    .crowd-tag { font-size: 0.7rem; font-weight: 700; color: #64748b; }
+    .crowd-tag { font-size: 0.68rem; font-weight: 700; color: #64748b; }
     .crowd-btn {
       flex: 1;
-      padding: 6px;
-      border-radius: 8px;
+      padding: 5px;
+      border-radius: 7px;
       border: none;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       cursor: pointer;
-      transition: all 0.2s;
     }
-    .crowd-low { background: rgba(34, 197, 94, 0.18); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
-    .crowd-med { background: rgba(245, 158, 11, 0.18); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
-    .crowd-full { background: rgba(239, 68, 68, 0.18); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .crowd-btn:active { transform: scale(0.95); }
+    .crowd-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .crowd-med { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .crowd-full { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 
-    /* 5. Driver Console Mode Card (Hidden by default, shown when Driver role active) */
-    .driver-console-view {
+    /* 5. Driver Console Mode */
+    .driver-view {
       display: none;
       text-align: center;
-      padding: 6px 0;
+      padding: 4px 0;
     }
     .speedo-dial {
-      width: 140px;
-      height: 140px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
-      margin: 10px auto;
+      margin: 8px auto;
       background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-      border: 4px solid #d97706;
-      box-shadow: 0 0 25px rgba(217, 119, 6, 0.35);
+      border: 3.5px solid #d97706;
+      box-shadow: 0 0 20px rgba(217, 119, 6, 0.35);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
-    .speedo-num {
-      font-family: 'Outfit', sans-serif;
-      font-size: 2.8rem;
-      font-weight: 800;
-      color: #fff;
-      line-height: 1;
-    }
-    .speedo-unit { font-size: 0.7rem; font-weight: 700; color: #d97706; letter-spacing: 0.08em; }
+    .speedo-num { font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1; }
+    .speedo-unit { font-size: 0.65rem; font-weight: 700; color: #d97706; }
 
-    /* 6. Modals (QR Ticket & VIP Faculty Pass) */
+    /* 6. Modals (QR Ticket & VIP Pass) */
     .modal-backdrop {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -535,96 +439,89 @@
 
     .ticket-card {
       width: 100%;
-      max-width: 360px;
-      border-radius: 24px;
+      max-width: 340px;
+      border-radius: 22px;
       overflow: hidden;
-      animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      animation: modalSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
     }
-    @keyframes modalSlideUp {
-      from { transform: translateY(30px) scale(0.95); opacity: 0; }
+    @keyframes modalSlide {
+      from { transform: translateY(20px) scale(0.96); opacity: 0; }
       to { transform: translateY(0) scale(1); opacity: 1; }
     }
-
     .ticket-header-blue {
       background: linear-gradient(135deg, #0284c7, #0369a1);
-      padding: 20px;
+      padding: 16px;
       color: white;
       text-align: center;
     }
     .ticket-header-emerald {
       background: linear-gradient(135deg, #065f46, #047857);
       border-top: 4px solid #fde047;
-      padding: 20px;
+      padding: 16px;
       color: white;
       text-align: center;
     }
-
     .ticket-body {
       background: #1e293b;
-      padding: 20px;
+      padding: 18px;
       text-align: center;
       border-top: 2px dashed rgba(255, 255, 255, 0.15);
     }
-
     .qr-mock-box {
-      width: 130px;
-      height: 130px;
+      width: 120px;
+      height: 120px;
       background: white;
-      border-radius: 14px;
-      margin: 12px auto;
+      border-radius: 12px;
+      margin: 10px auto;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       color: #0f172a;
-      padding: 8px;
     }
-
     .modal-close-btn {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 11px;
+      border-radius: 11px;
       border: none;
       background: rgba(255, 255, 255, 0.1);
       color: white;
       font-weight: 700;
       cursor: pointer;
-      margin-top: 14px;
+      margin-top: 12px;
     }
-    .modal-close-btn:hover { background: rgba(255, 255, 255, 0.2); }
 
     /* Map Markers */
     .bus-marker-node {
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 19px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+      font-size: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
       transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .bus-marker-node.general {
       background: linear-gradient(135deg, #0284c7, #0369a1);
-      border: 2.5px solid white;
+      border: 2px solid white;
     }
     .bus-marker-node.faculty {
       background: linear-gradient(135deg, #059669, #047857);
-      border: 2.5px solid #fde047;
+      border: 2px solid #fde047;
     }
-
     .bus-marker-pill {
       position: absolute;
-      top: -20px;
+      top: -18px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 2px 7px;
-      border-radius: 6px;
+      padding: 1.5px 6px;
+      border-radius: 5px;
       background: #0f172a;
       color: #fff;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 800;
       white-space: nowrap;
       border: 1px solid rgba(255, 255, 255, 0.2);
@@ -633,132 +530,113 @@
 </head>
 <body>
 
-  <!-- 1. Fullscreen Map -->
+  <!-- 1. FULLSCREEN CAMPUS MAP (85%+ Dominant Area) -->
   <div id="map"></div>
 
-  <!-- 2. Floating Top Header & Role Switcher -->
+  <!-- 2. ULTRA-COMPACT FLOATING TOP BAR (~46px) -->
   <div class="top-floating-bar">
-    <div class="glass-header">
-      <div class="brand-group">
+    <div class="glass-nav">
+      <div class="brand-pill">
         <div class="brand-icon">🚌</div>
-        <div>
-          <div class="brand-title">VIT Shuttle</div>
-          <div class="brand-subtitle" id="portal-subtitle">Student Portal • Vellore Campus</div>
-        </div>
+        <span>VIT Shuttle</span>
       </div>
-      <div class="live-status-pill">
+
+      <!-- Quick Role Switcher -->
+      <div class="role-pills">
+        <button id="role-student" class="role-pill-btn active student" onclick="switchRole('student')">Student</button>
+        <button id="role-faculty" class="role-pill-btn faculty" onclick="switchRole('faculty')">Faculty</button>
+        <button id="role-driver" class="role-pill-btn driver" onclick="switchRole('driver')">Driver</button>
+      </div>
+
+      <!-- Live Indicator -->
+      <div class="live-badge">
         <span class="pulse-dot"></span>
-        <span id="live-text">LIVE FLEET</span>
+        <span>LIVE</span>
       </div>
-    </div>
-
-    <!-- Role Switcher -->
-    <div class="role-segmented-control">
-      <button id="role-btn-student" class="role-btn active student" onclick="switchRole('student')">
-        🎓 Student
-      </button>
-      <button id="role-btn-faculty" class="role-btn faculty" onclick="switchRole('faculty')">
-        🏛️ Faculty
-      </button>
-      <button id="role-btn-driver" class="role-btn driver" onclick="switchRole('driver')">
-        🚘 Driver
-      </button>
-    </div>
-
-    <!-- Filter Chips Row (Visible in Student/Faculty mode) -->
-    <div id="filter-row" class="filter-chips-row">
-      <button id="chip-all" class="chip-btn active" onclick="setShuttleFilter('all')">All Fleet (2)</button>
-      <button id="chip-general" class="chip-btn" onclick="setShuttleFilter('general')">🚌 General (₹20)</button>
-      <button id="chip-faculty" class="chip-btn" onclick="setShuttleFilter('faculty')">⭐ Faculty (Free)</button>
     </div>
   </div>
 
-  <!-- 3. Floating Map Controls (Zoom In, Zoom Out, Recenter) -->
+  <!-- 3. FLOATING MAP CONTROLS -->
   <div class="floating-map-controls">
     <div class="map-btn" onclick="zoomIn()" title="Zoom In">+</div>
     <div class="map-btn" onclick="zoomOut()" title="Zoom Out">−</div>
-    <div class="map-btn" onclick="centerOnShuttle()" title="Center Shuttle" style="color: #38bdf8; font-size: 15px;">📍</div>
+    <div class="map-btn" onclick="centerOnShuttle()" title="Center Shuttle" style="color:#38bdf8; font-size:14px;">📍</div>
   </div>
 
-  <!-- 4. Bottom Sliding Telemetry & Action Sheet -->
-  <div class="bottom-sheet">
+  <!-- 4. SLEEK COMPACT BOTTOM TRAY (Leaves 85%+ visible map space) -->
+  <div class="bottom-compact-tray">
     
     <!-- PASSENGER VIEW (Student & Faculty) -->
     <div id="passenger-view">
-      <!-- Shuttle Selector Cards -->
-      <div class="shuttle-selector-cards">
-        <div id="card-general" class="shuttle-card active general" onclick="selectShuttle('vit_general_bus_101')">
-          <div class="shuttle-card-title">🚌 General Bus</div>
-          <span class="fare-tag paid">₹20 • Everyone</span>
-        </div>
-        <div id="card-faculty" class="shuttle-card faculty" onclick="selectShuttle('vit_faculty_shuttle_201')">
-          <div class="shuttle-card-title">⭐ Faculty Shuttle</div>
-          <span class="fare-tag free">FREE • Faculty Only</span>
-        </div>
+      <!-- 1. Quick Shuttle Switcher -->
+      <div class="shuttle-quick-selector">
+        <button id="btn-general" class="shuttle-select-btn active general" onclick="selectShuttle('vit_general_bus_101')">
+          <span class="shuttle-name-label">🚌 General Bus</span>
+          <span class="shuttle-fare-badge fare-paid">₹20</span>
+        </button>
+        <button id="btn-faculty" class="shuttle-select-btn faculty" onclick="selectShuttle('vit_faculty_shuttle_201')">
+          <span class="shuttle-name-label">⭐ Faculty Shuttle</span>
+          <span class="shuttle-fare-badge fare-free">FREE</span>
+        </button>
       </div>
 
-      <!-- Live Telemetry Row -->
-      <div class="telemetry-row">
-        <div>
-          <div class="telemetry-name" id="shuttle-name">General Campus Bus #101</div>
-          <div class="telemetry-desc" id="shuttle-desc">Standard Campus Shuttle • Open for Everyone</div>
-        </div>
-        <div class="speed-badge">
-          <div class="speed-val" id="shuttle-speed">21.8</div>
-          <div class="speed-unit">KM / H</div>
-        </div>
-      </div>
-
-      <!-- Upcoming Stop ETAs -->
-      <div class="stop-etas-container">
-        <div class="section-label">
-          <span>Upcoming Stop ETAs</span>
-          <span style="color: #38bdf8;">Next 15 Mins</span>
-        </div>
-        <div class="stop-etas-scroll" id="eta-scroll-list">
-          <div class="stop-eta-box">
-            <div class="stop-eta-name">MB (Main Bldg)</div>
-            <div class="stop-eta-mins">2 min away</div>
-            <div class="stop-eta-dist">0.4 km</div>
-          </div>
-          <div class="stop-eta-box">
-            <div class="stop-eta-name">SJT Tower</div>
-            <div class="stop-eta-mins">5 min away</div>
-            <div class="stop-eta-dist">1.1 km</div>
-          </div>
-          <div class="stop-eta-box">
-            <div class="stop-eta-name">Men's Hostel</div>
-            <div class="stop-eta-mins">8 min away</div>
-            <div class="stop-eta-dist">1.9 km</div>
+      <!-- 2. Live Telemetry & Speed Snapshot -->
+      <div class="telemetry-snapshot-row">
+        <div class="next-stop-info">
+          <div class="stop-dot"></div>
+          <div>
+            <span class="next-stop-title" id="next-stop-label">Next: MB (Main Bldg)</span>
+            <span class="next-stop-eta" id="next-stop-mins">• 2 min</span>
           </div>
         </div>
+        <div class="live-speed-chip" id="speed-chip">
+          <span id="speed-val">22</span> <span>KM/H</span>
+        </div>
       </div>
 
-      <!-- Action Area: Ticket / Faculty Pass / Restriction -->
-      <div id="action-container">
-        <!-- Dynamically injected based on selected shuttle & role -->
+      <!-- 3. Instant Action Row: Ticket / VIP Pass / Restriction -->
+      <div class="action-row" id="action-row-content">
+        <!-- Injected dynamically -->
       </div>
 
-      <!-- Crowding Feedback Row -->
-      <div class="crowding-bar">
-        <span class="crowd-tag">Crowding:</span>
-        <button class="crowd-btn crowd-low" onclick="reportCrowd('Low')">🟢 Low</button>
-        <button class="crowd-btn crowd-med" onclick="reportCrowd('Moderate')">🟡 Med</button>
-        <button class="crowd-btn crowd-full" onclick="reportCrowd('Full')">🔴 Full</button>
+      <!-- 4. Tap to Expand / Collapse Drawer -->
+      <div class="expand-toggle" onclick="toggleDetailsDrawer()">
+        <span id="drawer-toggle-text">Show all upcoming stops & crowding ▾</span>
+      </div>
+
+      <!-- 5. Collapsible Details Drawer -->
+      <div class="drawer-details" id="details-drawer">
+        <div class="drawer-stops-scroll" id="drawer-stops-list">
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">MB (Main Bldg)</div>
+            <div class="drawer-stop-mins">2 min</div>
+          </div>
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">SJT Tower</div>
+            <div class="drawer-stop-mins">5 min</div>
+          </div>
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">Men's Hostel</div>
+            <div class="drawer-stop-mins">8 min</div>
+          </div>
+        </div>
+        <div class="crowding-bar">
+          <span class="crowd-tag">Crowd:</span>
+          <button class="crowd-btn crowd-low" onclick="reportCrowd('Low')">🟢 Low</button>
+          <button class="crowd-btn crowd-med" onclick="reportCrowd('Moderate')">🟡 Med</button>
+          <button class="crowd-btn crowd-full" onclick="reportCrowd('Full')">🔴 Full</button>
+        </div>
       </div>
     </div>
 
     <!-- DRIVER CONSOLE VIEW -->
-    <div id="driver-view" class="driver-console-view">
-      <div class="telemetry-desc" style="color: #d97706; font-weight: 700;">BROADCASTING LIVE DRIVER SHIFT</div>
+    <div id="driver-view" class="driver-view">
+      <div style="font-size:0.75rem; font-weight:700; color:#d97706;">ACTIVE DRIVING SHIFT</div>
       <div class="speedo-dial">
         <div class="speedo-num" id="driver-speed">22</div>
         <div class="speedo-unit">KM / H</div>
       </div>
-      <div id="driver-instruction" style="font-size: 0.76rem; color: #cbd5e1; margin-bottom: 12px;">
-        Operating: <strong>General Campus Bus #101</strong> (Fare: ₹20 / passenger)
-      </div>
-      <button class="action-btn-main" style="background: #ef4444; color: white;" onclick="switchRole('student')">
+      <button class="action-btn" style="background:#ef4444; color:white; width:100%; margin-top:6px;" onclick="switchRole('student')">
         End Driving Shift
       </button>
     </div>
@@ -778,13 +656,12 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 1. Initialize Map centered on VIT Vellore Campus
+    // Initialize Map with Google Maps Road Tiles
     const map = L.map('map', {
       zoomControl: false,
       tap: false
-    }).setView([12.9715, 79.1595], 16);
+    }).setView([12.9715, 79.1595], 16.2);
 
-    // Google Maps Crisp Road Tiles (Clean, fast, no watermarks)
     L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
       subdomains: ['0', '1', '2', '3'],
       maxZoom: 20,
@@ -793,7 +670,7 @@
 
     let currentRole = 'student'; // 'student', 'faculty', 'driver'
     let selectedShuttleId = 'vit_general_bus_101';
-    let currentFilter = 'all';
+    let isDrawerOpen = false;
 
     let campusStops = [
       { id: 1, name: 'Main Gate', lat: 12.9692, lng: 79.1559 },
@@ -827,38 +704,35 @@
     };
 
     let shuttleMarkers = {};
-    let ws = null;
     let fallbackSimulatorTimer = null;
 
-    // 2. Load Stops & Routes
+    // Load Stops & Routes
     async function loadCampusData() {
       try {
         const { data: stops } = await supabaseClient.from('stops').select('*');
         if (stops && stops.length > 0) campusStops = stops;
       } catch (e) {}
 
-      // Add Stop Markers with custom white pill
       campusStops.forEach(stop => {
         const stopIcon = L.divIcon({
           className: 'custom-stop-marker',
-          html: `<div style="background:white; color:#0f172a; font-size:10px; font-weight:800; padding:2px 7px; border-radius:10px; border:1px solid #0f172a; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap; transform:translate(-50%, -24px); text-align:center;">
+          html: `<div style="background:white; color:#0f172a; font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:8px; border:1px solid #0f172a; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap; transform:translate(-50%, -22px); text-align:center;">
             ${stop.name}
-            <div style="width:10px; height:10px; background:#ef4444; border:2px solid white; border-radius:50%; margin:1px auto 0 auto;"></div>
+            <div style="width:8px; height:8px; background:#ef4444; border:2px solid white; border-radius:50%; margin:1px auto 0 auto;"></div>
           </div>`,
           iconSize: [0, 0]
         });
         L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map);
       });
 
-      // Fetch official transit polyline routes
       try {
         const { data: routes } = await supabaseClient.from('routes').select('*');
         if (routes) {
           routes.forEach(route => {
             if (Array.isArray(route.points) && route.points.length > 0) {
               const latlngs = route.points.map(p => [p.lat, p.lng]);
-              L.polyline(latlngs, { color: 'white', weight: 6, opacity: 0.8 }).addTo(map);
-              L.polyline(latlngs, { color: route.color || '#0284c7', weight: 4, opacity: 0.9 }).addTo(map);
+              L.polyline(latlngs, { color: 'white', weight: 5.5, opacity: 0.85 }).addTo(map);
+              L.polyline(latlngs, { color: route.color || '#0284c7', weight: 3.5, opacity: 0.95 }).addTo(map);
             }
           });
         }
@@ -882,21 +756,8 @@
       };
     }
 
-    // 3. Marker & Telemetry Updates
     function updateMarker(shuttle) {
       const isFaculty = shuttle.shuttleType === 'faculty';
-      const shouldShow = currentFilter === 'all' || 
-                         (currentFilter === 'general' && !isFaculty) ||
-                         (currentFilter === 'faculty' && isFaculty);
-
-      if (!shouldShow) {
-        if (shuttleMarkers[shuttle.shuttleId]) {
-          map.removeLayer(shuttleMarkers[shuttle.shuttleId]);
-          delete shuttleMarkers[shuttle.shuttleId];
-        }
-        return;
-      }
-
       const pillText = isFaculty ? 'FACULTY • FREE' : 'BUS 101 • ₹20';
       const markerClass = isFaculty ? 'bus-marker-node faculty' : 'bus-marker-node general';
       const iconContent = isFaculty ? '⭐' : '🚌';
@@ -907,8 +768,8 @@
           <div class="bus-marker-pill">${pillText}</div>
           ${iconContent}
         </div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
       });
 
       if (!shuttleMarkers[shuttle.shuttleId]) {
@@ -922,115 +783,92 @@
 
     function selectShuttle(shuttleId) {
       selectedShuttleId = shuttleId;
-      document.getElementById('card-general').classList.toggle('active', shuttleId === 'vit_general_bus_101');
-      document.getElementById('card-faculty').classList.toggle('active', shuttleId === 'vit_faculty_shuttle_201');
+      document.getElementById('btn-general').classList.toggle('active', shuttleId === 'vit_general_bus_101');
+      document.getElementById('btn-faculty').classList.toggle('active', shuttleId === 'vit_faculty_shuttle_201');
       
       const shuttle = activeShuttles[shuttleId];
       if (shuttle) {
-        updateBottomCard(shuttle);
-        map.panTo([shuttle.lat, shuttle.lng], { animate: true, duration: 0.5 });
+        updateBottomTray(shuttle);
+        map.panTo([shuttle.lat, shuttle.lng], { animate: true, duration: 0.4 });
       }
     }
 
-    function updateBottomCard(shuttle) {
+    function updateBottomTray(shuttle) {
       const isFaculty = shuttle.shuttleType === 'faculty';
-      document.getElementById('shuttle-name').textContent = shuttle.name;
-      document.getElementById('shuttle-desc').textContent = isFaculty
-        ? 'VIP Academic Fleet • Strictly Verified Faculty Only'
-        : 'General Campus Service • Open for Students, Staff & Guests';
-      document.getElementById('shuttle-speed').textContent = (shuttle.speed || 21.0).toFixed(1);
+      document.getElementById('speed-val').textContent = Math.round(shuttle.speed || 21);
 
-      // Render Stop ETAs
-      const stopETAs = (shuttle.stopETAs && shuttle.stopETAs.length > 0)
-        ? shuttle.stopETAs
-        : campusStops.map(stop => {
-            const eta = calculateETA(shuttle.lat, shuttle.lng, stop.lat, stop.lng, shuttle.speed);
-            return { stopName: stop.name, etaMinutes: eta.etaMinutes, distanceKm: eta.distanceKm };
-          });
+      // Stop ETAs
+      const stopETAs = campusStops.map(stop => {
+        const eta = calculateETA(shuttle.lat, shuttle.lng, stop.lat, stop.lng, shuttle.speed);
+        return { stopName: stop.name, etaMinutes: eta.etaMinutes, distanceKm: eta.distanceKm };
+      }).sort((a, b) => a.etaMinutes - b.etaMinutes);
 
-      const etaScroll = document.getElementById('eta-scroll-list');
-      etaScroll.innerHTML = stopETAs.map(stop => `
-        <div class="stop-eta-box">
-          <div class="stop-eta-name">${stop.stopName}</div>
-          <div class="stop-eta-mins" style="color:${isFaculty ? '#34d399' : '#38bdf8'}">${stop.etaMinutes} min away</div>
-          <div class="stop-eta-dist">${stop.distanceKm} km</div>
+      const nextStop = stopETAs[0];
+      if (nextStop) {
+        document.getElementById('next-stop-label').textContent = `Next: ${nextStop.stopName}`;
+        document.getElementById('next-stop-mins').textContent = `• ${nextStop.etaMinutes} min away`;
+      }
+
+      // Update Drawer stops scroll
+      const drawerList = document.getElementById('drawer-stops-list');
+      drawerList.innerHTML = stopETAs.map(s => `
+        <div class="drawer-stop-box">
+          <div class="drawer-stop-name">${s.stopName}</div>
+          <div class="drawer-stop-mins" style="color:${isFaculty ? '#34d399' : '#38bdf8'}">${s.etaMinutes} min</div>
         </div>
       `).join('');
 
-      // Update Action Area based on Persona & Shuttle Category
-      const actionArea = document.getElementById('action-container');
-      
+      // Update Action Row
+      const actionRow = document.getElementById('action-row-content');
       if (!isFaculty) {
-        // General Bus: Everyone can book ₹20 ticket
-        actionArea.innerHTML = `
-          <button class="action-btn-main blue" onclick="openTicketModal('general')">
-            🎫 Book / Pay Ticket (₹20)
+        actionRow.innerHTML = `
+          <button class="action-btn blue" onclick="openTicketModal('general')">
+            🎫 Book Ticket (₹20)
           </button>
         `;
       } else if (currentRole === 'faculty') {
-        // Faculty Shuttle & User IS Faculty: FREE PASS
-        actionArea.innerHTML = `
-          <button class="action-btn-main emerald" onclick="openTicketModal('faculty')">
-            ⭐ Show Faculty VIP Pass (FREE)
+        actionRow.innerHTML = `
+          <button class="action-btn emerald" onclick="openTicketModal('faculty')">
+            ⭐ Show Faculty Pass (FREE)
           </button>
         `;
       } else {
-        // Faculty Shuttle but User is STUDENT: Restriction Warning
-        actionArea.innerHTML = `
-          <div class="restriction-alert">
-            <div>
-              <strong>⚠️ Faculty-Only Service</strong><br>
-              Free for faculty. Students must board General Bus (₹20).
-            </div>
-            <button class="switch-btn-pill" onclick="selectShuttle('vit_general_bus_101')">Switch</button>
+        actionRow.innerHTML = `
+          <div class="restriction-pill">
+            <span>⚠️ Faculty Only • Free</span>
+            <button class="quick-switch-btn" onclick="selectShuttle('vit_general_bus_101')">Switch ₹20</button>
           </div>
         `;
       }
     }
 
-    // 4. Role Switcher Logic (Student, Faculty, Driver)
+    function toggleDetailsDrawer() {
+      isDrawerOpen = !isDrawerOpen;
+      document.getElementById('details-drawer').classList.toggle('open', isDrawerOpen);
+      document.getElementById('drawer-toggle-text').textContent = isDrawerOpen
+        ? 'Hide details ▴'
+        : 'Show all upcoming stops & crowding ▾';
+    }
+
     function switchRole(role) {
       currentRole = role;
-      document.getElementById('role-btn-student').className = `role-btn ${role === 'student' ? 'active student' : ''}`;
-      document.getElementById('role-btn-faculty').className = `role-btn ${role === 'faculty' ? 'active faculty' : ''}`;
-      document.getElementById('role-btn-driver').className = `role-btn ${role === 'driver' ? 'active driver' : ''}`;
+      document.getElementById('role-student').className = `role-pill-btn ${role === 'student' ? 'active student' : ''}`;
+      document.getElementById('role-faculty').className = `role-pill-btn ${role === 'faculty' ? 'active faculty' : ''}`;
+      document.getElementById('role-driver').className = `role-pill-btn ${role === 'driver' ? 'active driver' : ''}`;
 
-      const subtitle = document.getElementById('portal-subtitle');
       const passView = document.getElementById('passenger-view');
       const driverView = document.getElementById('driver-view');
-      const filterRow = document.getElementById('filter-row');
 
-      if (role === 'student') {
-        subtitle.textContent = 'Student Portal • Vellore Campus';
-        passView.style.display = 'block';
-        driverView.style.display = 'none';
-        filterRow.style.display = 'flex';
-        selectShuttle('vit_general_bus_101');
-      } else if (role === 'faculty') {
-        subtitle.textContent = 'Faculty Portal • VIP Access';
-        passView.style.display = 'block';
-        driverView.style.display = 'none';
-        filterRow.style.display = 'flex';
-        selectShuttle('vit_faculty_shuttle_201');
-      } else if (role === 'driver') {
-        subtitle.textContent = 'Driver Console • Shift Active';
+      if (role === 'driver') {
         passView.style.display = 'none';
         driverView.style.display = 'block';
-        filterRow.style.display = 'none';
-        centerOnShuttle();
+      } else {
+        passView.style.display = 'block';
+        driverView.style.display = 'none';
+        selectShuttle(role === 'faculty' ? 'vit_faculty_shuttle_201' : 'vit_general_bus_101');
       }
     }
 
-    function setShuttleFilter(filter) {
-      currentFilter = filter;
-      document.getElementById('chip-all').classList.toggle('active', filter === 'all');
-      document.getElementById('chip-general').classList.toggle('active', filter === 'general');
-      document.getElementById('chip-faculty').classList.toggle('active', filter === 'faculty');
-
-      Object.values(activeShuttles).forEach(s => updateMarker(s));
-    }
-
-    // 5. Map Controls
     function zoomIn() { map.zoomIn(); }
     function zoomOut() { map.zoomOut(); }
     function centerOnShuttle() {
@@ -1038,7 +876,6 @@
       if (s) map.setView([s.lat, s.lng], 16.5, { animate: true });
     }
 
-    // 6. Modal Logic: Digital Boarding Pass & Faculty VIP Pass
     function openTicketModal(type) {
       const modal = document.getElementById('ticket-modal');
       const content = document.getElementById('ticket-card-content');
@@ -1048,38 +885,37 @@
       if (type === 'general') {
         content.innerHTML = `
           <div class="ticket-header-blue">
-            <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.08em; opacity:0.85;">VIT VELLORE TRANSIT</div>
-            <div style="font-family:'Outfit'; font-size:1.35rem; font-weight:800; margin:4px 0;">DIGITAL BOARDING PASS</div>
-            <div style="display:inline-block; background:#22c55e; color:white; font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:12px;">PAID ₹20.00</div>
+            <div style="font-size:0.75rem; font-weight:800; opacity:0.85;">VIT VELLORE TRANSIT</div>
+            <div style="font-family:'Outfit'; font-size:1.3rem; font-weight:800; margin:3px 0;">DIGITAL PASS</div>
+            <div style="display:inline-block; background:#22c55e; color:white; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:10px;">PAID ₹20.00</div>
           </div>
           <div class="ticket-body">
-            <div style="font-weight:700; color:white; font-size:0.95rem;">General Campus Bus #101</div>
-            <div style="font-size:0.76rem; color:#94a3b8;">Single Ride Pass • Valid for 45 Mins</div>
+            <div style="font-weight:700; color:white; font-size:0.9rem;">General Campus Bus #101</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">Single Ride Pass • Valid 45 Mins</div>
             <div class="qr-mock-box">
-              <div style="font-size:46px;">🏁</div>
-              <div style="font-size:0.72rem; font-weight:800; color:#0f172a; margin-top:2px;">${randomTkt}</div>
+              <div style="font-size:42px;">🏁</div>
+              <div style="font-size:0.7rem; font-weight:800; color:#0f172a;">${randomTkt}</div>
             </div>
-            <div style="font-size:0.76rem; color:#4ade80; font-weight:700;">● Active • Boarding Verified</div>
-            <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">Issued at ${timeStr}</div>
+            <div style="font-size:0.74rem; color:#4ade80; font-weight:700;">● Active • Boarding Verified</div>
+            <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">Issued at ${timeStr}</div>
             <button class="modal-close-btn" onclick="closeModal()">Done / Close</button>
           </div>
         `;
       } else {
         content.innerHTML = `
           <div class="ticket-header-emerald">
-            <div style="font-size:0.75rem; font-weight:800; letter-spacing:0.08em; color:#fde047;">VIP PRIVILEGE ACCESS</div>
-            <div style="font-family:'Outfit'; font-size:1.35rem; font-weight:800; margin:4px 0;">FACULTY VIP PASS</div>
-            <div style="display:inline-block; background:#fde047; color:#065f46; font-size:0.75rem; font-weight:800; padding:3px 10px; border-radius:12px;">FREE (₹0)</div>
+            <div style="font-size:0.75rem; font-weight:800; color:#fde047;">VIP ACCESS</div>
+            <div style="font-family:'Outfit'; font-size:1.3rem; font-weight:800; margin:3px 0;">FACULTY VIP PASS</div>
+            <div style="display:inline-block; background:#fde047; color:#065f46; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:10px;">FREE (₹0)</div>
           </div>
           <div class="ticket-body">
-            <div style="font-weight:700; color:white; font-size:0.95rem;">Faculty Exclusive Shuttle #201</div>
-            <div style="font-size:0.76rem; color:#34d399;">VIT Academic Faculty Member Pass</div>
+            <div style="font-weight:700; color:white; font-size:0.9rem;">Faculty Exclusive Shuttle #201</div>
+            <div style="font-size:0.72rem; color:#34d399;">Academic Faculty Member Pass</div>
             <div class="qr-mock-box" style="border:2px solid #059669;">
-              <div style="font-size:46px;">⭐</div>
-              <div style="font-size:0.72rem; font-weight:800; color:#059669; margin-top:2px;">FACULTY VERIFIED</div>
+              <div style="font-size:42px;">⭐</div>
+              <div style="font-size:0.7rem; font-weight:800; color:#059669;">FACULTY VERIFIED</div>
             </div>
-            <div style="font-size:0.76rem; color:#fde047; font-weight:700;">● Official Free Transit Clearance</div>
-            <div style="font-size:0.72rem; color:#64748b; margin-top:2px;">Valid across all campus zones</div>
+            <div style="font-size:0.74rem; color:#fde047; font-weight:700;">● Official Free Transit Clearance</div>
             <button class="modal-close-btn" onclick="closeModal()">Done / Close</button>
           </div>
         `;
@@ -1098,7 +934,7 @@
       alert(`Reported ${lvl} crowding level for ${activeShuttles[selectedShuttleId].name}!`);
     }
 
-    // 7. Campus GPS Simulation (Auto-running on Vercel)
+    // Campus GPS Simulation
     const generalWaypoints = [
       { lat: 12.9692, lng: 79.1559 },
       { lat: 12.9698, lng: 79.1588 },
@@ -1135,15 +971,9 @@
         }
         const p1G = generalWaypoints[genIdx];
         const p2G = generalWaypoints[(genIdx + 1) % generalWaypoints.length];
-        const genPos = {
-          lat: p1G.lat + (p2G.lat - p1G.lat) * genProg,
-          lng: p1G.lng + (p2G.lng - p1G.lng) * genProg
-        };
-        const genSpeed = 21.0 + Math.random() * 2.5;
-
-        activeShuttles['vit_general_bus_101'].lat = genPos.lat;
-        activeShuttles['vit_general_bus_101'].lng = genPos.lng;
-        activeShuttles['vit_general_bus_101'].speed = genSpeed;
+        activeShuttles['vit_general_bus_101'].lat = p1G.lat + (p2G.lat - p1G.lat) * genProg;
+        activeShuttles['vit_general_bus_101'].lng = p1G.lng + (p2G.lng - p1G.lng) * genProg;
+        activeShuttles['vit_general_bus_101'].speed = 21.0 + Math.random() * 2;
         updateMarker(activeShuttles['vit_general_bus_101']);
 
         // Step Faculty Shuttle
@@ -1154,31 +984,22 @@
         }
         const p1F = facultyWaypoints[facIdx];
         const p2F = facultyWaypoints[(facIdx + 1) % facultyWaypoints.length];
-        const facPos = {
-          lat: p1F.lat + (p2F.lat - p1F.lat) * facProg,
-          lng: p1F.lng + (p2F.lng - p1F.lng) * facProg
-        };
-        const facSpeed = 19.0 + Math.random() * 2.0;
-
-        activeShuttles['vit_faculty_shuttle_201'].lat = facPos.lat;
-        activeShuttles['vit_faculty_shuttle_201'].lng = facPos.lng;
-        activeShuttles['vit_faculty_shuttle_201'].speed = facSpeed;
+        activeShuttles['vit_faculty_shuttle_201'].lat = p1F.lat + (p2F.lat - p1F.lat) * facProg;
+        activeShuttles['vit_faculty_shuttle_201'].lng = p1F.lng + (p2F.lng - p1F.lng) * facProg;
+        activeShuttles['vit_faculty_shuttle_201'].speed = 19.0 + Math.random() * 2;
         updateMarker(activeShuttles['vit_faculty_shuttle_201']);
 
-        // Update selected card
-        updateBottomCard(activeShuttles[selectedShuttleId]);
+        updateBottomTray(activeShuttles[selectedShuttleId]);
 
-        // If driver view active, update dial
         if (currentRole === 'driver') {
           document.getElementById('driver-speed').textContent = Math.round(activeShuttles[selectedShuttleId].speed);
         }
       }, 2000);
     }
 
-    // Initialize display and start simulation
     updateMarker(activeShuttles['vit_general_bus_101']);
     updateMarker(activeShuttles['vit_faculty_shuttle_201']);
-    updateBottomCard(activeShuttles['vit_general_bus_101']);
+    updateBottomTray(activeShuttles['vit_general_bus_101']);
     startLiveSimulator();
   </script>
 </body>
