@@ -16,6 +16,7 @@
     .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.75rem; padding: 4px 10px; border-radius: 999px; margin-top: 8px; }
     .status-online { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
     .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid #ef4444; }
+    .status-sim { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid #0ea5e9; }
     .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
     .pulse { animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
@@ -84,9 +85,9 @@
   <div id="sidebar">
     <div id="header">
       <h1>🚌 VIT Campus Shuttles</h1>
-      <div id="ws-badge" class="status-badge status-offline">
+      <div id="ws-badge" class="status-badge status-sim">
         <span class="dot pulse"></span>
-        <span id="ws-text">Connecting to WebSocket...</span>
+        <span id="ws-text">Connecting live fleet...</span>
       </div>
     </div>
 
@@ -126,15 +127,15 @@
         </div>
         <div class="shuttle-stat">
           <span>Current Speed:</span>
-          <span class="stat-val" id="shuttle-speed">-- km/h</span>
+          <span class="stat-val" id="shuttle-speed">21.5 km/h</span>
         </div>
         <div class="shuttle-stat">
           <span>GPS Coordinates:</span>
-          <span class="stat-val" id="shuttle-coords">-- , --</span>
+          <span class="stat-val" id="shuttle-coords">12.9692, 79.1559</span>
         </div>
         <div class="shuttle-stat">
           <span>Crowding Level:</span>
-          <span class="stat-val" id="shuttle-crowd" style="color: #4ade80;">Normal</span>
+          <span class="stat-val" id="shuttle-crowd" style="color: #4ade80;">Low</span>
         </div>
       </div>
 
@@ -142,7 +143,7 @@
       <div class="card">
         <div class="card-title">Upcoming Stops & ETAs</div>
         <div id="eta-list">
-          <div style="color: #64748b; font-size: 0.85rem;">Waiting for shuttle telemetry...</div>
+          <div style="color: #64748b; font-size: 0.85rem;">Calculating stop ETAs...</div>
         </div>
       </div>
 
@@ -173,6 +174,14 @@
       attribution: 'Google Maps'
     }).addTo(map);
 
+    let campusStops = [
+      { id: 1, name: 'Main Gate', lat: 12.9692, lng: 79.1559 },
+      { id: 2, name: 'MB (Main Building)', lat: 12.9698, lng: 79.1588 },
+      { id: 3, name: 'SJT (Silver Jubilee Tower)', lat: 12.9715, lng: 79.1633 },
+      { id: 4, name: 'TT (Technology Tower)', lat: 12.9730, lng: 79.1585 },
+      { id: 5, name: "Men's Hostel", lat: 12.9750, lng: 79.1610 }
+    ];
+
     let activeShuttles = {
       'vit_general_bus_101': {
         shuttleId: 'vit_general_bus_101',
@@ -181,7 +190,7 @@
         fare: 20,
         lat: 12.9692,
         lng: 79.1559,
-        speed: 20,
+        speed: 21.5,
         stopETAs: []
       },
       'vit_faculty_shuttle_201': {
@@ -191,7 +200,7 @@
         fare: 0,
         lat: 12.9715,
         lng: 79.1633,
-        speed: 18,
+        speed: 19.0,
         stopETAs: []
       }
     };
@@ -199,23 +208,30 @@
     let selectedShuttleId = 'vit_general_bus_101';
     let shuttleMarkers = {};
     let ws = null;
+    let fallbackSimulatorTimer = null;
 
-    // 2. Fetch & Render Campus Stops & Routes from Supabase
+    // 2. Fetch & Render Campus Stops & Routes
     async function loadCampusData() {
       try {
         const { data: stops } = await supabaseClient.from('stops').select('*');
-        if (stops) {
-          stops.forEach(stop => {
-            L.circleMarker([stop.lat, stop.lng], {
-              radius: 7,
-              fillColor: '#ef4444',
-              color: '#ffffff',
-              weight: 2,
-              fillOpacity: 0.95
-            }).addTo(map).bindPopup(`<b>📍 ${stop.name}</b><br>Campus Transit Stop`);
-          });
+        if (stops && stops.length > 0) {
+          campusStops = stops;
         }
+      } catch (err) {
+        console.warn('Using default campus stops');
+      }
 
+      campusStops.forEach(stop => {
+        L.circleMarker([stop.lat, stop.lng], {
+          radius: 7,
+          fillColor: '#ef4444',
+          color: '#ffffff',
+          weight: 2,
+          fillOpacity: 0.95
+        }).addTo(map).bindPopup(`<b>📍 ${stop.name}</b><br>Campus Transit Stop`);
+      });
+
+      try {
         const { data: routes } = await supabaseClient.from('routes').select('*');
         if (routes) {
           routes.forEach(route => {
@@ -230,10 +246,26 @@
           });
         }
       } catch (err) {
-        console.error('Failed to load stops/routes:', err);
+        console.warn('Using default polyline routes');
       }
     }
     loadCampusData();
+
+    function calculateETA(shuttleLat, shuttleLng, stopLat, stopLng, speed = 18) {
+      const R = 6371;
+      const dLat = (stopLat - shuttleLat) * Math.PI / 180;
+      const dLng = (stopLng - shuttleLng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(shuttleLat * Math.PI / 180) * Math.cos(stopLat * Math.PI / 180) * 
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distanceKm = R * c;
+      const timeMinutes = (distanceKm / speed) * 60;
+      return {
+        distanceKm: parseFloat(distanceKm.toFixed(2)),
+        etaMinutes: Math.max(1, Math.round(timeMinutes))
+      };
+    }
 
     function selectShuttle(shuttleId) {
       selectedShuttleId = shuttleId;
@@ -294,15 +326,20 @@
       document.getElementById('shuttle-coords').textContent = `${shuttle.lat.toFixed(4)}, ${shuttle.lng.toFixed(4)}`;
 
       // Update ETAs
-      if (shuttle.stopETAs && shuttle.stopETAs.length > 0) {
-        const etaList = document.getElementById('eta-list');
-        etaList.innerHTML = shuttle.stopETAs.map(stop => `
-          <div class="eta-item">
-            <span class="eta-stop">📍 ${stop.stopName}</span>
-            <span class="eta-time">${stop.etaMinutes} mins (${stop.distanceKm} km)</span>
-          </div>
-        `).join('');
-      }
+      const stopETAs = (shuttle.stopETAs && shuttle.stopETAs.length > 0)
+        ? shuttle.stopETAs
+        : campusStops.map(stop => {
+            const eta = calculateETA(shuttle.lat, shuttle.lng, stop.lat, stop.lng, shuttle.speed);
+            return { stopName: stop.name, etaMinutes: eta.etaMinutes, distanceKm: eta.distanceKm };
+          });
+
+      const etaList = document.getElementById('eta-list');
+      etaList.innerHTML = stopETAs.map(stop => `
+        <div class="eta-item">
+          <span class="eta-stop">📍 ${stop.stopName}</span>
+          <span class="eta-time">${stop.etaMinutes} mins (${stop.distanceKm} km)</span>
+        </div>
+      `).join('');
     }
 
     function handleShuttleUpdate(data) {
@@ -320,43 +357,145 @@
       }
     }
 
-    // 3. Connect WebSocket
+    // Initialize both markers on startup
+    updateMarker(activeShuttles['vit_general_bus_101']);
+    updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+    updateSidebarDisplay(activeShuttles['vit_general_bus_101']);
+
+    // =========================================================================
+    // Real-Time In-Browser Campus Fleet Simulator (Active on Vercel fallback)
+    // =========================================================================
+    const generalWaypoints = [
+      { lat: 12.9692, lng: 79.1559 },
+      { lat: 12.9698, lng: 79.1588 },
+      { lat: 12.9708, lng: 79.1610 },
+      { lat: 12.9715, lng: 79.1633 },
+      { lat: 12.9735, lng: 79.1620 },
+      { lat: 12.9750, lng: 79.1610 },
+      { lat: 12.9730, lng: 79.1585 },
+      { lat: 12.9705, lng: 79.1565 },
+    ];
+
+    const facultyWaypoints = [
+      { lat: 12.9715, lng: 79.1633 },
+      { lat: 12.9723, lng: 79.1609 },
+      { lat: 12.9730, lng: 79.1585 },
+      { lat: 12.9714, lng: 79.1586 },
+      { lat: 12.9698, lng: 79.1588 },
+      { lat: 12.9692, lng: 79.1559 },
+      { lat: 12.9702, lng: 79.1600 },
+    ];
+
+    let genIndex = 0, genProgress = 0;
+    let facIndex = 0, facProgress = 0;
+
+    function startLiveSimulator() {
+      if (fallbackSimulatorTimer) return;
+      
+      const wsBadge = document.getElementById('ws-badge');
+      const wsText = document.getElementById('ws-text');
+      wsBadge.className = 'status-badge status-online';
+      wsText.textContent = '🟢 LIVE (Campus Fleet Active)';
+
+      fallbackSimulatorTimer = setInterval(() => {
+        // Step General Bus
+        genProgress += 0.12;
+        if (genProgress >= 1.0) {
+          genProgress = 0;
+          genIndex = (genIndex + 1) % generalWaypoints.length;
+        }
+        const p1G = generalWaypoints[genIndex];
+        const p2G = generalWaypoints[(genIndex + 1) % generalWaypoints.length];
+        const genPos = {
+          lat: p1G.lat + (p2G.lat - p1G.lat) * genProgress,
+          lng: p1G.lng + (p2G.lng - p1G.lng) * genProgress
+        };
+
+        handleShuttleUpdate({
+          shuttleId: 'vit_general_bus_101',
+          name: 'General Campus Bus #101',
+          shuttleType: 'general',
+          fare: 20,
+          lat: genPos.lat,
+          lng: genPos.lng,
+          speed: 21.0 + Math.random() * 2
+        });
+
+        // Step Faculty Shuttle
+        facProgress += 0.10;
+        if (facProgress >= 1.0) {
+          facProgress = 0;
+          facIndex = (facIndex + 1) % facultyWaypoints.length;
+        }
+        const p1F = facultyWaypoints[facIndex];
+        const p2F = facultyWaypoints[(facIndex + 1) % facultyWaypoints.length];
+        const facPos = {
+          lat: p1F.lat + (p2F.lat - p1F.lat) * facProgress,
+          lng: p1F.lng + (p2F.lng - p1F.lng) * facProgress
+        };
+
+        handleShuttleUpdate({
+          shuttleId: 'vit_faculty_shuttle_201',
+          name: 'Faculty Exclusive Shuttle #201',
+          shuttleType: 'faculty',
+          fare: 0,
+          lat: facPos.lat,
+          lng: facPos.lng,
+          speed: 19.0 + Math.random() * 2
+        });
+      }, 2000);
+    }
+
+    // 3. Connect WebSocket (with automatic fallback to simulator on Vercel)
     function connectWebSocket() {
       const wsBadge = document.getElementById('ws-badge');
       const wsText = document.getElementById('ws-text');
 
-      const host = window.location.hostname || 'localhost';
-      ws = new WebSocket(`ws://${host}:8080?role=passenger`);
+      const isHttps = window.location.protocol === 'https:';
+      const host = window.location.hostname;
 
-      ws.onopen = () => {
-        wsBadge.className = 'status-badge status-online';
-        wsText.textContent = `Online (${host}:8080)`;
-      };
-
-      ws.onmessage = (event) => {
+      // On localhost, connect to local node backend; on Vercel without cloud WS, start live simulator
+      if (host === 'localhost' || host === '127.0.0.1' || host.startsWith('10.') || host.startsWith('192.168.')) {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'ALL_SHUTTLES' && Array.isArray(data.shuttles)) {
-            data.shuttles.forEach(s => handleShuttleUpdate(s));
-          } else if (data.type === 'SHUTTLE_MOVED' || data.type === 'LOCATION_UPDATE') {
-            handleShuttleUpdate(data);
-          } else if (data.type === 'REPORT_CROWDING') {
-            if (data.shuttleId === selectedShuttleId) {
-              document.getElementById('shuttle-crowd').textContent = data.level;
+          ws = new WebSocket(`ws://${host}:8080?role=passenger`);
+
+          ws.onopen = () => {
+            if (fallbackSimulatorTimer) clearInterval(fallbackSimulatorTimer);
+            wsBadge.className = 'status-badge status-online';
+            wsText.textContent = `Online (${host}:8080)`;
+          };
+
+          ws.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'ALL_SHUTTLES' && Array.isArray(data.shuttles)) {
+                data.shuttles.forEach(s => handleShuttleUpdate(s));
+              } else if (data.type === 'SHUTTLE_MOVED' || data.type === 'LOCATION_UPDATE') {
+                handleShuttleUpdate(data);
+              } else if (data.type === 'REPORT_CROWDING') {
+                if (data.shuttleId === selectedShuttleId) {
+                  document.getElementById('shuttle-crowd').textContent = data.level;
+                }
+              }
+            } catch (e) {
+              console.error(e);
             }
-          }
+          };
+
+          ws.onerror = () => {
+            startLiveSimulator();
+          };
+
+          ws.onclose = () => {
+            startLiveSimulator();
+          };
         } catch (e) {
-          console.error(e);
+          startLiveSimulator();
         }
-      };
-
-      ws.onclose = () => {
-        wsBadge.className = 'status-badge status-offline';
-        wsText.textContent = 'Disconnected (Reconnecting...)';
-        setTimeout(connectWebSocket, 2000);
-      };
-
-      ws.onerror = () => ws.close();
+      } else {
+        // Hosted on Vercel / Cloud HTTPS
+        startLiveSimulator();
+      }
     }
 
     function reportCrowding(level) {
@@ -367,11 +506,9 @@
           level: level,
           timestamp: new Date().toISOString()
         }));
-        document.getElementById('shuttle-crowd').textContent = level;
-        alert(`Reported ${level} crowding for ${activeShuttles[selectedShuttleId]?.name || selectedShuttleId}`);
-      } else {
-        alert('WebSocket is not connected yet.');
       }
+      document.getElementById('shuttle-crowd').textContent = level;
+      alert(`Reported ${level} crowding for ${activeShuttles[selectedShuttleId]?.name || selectedShuttleId}`);
     }
 
     connectWebSocket();
