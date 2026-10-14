@@ -25,6 +25,8 @@ Future<void> main() async {
 
 final supabase = Supabase.instance.client;
 
+enum UserRole { student, driver }
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -44,7 +46,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFFF8FAFC),
         fontFamily: 'Roboto',
       ),
-      home: const MobileShell(child: AuthScreen()),
+      home: const MobileShell(child: RoleSelectionScreen()),
     );
   }
 }
@@ -117,110 +119,44 @@ class MobileShell extends StatelessWidget {
 }
 
 // ============================================================================
-// 1. AUTHENTICATION SCREEN
+// 1. ROLE SELECTION SCREEN (Shown FIRST before Login / Register)
 // ============================================================================
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+class RoleSelectionScreen extends StatelessWidget {
+  const RoleSelectionScreen({super.key});
 
-  @override
-  State<AuthScreen> createState() => _AuthScreenState();
-}
-
-class _AuthScreenState extends State<AuthScreen> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _isLogin = true;
-  bool _obscurePassword = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkSession();
-  }
-
-  void _checkSession() {
+  void _selectRole(BuildContext context, UserRole role) {
     final session = supabase.auth.currentSession;
     if (session != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Navigator.pushReplacement(
+      // If already authenticated, jump straight to the respective screen
+      if (role == UserRole.student) {
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const MobileShell(child: RoleSelectionScreen())),
+          MaterialPageRoute(builder: (_) => const MobileShell(child: StudentMapScreen())),
         );
-      });
-    }
-  }
-
-  Future<void> _submit() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all fields'), backgroundColor: Colors.red),
-      );
-      return;
-    }
-
-    if (!email.endsWith('@vitstudent.ac.in')) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Must be a valid VIT email (ends with @vitstudent.ac.in)'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      if (_isLogin) {
-        await supabase.auth.signInWithPassword(email: email, password: password);
       } else {
-        await supabase.auth.signUp(email: email, password: password);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Registration successful! Logging in...'), backgroundColor: Colors.green),
-        );
-      }
-      
-      if (mounted) {
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const MobileShell(child: RoleSelectionScreen())),
+          MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
         );
       }
-    } on AuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('An unexpected error occurred'), backgroundColor: Colors.red),
+    } else {
+      // If not logged in, proceed to Auth with role preset
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => MobileShell(child: AuthScreen(role: role))),
       );
     }
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 15),
-          // App Logo and Header
+          // App Logo
           Center(
             child: Container(
               width: 80,
@@ -256,7 +192,283 @@ class _AuthScreenState extends State<AuthScreen> {
               style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 36),
+
+          const Text(
+            'Who are you?',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Select your role to access your campus portal',
+            style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 24),
+
+          // 1. Student Portal Card
+          _buildRoleCard(
+            context: context,
+            title: 'I am a Student',
+            subtitle: 'Live campus tracking, upcoming stop ETAs, crowding alerts & routes',
+            icon: Icons.school_rounded,
+            badge: 'PASSENGER',
+            gradient: const [Color(0xFF0284C7), Color(0xFF0369A1)],
+            onTap: () => _selectRole(context, UserRole.student),
+          ),
+          const SizedBox(height: 18),
+
+          // 2. Driver Portal Card
+          _buildRoleCard(
+            context: context,
+            title: 'I am a Shuttle Driver',
+            subtitle: 'Broadcast real-time GPS location, speedometer & manage shift',
+            icon: Icons.drive_eta_rounded,
+            badge: 'DRIVER CONSOLE',
+            gradient: const [Color(0xFF059669), Color(0xFF047857)],
+            onTap: () => _selectRole(context, UserRole.driver),
+          ),
+
+          const Spacer(),
+
+          Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle)),
+                const SizedBox(width: 6),
+                const Text('Vellore Campus System Online', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoleCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required String badge,
+    required List<Color> gradient,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withOpacity(0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(14)),
+                  child: Icon(icon, size: 28, color: Colors.white),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    badge,
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(title, style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 6),
+            Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.85), height: 1.35)),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Text('Continue to Login', style: TextStyle(color: Colors.white.withOpacity(0.95), fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(width: 4),
+                const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.white),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// 2. AUTHENTICATION SCREEN (Tailored for the selected role)
+// ============================================================================
+class AuthScreen extends StatefulWidget {
+  final UserRole role;
+
+  const AuthScreen({super.key, required this.role});
+
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+  bool _isLogin = true;
+  bool _obscurePassword = true;
+
+  bool get isStudent => widget.role == UserRole.student;
+
+  Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all fields'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    if (isStudent && !email.endsWith('@vitstudent.ac.in')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Student email must end with @vitstudent.ac.in'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      if (_isLogin) {
+        await supabase.auth.signInWithPassword(email: email, password: password);
+      } else {
+        await supabase.auth.signUp(email: email, password: password);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration successful! Logging in...'), backgroundColor: Colors.green),
+        );
+      }
+      
+      if (mounted) {
+        if (isStudent) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MobileShell(child: StudentMapScreen())),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
+          );
+        }
+      }
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('An unexpected error occurred'), backgroundColor: Colors.red),
+      );
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = isStudent ? const Color(0xFF0284C7) : const Color(0xFF059669);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Top Back Button to change role
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                'Change Role',
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isStudent ? 'STUDENT' : 'DRIVER',
+                  style: TextStyle(color: primaryColor, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // Role Icon & Heading
+          Center(
+            child: Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isStudent ? Icons.school_rounded : Icons.drive_eta_rounded,
+                size: 38,
+                color: primaryColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              isStudent ? 'Student Portal' : 'Driver Console',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            ),
+          ),
+          Center(
+            child: Text(
+              isStudent ? 'Log in with your VIT student email' : 'Log in with authorized driver credentials',
+              style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+          ),
+          const SizedBox(height: 24),
 
           // Sign In / Register Tab Toggle
           Container(
@@ -284,7 +496,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           'Sign In',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: _isLogin ? const Color(0xFF0284C7) : const Color(0xFF64748B),
+                            color: _isLogin ? primaryColor : const Color(0xFF64748B),
                           ),
                         ),
                       ),
@@ -308,7 +520,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           'Register',
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
-                            color: !_isLogin ? const Color(0xFF0284C7) : const Color(0xFF64748B),
+                            color: !_isLogin ? primaryColor : const Color(0xFF64748B),
                           ),
                         ),
                       ),
@@ -321,13 +533,16 @@ class _AuthScreenState extends State<AuthScreen> {
           const SizedBox(height: 24),
 
           // Email Input
-          const Text('VIT Student Email', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF334155))),
+          Text(
+            isStudent ? 'VIT Student Email' : 'Driver Email',
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF334155)),
+          ),
           const SizedBox(height: 6),
           TextField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              hintText: 'name@vitstudent.ac.in',
+              hintText: isStudent ? 'name@vitstudent.ac.in' : 'driver@vit.ac.in',
               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
               prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF64748B)),
               filled: true,
@@ -335,7 +550,7 @@ class _AuthScreenState extends State<AuthScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.5)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor, width: 1.5)),
             ),
           ),
           const SizedBox(height: 16),
@@ -359,7 +574,7 @@ class _AuthScreenState extends State<AuthScreen> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFF0284C7), width: 1.5)),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: primaryColor, width: 1.5)),
             ),
           ),
           const SizedBox(height: 24),
@@ -368,7 +583,7 @@ class _AuthScreenState extends State<AuthScreen> {
           ElevatedButton(
             onPressed: _isLoading ? null : _submit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0284C7),
+              backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               elevation: 0,
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -376,168 +591,17 @@ class _AuthScreenState extends State<AuthScreen> {
             ),
             child: _isLoading
                 ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : Text(_isLogin ? 'Sign In to Campus' : 'Create Account', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                : Text(_isLogin ? 'Sign In' : 'Create Account', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 16),
 
           Center(
             child: Text(
-              _isLogin ? 'VIT Vellore Campus Transit Network' : 'Registration requires @vitstudent.ac.in',
+              isStudent ? 'Requires valid @vitstudent.ac.in account' : 'Authorized shuttle drivers only',
               style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// 2. ROLE SELECTION SCREEN
-// ============================================================================
-class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({super.key});
-
-  Future<void> _logout(BuildContext context) async {
-    await supabase.auth.signOut();
-    if (context.mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MobileShell(child: AuthScreen())),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = supabase.auth.currentUser;
-    final email = user?.email ?? 'Student';
-
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Welcome Back,', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-                    Text(
-                      email.split('@')[0],
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
-                onPressed: () => _logout(context),
-                tooltip: 'Logout',
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          const Text('Select Transit Mode', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-          const SizedBox(height: 6),
-          const Text('Choose your view for campus tracking', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-          const SizedBox(height: 20),
-
-          // Option 1: Student Passenger
-          _buildRoleCard(
-            context: context,
-            title: 'Student Passenger',
-            subtitle: 'Track campus shuttles live, view next stop ETAs & report crowding',
-            icon: Icons.directions_bus_filled_rounded,
-            gradient: const [Color(0xFF0284C7), Color(0xFF0369A1)],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MobileShell(child: StudentMapScreen())),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-
-          // Option 2: Shuttle Driver
-          _buildRoleCard(
-            context: context,
-            title: 'Shuttle Driver',
-            subtitle: 'Stream real-time vehicle GPS coordinates and speed to campus',
-            icon: Icons.speed_rounded,
-            gradient: const [Color(0xFF059669), Color(0xFF047857)],
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
-              );
-            },
-          ),
-          const Spacer(),
-
-          Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF22C55E), shape: BoxShape.circle)),
-                const SizedBox(width: 6),
-                const Text('Vellore Campus System Online', style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRoleCard({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required List<Color> gradient,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: gradient[0].withOpacity(0.3),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            )
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, size: 32, color: Colors.white),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const SizedBox(height: 4),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.85), height: 1.3)),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.white),
-          ],
-        ),
       ),
     );
   }
@@ -645,6 +709,17 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    await supabase.auth.signOut();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MobileShell(child: RoleSelectionScreen())),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   void dispose() {
     _channel.sink.close();
@@ -730,7 +805,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
           ],
         ),
 
-        // 2. Top Header Bar
+        // 2. Top Header Bar with Logout
         Positioned(
           top: 16,
           left: 16,
@@ -745,15 +820,16 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.logout_rounded, size: 20, color: Color(0xFFEF4444)),
+                  onPressed: _logout,
+                  tooltip: 'Logout to Role Selection',
                 ),
                 Expanded(
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
                       value: _selectedRouteId,
                       isExpanded: true,
-                      style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(color: Color(0xFF0F172A), fontWeight: FontWeight.bold, fontSize: 13),
                       onChanged: (val) {
                         if (val != null) setState(() => _selectedRouteId = val);
                       },
@@ -1008,6 +1084,19 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    _positionStream?.cancel();
+    _channel.sink.close();
+    await supabase.auth.signOut();
+    if (mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const MobileShell(child: RoleSelectionScreen())),
+        (route) => false,
+      );
+    }
+  }
+
   @override
   void dispose() {
     _positionStream?.cancel();
@@ -1023,13 +1112,23 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                onPressed: () => Navigator.pop(context),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('Driver Console', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
               ),
-              const SizedBox(width: 8),
-              const Text('Driver Console', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              IconButton(
+                icon: const Icon(Icons.logout_rounded, color: Color(0xFFEF4444)),
+                onPressed: _logout,
+                tooltip: 'Logout to Role Selection',
+              ),
             ],
           ),
           const Spacer(),
