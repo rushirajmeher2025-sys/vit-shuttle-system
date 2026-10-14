@@ -761,8 +761,11 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
           options: const MapOptions(
             initialCenter: LatLng(12.9715, 79.1595), // Centered on VIT Vellore Academic & Hostel Zones
             initialZoom: 16.2,
-            minZoom: 14.0,
-            maxZoom: 19.0,
+            minZoom: 3.0,
+            maxZoom: 20.0,
+            interactionOptions: InteractionOptions(
+              flags: InteractiveFlag.all,
+            ),
           ),
           children: [
             // Google Maps Standard Road Tiles (100% Free, Zero Watermark, Crisp Global Coverage)
@@ -1004,22 +1007,73 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
           ),
         ),
 
-        // 3. Floating Re-Center Button
+        // 3. Floating Map Controls (Zoom In, Zoom Out, Center)
         Positioned(
           right: 16,
-          bottom: 230,
-          child: FloatingActionButton.small(
-            backgroundColor: Colors.white,
-            foregroundColor: const Color(0xFF0F172A),
-            elevation: 3,
-            onPressed: () {
-              if (_shuttleLocation != null) {
-                _mapController.move(_shuttleLocation!, 16.5);
-              } else {
-                _mapController.move(const LatLng(12.9692, 79.1559), 16.0);
-              }
-            },
-            child: const Icon(Icons.my_location_rounded),
+          bottom: 215,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Zoom In & Out Panel
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    InkWell(
+                      onTap: () {
+                        final currentZoom = _mapController.camera.zoom;
+                        _mapController.move(_mapController.camera.center, (currentZoom + 1).clamp(3.0, 20.0));
+                      },
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(Icons.add, color: Color(0xFF0F172A), size: 22),
+                      ),
+                    ),
+                    Container(height: 1, width: 28, color: const Color(0xFFE2E8F0)),
+                    InkWell(
+                      onTap: () {
+                        final currentZoom = _mapController.camera.zoom;
+                        _mapController.move(_mapController.camera.center, (currentZoom - 1).clamp(3.0, 20.0));
+                      },
+                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+                      child: const Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(Icons.remove, color: Color(0xFF0F172A), size: 22),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              // Center Location Button
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3)),
+                  ],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.my_location_rounded, color: Color(0xFF0284C7), size: 22),
+                  tooltip: 'Center on Shuttle',
+                  onPressed: () {
+                    if (_shuttleLocation != null) {
+                      _mapController.move(_shuttleLocation!, 16.5);
+                    } else {
+                      _mapController.move(const LatLng(12.9715, 79.1595), 16.2);
+                    }
+                  },
+                ),
+              ),
+            ],
           ),
         ),
 
