@@ -5,8 +5,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/gestures.dart';
 import 'dart:convert';
 import 'dart:async';
+import 'dart:math' as math;
 
 // Supabase live configuration
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://yaypinidsnhmcoccvqco.supabase.co');
@@ -629,6 +631,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
   String _selectedRouteId = 'all';
 
   final MapController _mapController = MapController();
+  double _trackpadStartZoom = 16.2;
 
   final Map<String, LatLng> _campusStops = {
     'Main Gate': const LatLng(12.9692, 79.1559),
@@ -755,15 +758,33 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 1. The Campus Map (Modern Vector-style Retina Tiles)
-        FlutterMap(
-          mapController: _mapController,
-          options: const MapOptions(
+        // 1. The Campus Map with Touchpad/Trackpad Pinch Zoom Support
+        Listener(
+          onPointerPanZoomStart: (event) {
+            _trackpadStartZoom = _mapController.camera.zoom;
+          },
+          onPointerPanZoomUpdate: (event) {
+            if (event.scale != 1.0 && event.scale > 0) {
+              final logScale = math.log(event.scale) / math.ln2;
+              final newZoom = (_trackpadStartZoom + logScale).clamp(3.0, 20.0);
+              _mapController.move(_mapController.camera.center, newZoom);
+            }
+          },
+          onPointerSignal: (pointerSignal) {
+            if (pointerSignal is PointerScrollEvent && pointerSignal.scrollDelta.dy != 0) {
+              final currentZoom = _mapController.camera.zoom;
+              final newZoom = (currentZoom - pointerSignal.scrollDelta.dy * 0.003).clamp(3.0, 20.0);
+              _mapController.move(_mapController.camera.center, newZoom);
+            }
+          },
+          child: FlutterMap(
+            mapController: _mapController,
+            options: const MapOptions(
             initialCenter: LatLng(12.9715, 79.1595), // Centered on VIT Vellore Academic & Hostel Zones
             initialZoom: 16.2,
             minZoom: 3.0,
             maxZoom: 20.0,
-            interactionOptions: const InteractionOptions(
+            interactionOptions: InteractionOptions(
               flags: InteractiveFlag.drag |
                   InteractiveFlag.flingAnimation |
                   InteractiveFlag.pinchMove |
@@ -943,6 +964,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             ),
           ],
         ),
+      ),
 
         // 2. Top Header Bar with Logout
         Positioned(
