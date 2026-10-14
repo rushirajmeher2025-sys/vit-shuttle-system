@@ -11,16 +11,31 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 let activeShuttlePositions = {};
 let recentCrowdingReports = [];
 
+const fs = require('fs');
+const path = require('path');
+
 const server = http.createServer(async (req, res) => {
+    // Serve Web Frontend
+    if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
+        const indexPath = path.join(__dirname, 'public', 'index.html');
+        fs.readFile(indexPath, 'utf-8', (err, html) => {
+            if (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Error loading web interface');
+                return;
+            }
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(html);
+        });
+        return;
+    }
+
     // API Endpoint: /api/analytics/peak-hours
     if (req.method === 'GET' && req.url === '/api/analytics/peak-hours') {
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Access-Control-Allow-Origin', '*');
         
         try {
-            // In a real production scenario, this would aggregate `shuttle_logs` and `crowding_reports`
-            // using a Supabase RPC or complex SQL GROUP BY query. 
-            // For this prototype, we simulate computing average crowding and frequency by time slot:
             const peakHoursHeatmap = {
                 "08:00": { averageCrowding: "High", shuttleFrequency: 12 },
                 "09:00": { averageCrowding: "Moderate", shuttleFrequency: 10 },

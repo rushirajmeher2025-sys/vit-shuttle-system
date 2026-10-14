@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIT Shuttle Tracker - Live Web Preview</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { display: flex; height: 100vh; background: #0f172a; color: #f8fafc; overflow: hidden; }
+    #sidebar { width: 380px; background: #1e293b; border-right: 1px solid #334155; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 15px rgba(0,0,0,0.3); }
+    #header { padding: 18px 20px; background: #0f172a; border-bottom: 1px solid #334155; }
+    #header h1 { font-size: 1.25rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; padding: 4px 10px; border-radius: 999px; margin-top: 8px; }
+    .status-online { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
+    .status-offline { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid #ef4444; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+    .pulse { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+    #content { padding: 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .card { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px; }
+    .card-title { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 12px; }
+
+    .shuttle-stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .shuttle-stat:last-child { margin-bottom: 0; }
+    .stat-val { font-weight: 600; color: #f8fafc; }
+
+    .eta-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: #1e293b; border-radius: 8px; margin-bottom: 8px; border: 1px solid #334155; }
+    .eta-item:last-child { margin-bottom: 0; }
+    .eta-stop { font-weight: 500; }
+    .eta-time { font-weight: 700; color: #38bdf8; }
+
+    .crowd-btns { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .btn { padding: 10px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.85rem; }
+    .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn-low { background: #22c55e; color: #000; }
+    .btn-med { background: #eab308; color: #000; }
+    .btn-full { background: #ef4444; color: #fff; }
+
+    #map { flex: 1; height: 100%; }
+
+    .bus-marker {
+      background: #2563eb;
+      color: white;
+      border: 3px solid white;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      font-size: 18px;
+      transition: all 0.5s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <div id="header">
+      <h1>🚌 VIT Shuttle Tracker</h1>
+      <div id="ws-badge" class="status-badge status-offline">
+        <span class="dot pulse"></span>
+        <span id="ws-text">Connecting to WebSocket...</span>
+      </div>
+    </div>
+
+    <div id="content">
+      <!-- Live Shuttle Info -->
+      <div class="card">
+        <div class="card-title">Live Shuttle Telemetry</div>
+        <div class="shuttle-stat">
+          <span>Active Shuttle:</span>
+          <span class="stat-val" id="shuttle-id">Searching...</span>
+        </div>
+        <div class="shuttle-stat">
+          <span>Current Speed:</span>
+          <span class="stat-val" id="shuttle-speed">-- km/h</span>
+        </div>
+        <div class="shuttle-stat">
+          <span>Coordinates:</span>
+          <span class="stat-val" id="shuttle-coords">-- , --</span>
+        </div>
+        <div class="shuttle-stat">
+          <span>Last Crowding:</span>
+          <span class="stat-val" id="shuttle-crowd">Normal</span>
+        </div>
+      </div>
+
+      <!-- Upcoming Stops & ETAs -->
+      <div class="card">
+        <div class="card-title">Upcoming Stops & ETAs</div>
+        <div id="eta-list">
+          <div style="color: #64748b; font-size: 0.9rem;">Waiting for shuttle telemetry...</div>
+        </div>
+      </div>
+
+      <!-- Crowding Report -->
+      <div class="card">
+        <div class="card-title">Report Shuttle Crowding</div>
+        <p style="color: #94a3b8; font-size: 0.85rem;">Help fellow VITians by reporting current bus crowding:</p>
+        <div class="crowd-btns">
+          <button class="btn btn-low" onclick="reportCrowding('Low')">🟢 Low</button>
+          <button class="btn btn-med" onclick="reportCrowding('Moderate')">🟡 Moderate</button>
+          <button class="btn btn-full" onclick="reportCrowding('Full')">🔴 Full</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://yaypinidsnhmcoccvqco.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 1. Initialize Map centered on VIT Vellore
+    const map = L.map('map').setView([12.9692, 79.1559], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    let busMarker = null;
+    let ws = null;
+
+    // Custom Bus Icon
+    const busIcon = L.divIcon({
+      className: 'bus-marker',
+      html: '🚌',
+      iconSize: [38, 38],
+      iconAnchor: [19, 19]
+    });
+
+    // 2. Fetch & Render Campus Stops & Routes from Supabase
+    async function loadCampusData() {
+      try {
+        // Stops
+        const { data: stops } = await supabaseClient.from('stops').select('*');
+        if (stops) {
+          stops.forEach(stop => {
+            L.circleMarker([stop.lat, stop.lng], {
+              radius: 8,
+              fillColor: '#ef4444',
+              color: '#ffffff',
+              weight: 2,
+              fillOpacity: 0.9
+            }).addTo(map).bindPopup(`<b>${stop.name}</b><br>Stop ID: ${stop.id}`);
+          });
+        }
+
+        // Routes
+        const { data: routes } = await supabaseClient.from('routes').select('*');
+        if (routes) {
+          routes.forEach(route => {
+            if (Array.isArray(route.points) && route.points.length > 0) {
+              const latlngs = route.points.map(p => [p.lat, p.lng]);
+              L.polyline(latlngs, {
+                color: route.color || '#3b82f6',
+                weight: 4,
+                opacity: 0.8
+              }).addTo(map).bindPopup(`<b>Route:</b> ${route.route_name}`);
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to load stops/routes:', err);
+      }
+    }
+    loadCampusData();
+
+    // 3. Connect WebSocket to local backend
+    function connectWebSocket() {
+      const wsBadge = document.getElementById('ws-badge');
+      const wsText = document.getElementById('ws-text');
+
+      // Use current window location to connect to WebSocket
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsHost = window.location.host || 'localhost:8080';
+      ws = new WebSocket(`${protocol}//${wsHost}?role=student`);
+
+      ws.onopen = () => {
+        wsBadge.className = 'status-badge status-online';
+        wsText.textContent = `Connected (${wsHost})`;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'SHUTTLE_MOVED' || data.type === 'LOCATION_UPDATE') {
+            updateShuttlePosition(data);
+          } else if (data.type === 'REPORT_CROWDING') {
+            document.getElementById('shuttle-crowd').textContent = data.level;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      ws.onclose = () => {
+        wsBadge.className = 'status-badge status-offline';
+        wsText.textContent = 'Disconnected (Reconnecting...)';
+        setTimeout(connectWebSocket, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+    }
+
+    function updateShuttlePosition(data) {
+      const lat = data.lat;
+      const lng = data.lng;
+      const speed = data.speed ? Number(data.speed).toFixed(1) : '18.0';
+
+      document.getElementById('shuttle-id').textContent = data.shuttleId || 'vit_shuttle_1';
+      document.getElementById('shuttle-speed').textContent = `${speed} km/h`;
+      document.getElementById('shuttle-coords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+
+      if (!busMarker) {
+        busMarker = L.marker([lat, lng], { icon: busIcon }).addTo(map);
+        busMarker.bindPopup('<b>VIT Shuttle</b><br>Tracking live');
+      } else {
+        busMarker.setLatLng([lat, lng]);
+      }
+
+      // Update ETAs
+      if (data.stopETAs && data.stopETAs.length > 0) {
+        const etaList = document.getElementById('eta-list');
+        etaList.innerHTML = data.stopETAs.map(stop => `
+          <div class="eta-item">
+            <span class="eta-stop">📍 ${stop.stopName}</span>
+            <span class="eta-time">${stop.etaMinutes} mins (${stop.distanceKm} km)</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function reportCrowding(level) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'REPORT_CROWDING',
+          shuttleId: document.getElementById('shuttle-id').textContent || 'vit_shuttle_1',
+          level: level,
+          timestamp: new Date().toISOString()
+        }));
+        document.getElementById('shuttle-crowd').textContent = level;
+        alert(`Reported crowding level as ${level}!`);
+      } else {
+        alert('WebSocket is not connected yet.');
+      }
+    }
+
+    connectWebSocket();
+  </script>
+</body>
+</html>
