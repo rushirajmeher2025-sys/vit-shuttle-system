@@ -15,10 +15,21 @@ import 'dart:math' as math;
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://yaypinidsnhmcoccvqco.supabase.co');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU');
 
-// Automatically resolves PC's local IP (10.172.147.61) or current browser host for phone testing
+// Cloud WebSocket URL (configurable at build time via --dart-define=WS_URL=wss://...)
+const String customWsUrl = String.fromEnvironment('WS_URL', defaultValue: '');
+
+// Automatically resolves PC's local IP (10.172.147.61), local dev host, or production cloud WebSocket
 String getWsUrl(String params) {
+  if (customWsUrl.isNotEmpty) {
+    final separator = customWsUrl.contains('?') ? '&' : '?';
+    return '$customWsUrl$separator$params';
+  }
   if (kIsWeb) {
     final host = Uri.base.host.isNotEmpty && Uri.base.host != 'localhost' ? Uri.base.host : '10.172.147.61';
+    // If hosted on https (like *.vercel.app), use secure wss:// and target cloud backend
+    if (Uri.base.scheme == 'https' || host.contains('vercel.app')) {
+      return 'wss://vit-shuttle-backend.onrender.com?$params';
+    }
     return 'ws://$host:8080?$params';
   }
   return 'ws://10.172.147.61:8080?$params';
