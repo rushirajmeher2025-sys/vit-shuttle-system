@@ -250,6 +250,171 @@
       100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
     }
 
+    /* In-App Walking Directions Mode HUD */
+    .directions-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1200;
+      pointer-events: auto;
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .directions-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      border-radius: 20px;
+      padding: 12px 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
+    }
+
+    .directions-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .direction-step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+    .direction-step-details {
+      flex: 1;
+      overflow: hidden;
+    }
+    .direction-primary-text {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .direction-secondary-text {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .directions-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: rgba(30, 41, 59, 0.8);
+      color: #f87171;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .directions-close-btn:hover { background: #ef4444; color: white; }
+
+    /* Directions Stats Bar */
+    .directions-stats-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stat-pill {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 5px 8px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.88rem;
+      color: #fff;
+      display: block;
+    }
+    .stat-lbl {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.05em;
+    }
+
+    /* Turn by turn itinerary steps inside collapsible drawer */
+    .directions-itinerary-toggle {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-top: 8px;
+      cursor: pointer;
+      padding: 3px 0;
+    }
+    .directions-itinerary-list {
+      display: none;
+      margin-top: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      padding-right: 4px;
+    }
+    .directions-itinerary-list.open { display: block; }
+    .itinerary-step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .itinerary-step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .itinerary-step-text {
+      flex: 1;
+      font-size: 0.73rem;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+    .itinerary-step-dist {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      white-space: nowrap;
+    }
+
     /* 3. Floating Map Controls (Right Edge) */
     .floating-map-controls {
       position: absolute;
@@ -620,6 +785,198 @@
       white-space: nowrap;
       border: 1px solid rgba(255, 255, 255, 0.2);
     }
+
+    /* ---------------------------------------------------- */
+    /* IN-APP WALKING DIRECTIONS HUD & ITINERARY            */
+    /* ---------------------------------------------------- */
+    .directions-hud {
+      display: none;
+      margin-top: 6px;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.3);
+      padding: 10px 14px;
+      animation: slideDownIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .directions-hud.active {
+      display: block;
+    }
+    @keyframes slideDownIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .directions-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .directions-dest-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .directions-close-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #f87171;
+      padding: 3px 9px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s ease;
+    }
+    .directions-close-btn:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
+    }
+    .directions-step-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.75);
+      border-radius: 12px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .directions-step-icon {
+      font-size: 1.3rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 10px;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }
+    .directions-step-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .directions-step-instruction {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .directions-step-sub {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .directions-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.73rem;
+    }
+    .directions-stats {
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .directions-steps-toggle {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .directions-steps-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .directions-steps-dropdown {
+      display: none;
+      margin-top: 8px;
+      max-height: 135px;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .directions-steps-dropdown.open {
+      display: block;
+    }
+    .itinerary-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .itinerary-item:last-child {
+      border-bottom: none;
+    }
+    .itinerary-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .itinerary-step-badge {
+      font-size: 0.85rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .directions-trigger-btn {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: white;
+      border: none;
+      padding: 3.5px 8px;
+      border-radius: 7px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
+      transition: transform 0.15s ease;
+    }
+    .directions-trigger-btn:hover {
+      transform: scale(1.04);
+    }
+    .directions-trigger-btn:active {
+      transform: scale(0.96);
+    }
   </style>
 </head>
 <body>
@@ -650,12 +1007,49 @@
     </div>
 
     <!-- 2b. Location & Nearest Stop Floating Pill -->
-    <div id="nearest-stop-banner" class="nearest-stop-pill" onclick="handleNearestStopClick()">
+    <div id="nearest-stop-banner" class="nearest-stop-pill">
       <div class="nearest-stop-icon">📍</div>
-      <div class="nearest-stop-text" id="nearest-stop-text">
+      <div class="nearest-stop-text" id="nearest-stop-text" onclick="handleNearestStopClick()">
         <span>Tap to find your nearest campus stop...</span>
       </div>
-      <button class="nearest-stop-action-btn" id="nearest-stop-btn">Enable GPS</button>
+      <div class="banner-actions" id="banner-actions">
+        <button class="nearest-stop-action-btn" id="nearest-stop-btn" onclick="handleNearestStopClick()">Enable GPS</button>
+      </div>
+    </div>
+
+    <!-- 2c. In-App Turn-By-Turn Walking Directions HUD -->
+    <div id="directions-hud" class="directions-hud">
+      <div class="directions-header">
+        <div class="directions-dest-title">
+          <span>🚶 Walking to <strong id="directions-dest-name">Campus Stop</strong></span>
+        </div>
+        <button class="directions-close-btn" onclick="exitDirectionsMode(event)" title="Exit Navigation">
+          <span>✕ Exit</span>
+        </button>
+      </div>
+
+      <div class="directions-step-card" id="directions-current-step-card">
+        <div class="directions-step-icon" id="directions-step-icon">⬆️</div>
+        <div class="directions-step-content">
+          <div class="directions-step-instruction" id="directions-step-text">Head straight towards campus walkway</div>
+          <div class="directions-step-sub" id="directions-step-sub">In 40m</div>
+        </div>
+      </div>
+
+      <div class="directions-meta-bar">
+        <div class="directions-stats">
+          <span>⏱️ <span id="directions-eta-val">3 min</span></span>
+          <span>•</span>
+          <span>📏 <span id="directions-dist-val">220 m</span></span>
+        </div>
+        <button class="directions-steps-toggle" onclick="toggleItineraryList(event)">
+          <span id="itinerary-toggle-label">All Steps (3) ▾</span>
+        </button>
+      </div>
+
+      <div class="directions-steps-dropdown" id="directions-steps-dropdown">
+        <!-- Injected dynamically -->
+      </div>
     </div>
   </div>
 
@@ -944,23 +1338,30 @@
       const distFormatted = minDistance < 1000 ? `${Math.round(minDistance)}m` : `${(minDistance/1000).toFixed(1)}km`;
 
       const bannerText = document.getElementById('nearest-stop-text');
-      const actionBtn = document.getElementById('nearest-stop-btn');
+      const bannerActions = document.getElementById('banner-actions');
 
       bannerText.innerHTML = `<span>Nearest: <span class="highlight">${nearest.name}</span> • ${distFormatted} <span class="walk-eta">(~${walkMins}m walk)</span></span>`;
-      actionBtn.textContent = 'Focus';
-      actionBtn.disabled = false;
+      
+      if (bannerActions) {
+        bannerActions.innerHTML = `
+          <button class="directions-trigger-btn" onclick="startDirectionsMode(event)">🚶 Directions</button>
+          <button class="nearest-stop-action-btn" onclick="handleNearestStopClick()">🎯 Focus</button>
+        `;
+      }
 
-      // Draw walking dotted path to nearest stop
-      if (walkingPolyline) map.removeLayer(walkingPolyline);
-      walkingPolyline = L.polyline([[userLat, userLng], [nearest.lat, nearest.lng]], {
-        color: '#38bdf8',
-        weight: 3.5,
-        dashArray: '5, 8',
-        opacity: 0.9
-      }).addTo(map);
+      // Draw walking dotted path to nearest stop if not in full directions mode
+      if (!isDirectionsMode) {
+        if (walkingPolyline) map.removeLayer(walkingPolyline);
+        walkingPolyline = L.polyline([[userLat, userLng], [nearest.lat, nearest.lng]], {
+          color: '#38bdf8',
+          weight: 3.5,
+          dashArray: '5, 8',
+          opacity: 0.9
+        }).addTo(map);
+      }
 
       // If user is within 3km of campus or manual trigger, focus on user & nearest stop
-      if (shouldCenter || minDistance <= 3000) {
+      if ((shouldCenter || minDistance <= 3000) && !isDirectionsMode) {
         const bounds = L.latLngBounds([[userLat, userLng], [nearest.lat, nearest.lng]]);
         map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
       }
@@ -972,6 +1373,337 @@
         map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
       } else {
         requestLocationAndFindNearestStop(true);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // IN-APP WALKING DIRECTIONS ENGINE (OSRM Campus Footpaths + Realtime Tracking)
+    // ------------------------------------------------------------------------
+    let isDirectionsMode = false;
+    let walkingRouteLayer = null;
+    let walkingDestMarker = null;
+    let walkingSteps = [];
+    let currentStepIndex = 0;
+    let geoWatchId = null;
+
+    function getManeuverIcon(type, modifier) {
+      if (type === 'arrive') return '🏁';
+      if (!modifier) return '⬆️';
+      if (modifier.includes('right')) {
+        return modifier.includes('slight') ? '↗️' : (modifier.includes('sharp') ? '↪️' : '➡️');
+      }
+      if (modifier.includes('left')) {
+        return modifier.includes('slight') ? '↖️' : (modifier.includes('sharp') ? '↩️' : '⬅️');
+      }
+      if (modifier.includes('straight')) return '⬆️';
+      if (modifier.includes('uturn')) return '🔄';
+      return '⬆️';
+    }
+
+    function formatInstruction(step, stopName) {
+      const type = step.maneuver.type;
+      const modifier = step.maneuver.modifier || '';
+      const name = step.name && step.name.trim() !== '' ? step.name : 'campus pathway';
+
+      if (type === 'depart') {
+        return `Start walking along ${name}`;
+      }
+      if (type === 'arrive') {
+        return `Arrive at ${stopName}`;
+      }
+      if (type === 'turn') {
+        const dir = modifier ? modifier.replace('-', ' ') : '';
+        return `Turn ${dir} onto ${name}`;
+      }
+      if (type === 'end of road') {
+        return `At end of road, turn ${modifier || 'along'} ${name}`;
+      }
+      if (type === 'fork') {
+        return `Take the ${modifier || ''} fork onto ${name}`;
+      }
+      if (type === 'continue') {
+        return `Continue straight on ${name}`;
+      }
+      return `Head towards ${name}`;
+    }
+
+    async function fetchWalkingRoute(startLat, startLng, endLat, endLng) {
+      // 1. Try public OSRM walking router with 3.5s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      try {
+        const url = `https://router.project-osrm.org/route/v1/walking/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&steps=true`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.code === 'Ok' && data.routes && data.routes[0]) {
+            const route = data.routes[0];
+            const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]); // [lat, lng]
+            const steps = (route.legs && route.legs[0] && route.legs[0].steps) ? route.legs[0].steps : [];
+            return {
+              coordinates,
+              distanceMeters: route.distance,
+              durationSeconds: route.duration,
+              steps
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('OSRM router fetch timed out or failed, using campus path fallback:', err);
+      }
+
+      // 2. Instant Campus Fallback: Smooth interpolated pathway between user and stop
+      const directDist = getDistanceMeters(startLat, startLng, endLat, endLng);
+      const midLat = (startLat + endLat) / 2;
+      const midLng = (startLng + endLng) / 2;
+      return {
+        coordinates: [
+          [startLat, startLng],
+          [midLat, midLng],
+          [endLat, endLng]
+        ],
+        distanceMeters: directDist,
+        durationSeconds: (directDist / 75) * 60,
+        steps: [
+          {
+            maneuver: { type: 'depart', modifier: 'straight' },
+            name: 'Campus Pedestrian Way',
+            distance: Math.round(directDist * 0.5)
+          },
+          {
+            maneuver: { type: 'continue', modifier: 'straight' },
+            name: nearestCampusStop ? nearestCampusStop.name : 'Campus Stop',
+            distance: Math.round(directDist * 0.5)
+          },
+          {
+            maneuver: { type: 'arrive', modifier: '' },
+            name: nearestCampusStop ? nearestCampusStop.name : 'Campus Stop',
+            distance: 0
+          }
+        ]
+      };
+    }
+
+    async function startDirectionsMode(e) {
+      if (e) e.stopPropagation();
+
+      if (!userLocation) {
+        requestLocationAndFindNearestStop(true);
+        return;
+      }
+      if (!nearestCampusStop) {
+        calculateNearestStop(userLocation.lat, userLocation.lng, true);
+      }
+      if (!nearestCampusStop) return;
+
+      isDirectionsMode = true;
+
+      // Update UI components
+      const nearestBanner = document.getElementById('nearest-stop-banner');
+      const directionsHud = document.getElementById('directions-hud');
+      const destNameEl = document.getElementById('directions-dest-name');
+      const stepTextEl = document.getElementById('directions-step-text');
+      const stepSubEl = document.getElementById('directions-step-sub');
+      const stepIconEl = document.getElementById('directions-step-icon');
+      const etaValEl = document.getElementById('directions-eta-val');
+      const distValEl = document.getElementById('directions-dist-val');
+
+      nearestBanner.style.display = 'none';
+      directionsHud.classList.add('active');
+      destNameEl.textContent = nearestCampusStop.name;
+      stepIconEl.textContent = '🚶';
+      stepTextEl.textContent = 'Calculating shortest walking path...';
+      stepSubEl.textContent = 'Mapping campus walkways...';
+
+      // Clear existing walking polyline
+      if (walkingPolyline) {
+        map.removeLayer(walkingPolyline);
+        walkingPolyline = null;
+      }
+      if (walkingRouteLayer) {
+        map.removeLayer(walkingRouteLayer);
+        walkingRouteLayer = null;
+      }
+      if (walkingDestMarker) {
+        map.removeLayer(walkingDestMarker);
+        walkingDestMarker = null;
+      }
+
+      // Fetch route
+      const routeData = await fetchWalkingRoute(
+        userLocation.lat,
+        userLocation.lng,
+        nearestCampusStop.lat,
+        nearestCampusStop.lng
+      );
+
+      const coords = routeData.coordinates;
+      const totalDist = routeData.distanceMeters;
+      const totalMins = Math.max(1, Math.round(totalDist / 75));
+
+      distValEl.textContent = totalDist < 1000 ? `${Math.round(totalDist)} m` : `${(totalDist / 1000).toFixed(1)} km`;
+      etaValEl.textContent = `${totalMins} min`;
+
+      // Render glowing walking path
+      const glowLine = L.polyline(coords, {
+        color: '#06b6d4',
+        weight: 8,
+        opacity: 0.45,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      const coreLine = L.polyline(coords, {
+        color: '#38bdf8',
+        weight: 4,
+        dashArray: '7, 9',
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      walkingRouteLayer = L.layerGroup([glowLine, coreLine]).addTo(map);
+
+      // Add finish flag marker at the stop
+      const flagIcon = L.divIcon({
+        className: 'flag-dest-icon',
+        html: `<div style="
+          background:#0f172a;
+          border:2px solid #38bdf8;
+          color:white;
+          border-radius:10px;
+          padding:3px 7px;
+          font-size:12px;
+          font-weight:800;
+          box-shadow:0 4px 12px rgba(0,0,0,0.6);
+          display:flex;
+          align-items:center;
+          gap:4px;
+          white-space:nowrap;
+        ">🏁 ${nearestCampusStop.name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [30, 24]
+      });
+      walkingDestMarker = L.marker([nearestCampusStop.lat, nearestCampusStop.lng], { icon: flagIcon }).addTo(map);
+
+      // Fit map smoothly to the entire walking itinerary
+      map.fitBounds(glowLine.getBounds(), { padding: [60, 60], maxZoom: 18 });
+
+      // Build turn-by-turn steps
+      walkingSteps = routeData.steps.map((st, i) => {
+        return {
+          icon: getManeuverIcon(st.maneuver.type, st.maneuver.modifier),
+          instruction: formatInstruction(st, nearestCampusStop.name),
+          distance: Math.round(st.distance || 0)
+        };
+      });
+
+      currentStepIndex = 0;
+      updateDirectionsStepUI();
+      renderItineraryDropdown();
+
+      // Start live walking GPS watch
+      if (navigator.geolocation && !geoWatchId) {
+        geoWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const curLat = pos.coords.latitude;
+            const curLng = pos.coords.longitude;
+            userLocation = { lat: curLat, lng: curLng };
+            updateUserLocationMarker(curLat, curLng);
+            onWalkingPositionUpdate(curLat, curLng);
+          },
+          (err) => console.warn('Watch error:', err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 6000 }
+        );
+      }
+    }
+
+    function updateDirectionsStepUI() {
+      if (!walkingSteps || walkingSteps.length === 0) return;
+      const step = walkingSteps[currentStepIndex] || walkingSteps[0];
+      const stepTextEl = document.getElementById('directions-step-text');
+      const stepSubEl = document.getElementById('directions-step-sub');
+      const stepIconEl = document.getElementById('directions-step-icon');
+
+      stepIconEl.textContent = step.icon;
+      stepTextEl.textContent = step.instruction;
+      stepSubEl.textContent = step.distance > 0 ? `In ${step.distance}m` : 'Arriving at destination';
+    }
+
+    function renderItineraryDropdown() {
+      const dropdown = document.getElementById('directions-steps-dropdown');
+      const label = document.getElementById('itinerary-toggle-label');
+      label.textContent = `All Steps (${walkingSteps.length}) ▾`;
+
+      dropdown.innerHTML = walkingSteps.map((st, i) => `
+        <div class="itinerary-item ${i === currentStepIndex ? 'active' : ''}">
+          <span class="itinerary-step-badge">${st.icon}</span>
+          <div style="flex:1;">
+            <div>${st.instruction}</div>
+            ${st.distance > 0 ? `<div style="font-size:0.68rem; color:#94a3b8;">${st.distance}m</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleItineraryList(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('directions-steps-dropdown');
+      dropdown.classList.toggle('open');
+    }
+
+    function onWalkingPositionUpdate(curLat, curLng) {
+      if (!isDirectionsMode || !nearestCampusStop) return;
+      const remainingDist = getDistanceMeters(curLat, curLng, nearestCampusStop.lat, nearestCampusStop.lng);
+      const remainingMins = Math.max(1, Math.round(remainingDist / 75));
+
+      const distValEl = document.getElementById('directions-dist-val');
+      const etaValEl = document.getElementById('directions-eta-val');
+      if (distValEl) distValEl.textContent = remainingDist < 1000 ? `${Math.round(remainingDist)} m` : `${(remainingDist / 1000).toFixed(1)} km`;
+      if (etaValEl) etaValEl.textContent = `${remainingMins} min`;
+
+      // Check arrival
+      if (remainingDist <= 15) {
+        const card = document.getElementById('directions-current-step-card');
+        card.innerHTML = `
+          <div class="arrival-banner" style="width:100%;">
+            <span>🎉 You have arrived at ${nearestCampusStop.name}!</span>
+          </div>
+        `;
+      }
+    }
+
+    function exitDirectionsMode(e) {
+      if (e) e.stopPropagation();
+      isDirectionsMode = false;
+
+      const nearestBanner = document.getElementById('nearest-stop-banner');
+      const directionsHud = document.getElementById('directions-hud');
+      if (directionsHud) directionsHud.classList.remove('active');
+      if (nearestBanner) nearestBanner.style.display = 'flex';
+
+      if (walkingRouteLayer) {
+        map.removeLayer(walkingRouteLayer);
+        walkingRouteLayer = null;
+      }
+      if (walkingDestMarker) {
+        map.removeLayer(walkingDestMarker);
+        walkingDestMarker = null;
+      }
+      if (geoWatchId) {
+        navigator.geolocation.clearWatch(geoWatchId);
+        geoWatchId = null;
+      }
+
+      // Restore simple dashed line if nearest stop exists
+      if (userLocation && nearestCampusStop) {
+        if (walkingPolyline) map.removeLayer(walkingPolyline);
+        walkingPolyline = L.polyline([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]], {
+          color: '#38bdf8',
+          weight: 3.5,
+          dashArray: '5, 8',
+          opacity: 0.9
+        }).addTo(map);
       }
     }
 

@@ -762,6 +762,14 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
   int? _nearestStopWalkMinutes;
   bool _isLocatingUser = false;
   
+  // Passenger In-App Walking Directions
+  bool _isDirectionsMode = false;
+  List<LatLng> _walkingRoutePoints = [];
+  List<Map<String, dynamic>> _walkingSteps = [];
+  int _currentStepIndex = 0;
+  bool _isItineraryExpanded = false;
+  StreamSubscription<Position>? _walkingPositionSub;
+  
   List<Map<String, dynamic>> _allRoutes = [];
   String _selectedRouteId = 'all';
 
@@ -856,6 +864,295 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
         setState(() => _isLocatingUser = false);
       }
     }
+  }
+
+  void _startDirectionsMode() {
+    if (_userLocation == null || _nearestStopName == null || !_campusStops.containsKey(_nearestStopName)) {
+      _requestLocationAndFindNearestStop(manual: true);
+      return;
+    }
+
+    final stopPos = _campusStops[_nearestStopName!]!;
+    final directDist = Geolocator.distanceBetween(
+      _userLocation!.latitude,
+      _userLocation!.longitude,
+      stopPos.latitude,
+      stopPos.longitude,
+    );
+
+    // Compute campus walkway waypoint
+    final midLat = (_userLocation!.latitude + stopPos.latitude) / 2;
+    final midLng = (_userLocation!.longitude + stopPos.longitude) / 2;
+
+    final steps = <Map<String, dynamic>>[
+      {
+        'icon': Icons.arrow_upward_rounded,
+        'instruction': 'Head along campus pedestrian way',
+        'sub': 'In ${(directDist * 0.4).round()}m',
+        'distance': (directDist * 0.4).round(),
+      },
+      {
+        'icon': Icons.turn_right_rounded,
+        'instruction': 'Turn towards $_nearestStopName',
+        'sub': 'In ${(directDist * 0.6).round()}m',
+        'distance': (directDist * 0.6).round(),
+      },
+      {
+        'icon': Icons.sports_score_rounded,
+        'instruction': 'Arrive at $_nearestStopName stop',
+        'sub': 'Destination at stop marker',
+        'distance': 0,
+      },
+    ];
+
+    setState(() {
+      _isDirectionsMode = true;
+      _walkingRoutePoints = [_userLocation!, LatLng(midLat, midLng), stopPos];
+      _walkingSteps = steps;
+      _currentStepIndex = 0;
+      _isItineraryExpanded = false;
+    });
+
+    // Smoothly focus map on the route
+    _mapController.move(LatLng(midLat, midLng), 17.0);
+
+    // Listen to real-time walking movement
+    _walkingPositionSub?.cancel();
+    _walkingPositionSub = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 3,
+      ),
+    ).listen((position) {
+      if (!mounted || !_isDirectionsMode) return;
+      final newPos = LatLng(position.latitude, position.longitude);
+      final remaining = Geolocator.distanceBetween(
+        newPos.latitude,
+        newPos.longitude,
+        stopPos.latitude,
+        stopPos.longitude,
+      );
+
+      setState(() {
+        _userLocation = newPos;
+        _nearestStopDistanceMeters = remaining;
+        _nearestStopWalkMinutes = (remaining / 75).ceil().clamp(1, 120);
+        _walkingRoutePoints = [newPos, LatLng(midLat, midLng), stopPos];
+        if (remaining <= 15 && _walkingSteps.isNotEmpty) {
+          _currentStepIndex = _walkingSteps.length - 1;
+        }
+      });
+    });
+  }
+
+  void _exitDirectionsMode() {
+    _walkingPositionSub?.cancel();
+    _walkingPositionSub = null;
+    setState(() {
+      _isDirectionsMode = false;
+      _walkingRoutePoints = [];
+      _walkingSteps = [];
+      _isItineraryExpanded = false;
+    });
+  }
+
+  Widget _buildDirectionsHud() {
+    final currentStep = _walkingSteps.isNotEmpty && _currentStepIndex < _walkingSteps.length
+        ? _walkingSteps[_currentStepIndex]
+        : {
+            'icon': Icons.arrow_upward_rounded,
+            'instruction': 'Head towards $_nearestStopName',
+            'sub': 'In 30m',
+            'distance': 30,
+          };
+
+    final totalM = (_nearestStopDistanceMeters ?? 0).round();
+    final totalMins = _nearestStopWalkMinutes ?? 1;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFA0F172A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x6638BDF8)),
+        boxShadow: const [
+          BoxShadow(color: Colors.black54, blurRadius: 18, offset: Offset(0, 6)),
+          BoxShadow(color: Color(0x3338BDF8), blurRadius: 10),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header with destination & exit button
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Text('🚶', style: TextStyle(fontSize: 14)),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Walking to $_nearestStopName',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                ],
+              ),
+              InkWell(
+                onTap: _exitDirectionsMode,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33EF4444),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0x66EF4444)),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.close_rounded, size: 12, color: Color(0xFFF87171)),
+                      SizedBox(width: 3),
+                      Text('Exit', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFFF87171))),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // Primary Current Step Card
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E293B),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white10),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Color(0xFF0284C7), Color(0xFF38BDF8)]),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    currentStep['icon'] as IconData? ?? Icons.navigation_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentStep['instruction'].toString(),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        currentStep['sub'].toString(),
+                        style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Meta row: ETA + Distance + Expand toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.timer_outlined, size: 13, color: Color(0xFF38BDF8)),
+                  const SizedBox(width: 4),
+                  Text('$totalMins min', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
+                  const SizedBox(width: 8),
+                  const Text('•', style: TextStyle(color: Colors.white38)),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.straighten_rounded, size: 13, color: Color(0xFF38BDF8)),
+                  const SizedBox(width: 4),
+                  Text(totalM < 1000 ? '$totalM m' : '${(totalM / 1000).toStringAsFixed(1)} km',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8))),
+                ],
+              ),
+              InkWell(
+                onTap: () => setState(() => _isItineraryExpanded = !_isItineraryExpanded),
+                child: Row(
+                  children: [
+                    Text(
+                      'Steps (${_walkingSteps.length})',
+                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white70),
+                    ),
+                    Icon(
+                      _isItineraryExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // Expandable Itinerary Steps
+          if (_isItineraryExpanded) ...[
+            const SizedBox(height: 8),
+            Container(
+              constraints: const BoxConstraints(maxHeight: 120),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F172A),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(6),
+                itemCount: _walkingSteps.length,
+                separatorBuilder: (_, __) => const Divider(color: Colors.white10, height: 8),
+                itemBuilder: (context, index) {
+                  final s = _walkingSteps[index];
+                  final isCur = index == _currentStepIndex;
+                  return Row(
+                    children: [
+                      Icon(s['icon'] as IconData? ?? Icons.arrow_upward_rounded,
+                          size: 14, color: isCur ? const Color(0xFF38BDF8) : Colors.white60),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          s['instruction'].toString(),
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: isCur ? FontWeight.bold : FontWeight.normal,
+                            color: isCur ? const Color(0xFF38BDF8) : Colors.white70,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if ((s['distance'] as num) > 0)
+                        Text('${s['distance']}m', style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8))),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchRoutesFromSupabase() async {
@@ -1226,6 +1523,7 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
 
   @override
   void dispose() {
+    _walkingPositionSub?.cancel();
     _reconnectTimer?.cancel();
     _channel.sink.close();
     super.dispose();
@@ -1330,18 +1628,59 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                       color: _parseColor(route['color']),
                     );
                   }),
-                  if (_userLocation != null && _nearestStopName != null && _campusStops.containsKey(_nearestStopName))
+                  if (_isDirectionsMode && _walkingRoutePoints.isNotEmpty) ...[
+                    Polyline(
+                      points: _walkingRoutePoints,
+                      strokeWidth: 8.0,
+                      color: const Color(0x6606B6D4),
+                    ),
+                    Polyline(
+                      points: _walkingRoutePoints,
+                      strokeWidth: 4.5,
+                      color: const Color(0xFF38BDF8),
+                    ),
+                  ] else if (_userLocation != null && _nearestStopName != null && _campusStops.containsKey(_nearestStopName)) ...[
                     Polyline(
                       points: [_userLocation!, _campusStops[_nearestStopName!]!],
                       strokeWidth: 3.5,
                       color: const Color(0xFF38BDF8),
                     ),
+                  ],
                 ],
               ),
 
-              // Markers: Campus Stops and Live Moving Shuttles
+              // Markers: Campus Stops, Destination Flag and Live Moving Shuttles
               MarkerLayer(
                 markers: [
+                  if (_isDirectionsMode && _nearestStopName != null && _campusStops.containsKey(_nearestStopName))
+                    Marker(
+                      point: _campusStops[_nearestStopName!]!,
+                      width: 120,
+                      height: 34,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0F172A),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+                          boxShadow: const [BoxShadow(color: Colors.black54, blurRadius: 8)],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('🏁', style: TextStyle(fontSize: 12)),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                _nearestStopName!,
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   // Passenger Live Location Marker
                   if (_userLocation != null)
                     Marker(
@@ -1628,10 +1967,11 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
 
                   const SizedBox(height: 6),
 
-                  // Nearest Stop Floating Pill
-                  GestureDetector(
-                    onTap: () => _requestLocationAndFindNearestStop(manual: true),
-                    child: Container(
+                  // 2b. In-App Walking Directions HUD or Nearest Stop Floating Pill
+                  if (_isDirectionsMode)
+                    _buildDirectionsHud()
+                  else
+                    Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: const Color(0xEE0F172A),
@@ -1648,35 +1988,67 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                           const Text('📍', style: TextStyle(fontSize: 13)),
                           const SizedBox(width: 6),
                           Expanded(
-                            child: Text(
-                              _isLocatingUser
-                                  ? 'Locating your nearest campus stop...'
-                                  : (_nearestStopName != null
-                                      ? 'Nearest: $_nearestStopName • ${(_nearestStopDistanceMeters!).toStringAsFixed(0)}m (~$_nearestStopWalkMinutes min walk)'
-                                      : 'Tap to allow location & find nearest stop'),
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: _nearestStopName != null ? Colors.white : const Color(0xFF94A3B8),
+                            child: GestureDetector(
+                              onTap: () => _requestLocationAndFindNearestStop(manual: true),
+                              child: Text(
+                                _isLocatingUser
+                                    ? 'Locating your nearest campus stop...'
+                                    : (_nearestStopName != null
+                                        ? 'Nearest: $_nearestStopName • ${(_nearestStopDistanceMeters!).toStringAsFixed(0)}m (~$_nearestStopWalkMinutes min walk)'
+                                        : 'Tap to allow location & find nearest stop'),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: _nearestStopName != null ? Colors.white : const Color(0xFF94A3B8),
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0284C7),
+                          if (_nearestStopName != null) ...[
+                            InkWell(
+                              onTap: _startDirectionsMode,
                               borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(colors: [Color(0xFF0284C7), Color(0xFF38BDF8)]),
+                                  borderRadius: BorderRadius.circular(6),
+                                  boxShadow: [
+                                    BoxShadow(color: const Color(0xFF0284C7).withOpacity(0.4), blurRadius: 4),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('🚶', style: TextStyle(fontSize: 10)),
+                                    SizedBox(width: 3),
+                                    Text('Directions', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  ],
+                                ),
+                              ),
                             ),
-                            child: Text(
-                              _nearestStopName != null ? 'Focus' : 'Enable GPS',
-                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                            const SizedBox(width: 5),
+                          ],
+                          InkWell(
+                            onTap: () => _requestLocationAndFindNearestStop(manual: true),
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1E293B),
+                                border: Border.all(color: Colors.white24),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                _nearestStopName != null ? 'Focus' : 'Enable GPS',
+                                style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
