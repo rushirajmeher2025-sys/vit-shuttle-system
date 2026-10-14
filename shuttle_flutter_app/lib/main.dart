@@ -6,6 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'dart:async';
 import 'dart:math' as math;
@@ -13,6 +14,15 @@ import 'dart:math' as math;
 // Supabase live configuration
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://yaypinidsnhmcoccvqco.supabase.co');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU');
+
+// Automatically resolves PC's local IP (10.172.147.61) or current browser host for phone testing
+String getWsUrl(String params) {
+  if (kIsWeb) {
+    final host = Uri.base.host.isNotEmpty && Uri.base.host != 'localhost' ? Uri.base.host : '10.172.147.61';
+    return 'ws://$host:8080?$params';
+  }
+  return 'ws://10.172.147.61:8080?$params';
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -665,7 +675,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
     _reconnectTimer?.cancel();
     try {
       _channel = WebSocketChannel.connect(
-        Uri.parse('ws://localhost:8080?role=student'),
+        Uri.parse(getWsUrl('role=student')),
       );
       
       setState(() => _isConnected = true);
@@ -1248,7 +1258,7 @@ class _DriverModeScreenState extends State<DriverModeScreen> {
   void initState() {
     super.initState();
     _channel = WebSocketChannel.connect(
-      Uri.parse('ws://localhost:8080?role=driver&shuttleId=shuttle-01'),
+      Uri.parse(getWsUrl('role=driver&shuttleId=shuttle-01')),
     );
   }
 
