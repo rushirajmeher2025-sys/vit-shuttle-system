@@ -18,6 +18,7 @@ yarn-error.log*
 .flutter-plugins-dependencies
 .packages
 build/
+**/.gradle/
 android/.gradle/
 android/local.properties
 ios/.generated/
