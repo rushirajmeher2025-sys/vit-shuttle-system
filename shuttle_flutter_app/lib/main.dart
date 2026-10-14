@@ -9,8 +9,8 @@ import 'dart:convert';
 import 'dart:async';
 
 // Make sure to replace these with your actual Supabase credentials for production
-const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://YOUR_SUPABASE_URL.supabase.co');
-const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'YOUR_SUPABASE_ANON_KEY');
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://yaypinidsnhmcoccvqco.supabase.co');
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
