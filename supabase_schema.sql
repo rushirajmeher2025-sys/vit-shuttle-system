@@ -77,31 +77,63 @@ DELETE FROM public.routes;
 
 -- Insert standard campus stops
 INSERT INTO public.stops (name, lat, lng) VALUES
-    ('Main Gate', 12.9692, 79.1559),
-    ('MB (Main Building)', 12.9698, 79.1588),
-    ('SJT (Silver Jubilee Tower)', 12.9715, 79.1633),
-    ('TT (Technology Tower)', 12.9730, 79.1585),
-    ('Men''s Hostel', 12.9750, 79.1610);
+    -- Men's Hostels Shuttle Stops
+    ('Vajpayee / Q & R-Block Cluster', 12.9723, 79.1627),
+    ('L, M, N, P Block Cluster', 12.9712, 79.1612),
+    ('MH Food Court & All Maart Area', 12.9701, 79.1601),
+    ('GD Naidu Block / A-G Blocks', 12.9692, 79.1588),
+    ('TT / Central Library Junction', 12.9691, 79.1560),
+    
+    -- Women's Hostel Shuttle Stops
+    ('Main Ladies'' Hostel (LH) Gate', 12.9675, 79.1595),
+    ('LH G Block', 12.9668, 79.1602),
+    ('Periyar EVR Central Library', 12.9688, 79.1561),
+    ('SMV / MB Block Portico', 12.9698, 79.1552),
+    
+    -- Faculty Shuttle Stops & Shared Academic Stops
+    ('Main Gate 1 Entrance', 12.9682, 79.1542),
+    ('Main Gate 2 Entrance', 12.9665, 79.1551),
+    ('Dr. M.G.R. Central Admin Block', 12.9688, 79.1550),
+    ('Staff & Faculty Quarters Zone', 12.9658, 79.1578),
+    ('TT (Technology Tower)', 12.9695, 79.1563),
+    ('SJT (Silver Jubilee Tower)', 12.9708, 79.1558),
+    ('Gandhi Block / Netaji Block', 12.9715, 79.1548);
 
--- Insert sample VIT shuttle routes
+-- Insert official VIT shuttle routes
 INSERT INTO public.routes (route_name, color, points) VALUES
     (
-        'Main Gate to SJT Express', 
-        '#1E88E5', 
+        'Men''s Hostels Express Route (Bus #101)', 
+        '#0284c7', 
         '[
-            {"lat": 12.9692, "lng": 79.1559},
-            {"lat": 12.9698, "lng": 79.1588},
-            {"lat": 12.9708, "lng": 79.1610},
-            {"lat": 12.9715, "lng": 79.1633}
+            {"lat": 12.9723, "lng": 79.1627},
+            {"lat": 12.9712, "lng": 79.1612},
+            {"lat": 12.9701, "lng": 79.1601},
+            {"lat": 12.9692, "lng": 79.1588},
+            {"lat": 12.9691, "lng": 79.1560},
+            {"lat": 12.9708, "lng": 79.1558}
         ]'::jsonb
     ),
     (
-        'Campus Loop (Hostels - TT - SJT)', 
-        '#43A047', 
+        'Women''s Hostel Express Route (Bus #102)', 
+        '#ec4899', 
         '[
-            {"lat": 12.9750, "lng": 79.1610},
-            {"lat": 12.9730, "lng": 79.1585},
-            {"lat": 12.9698, "lng": 79.1588},
-            {"lat": 12.9715, "lng": 79.1633}
+            {"lat": 12.9675, "lng": 79.1595},
+            {"lat": 12.9668, "lng": 79.1602},
+            {"lat": 12.9688, "lng": 79.1561},
+            {"lat": 12.9698, "lng": 79.1552},
+            {"lat": 12.9708, "lng": 79.1558}
+        ]'::jsonb
+    ),
+    (
+        'Faculty Exclusive Route (Shuttle #201)', 
+        '#059669', 
+        '[
+            {"lat": 12.9682, "lng": 79.1542},
+            {"lat": 12.9665, "lng": 79.1551},
+            {"lat": 12.9688, "lng": 79.1550},
+            {"lat": 12.9658, "lng": 79.1578},
+            {"lat": 12.9695, "lng": 79.1563},
+            {"lat": 12.9708, "lng": 79.1558},
+            {"lat": 12.9715, "lng": 79.1548}
         ]'::jsonb
     );

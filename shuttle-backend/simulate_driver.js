@@ -2,29 +2,34 @@ const WebSocket = require('ws');
 
 const ws = new WebSocket('ws://localhost:8080?role=driver');
 
-// Waypoints for General Campus Bus #101 (Fare: ₹20, For Everyone)
-const generalRouteWaypoints = [
-    { lat: 12.9692, lng: 79.1559 }, // Main Gate
-    { lat: 12.9695, lng: 79.1573 },
-    { lat: 12.9698, lng: 79.1588 }, // Main Building (MB)
-    { lat: 12.9708, lng: 79.1610 }, // Central Library
-    { lat: 12.9715, lng: 79.1633 }, // Silver Jubilee Tower (SJT)
-    { lat: 12.9735, lng: 79.1620 }, // SMV
-    { lat: 12.9750, lng: 79.1610 }, // Men's Hostel
-    { lat: 12.9740, lng: 79.1595 },
-    { lat: 12.9730, lng: 79.1585 }, // Technology Tower (TT)
-    { lat: 12.9705, lng: 79.1565 }, // Food Mall
+// Waypoints for Men's Hostels Express Bus #101 (Fare: ₹20, Student/General)
+const mensHostelRouteWaypoints = [
+    { lat: 12.9723, lng: 79.1627 }, // Vajpayee / Q & R-Block Cluster
+    { lat: 12.9712, lng: 79.1612 }, // L, M, N, P Block Cluster
+    { lat: 12.9701, lng: 79.1601 }, // MH Food Court & All Maart Area
+    { lat: 12.9692, lng: 79.1588 }, // GD Naidu Block / A-G Blocks
+    { lat: 12.9691, lng: 79.1560 }, // TT / Central Library Junction
+    { lat: 12.9708, lng: 79.1558 }, // SJT (Silver Jubilee Tower)
+];
+
+// Waypoints for Women's Hostel Express Bus #102 (Fare: ₹20, Student/General)
+const womensHostelRouteWaypoints = [
+    { lat: 12.9675, lng: 79.1595 }, // Main Ladies' Hostel (LH) Gate
+    { lat: 12.9668, lng: 79.1602 }, // LH G Block
+    { lat: 12.9688, lng: 79.1561 }, // Periyar EVR Central Library
+    { lat: 12.9698, lng: 79.1552 }, // SMV / MB Block Portico
+    { lat: 12.9708, lng: 79.1558 }, // SJT (Silver Jubilee Tower)
 ];
 
 // Waypoints for Faculty Exclusive Shuttle #201 (Fare: Free ₹0, Only Faculty)
 const facultyRouteWaypoints = [
-    { lat: 12.9715, lng: 79.1633 }, // SJT Faculty Wing
-    { lat: 12.9723, lng: 79.1609 },
-    { lat: 12.9730, lng: 79.1585 }, // Technology Tower (TT / Dean Office)
-    { lat: 12.9714, lng: 79.1586 },
-    { lat: 12.9698, lng: 79.1588 }, // MB Admin Block
-    { lat: 12.9692, lng: 79.1559 }, // Main Gate
-    { lat: 12.9702, lng: 79.1600 }, // Faculty Quarters / Staff Club
+    { lat: 12.9682, lng: 79.1542 }, // Main Gate 1 Entrance
+    { lat: 12.9665, lng: 79.1551 }, // Main Gate 2 Entrance
+    { lat: 12.9688, lng: 79.1550 }, // Dr. M.G.R. Central Admin Block
+    { lat: 12.9658, lng: 79.1578 }, // Staff & Faculty Quarters Zone
+    { lat: 12.9695, lng: 79.1563 }, // TT (Technology Tower)
+    { lat: 12.9708, lng: 79.1558 }, // SJT (Silver Jubilee Tower)
+    { lat: 12.9715, lng: 79.1548 }, // Gandhi Block / Netaji Block
 ];
 
 function interpolate(p1, p2, t) {
@@ -84,13 +89,23 @@ class SimulatedShuttle {
 const shuttles = [
     new SimulatedShuttle({
         shuttleId: 'vit_general_bus_101',
-        name: 'General Campus Bus #101',
+        name: "General Campus Bus #101 (Men's Hostels)",
         shuttleType: 'general',
         fare: 20,
         capacity: 40,
-        waypoints: generalRouteWaypoints,
+        waypoints: mensHostelRouteWaypoints,
         speed: 22.0,
-        step: 0.12
+        step: 0.10
+    }),
+    new SimulatedShuttle({
+        shuttleId: 'vit_general_bus_102',
+        name: "General Campus Bus #102 (Women's Hostel)",
+        shuttleType: 'general',
+        fare: 20,
+        capacity: 35,
+        waypoints: womensHostelRouteWaypoints,
+        speed: 21.0,
+        step: 0.10
     }),
     new SimulatedShuttle({
         shuttleId: 'vit_faculty_shuttle_201',
@@ -106,9 +121,10 @@ const shuttles = [
 
 ws.on('open', () => {
     console.log('Driver Simulator connected to WebSocket Server.');
-    console.log('Broadcasting 2 Active VIT Shuttles:');
-    console.log('1. [vit_general_bus_101] General Campus Bus - Fare: Rs 20 (Everyone)');
-    console.log('2. [vit_faculty_shuttle_201] Faculty Exclusive Shuttle - Fare: FREE (Faculty Only)');
+    console.log('Broadcasting 3 Active VIT Campus Shuttles:');
+    console.log("1. [vit_general_bus_101] General Campus Bus #101 (Men's Hostels) - Fare: Rs 20");
+    console.log("2. [vit_general_bus_102] General Campus Bus #102 (Women's Hostel) - Fare: Rs 20");
+    console.log("3. [vit_faculty_shuttle_201] Faculty Exclusive Shuttle #201 - Fare: FREE");
 
     setInterval(() => {
         shuttles.forEach((shuttle) => {

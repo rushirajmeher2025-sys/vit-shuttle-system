@@ -721,16 +721,36 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
   final Map<String, ShuttleData> _activeShuttles = {
     'vit_general_bus_101': ShuttleData(
       shuttleId: 'vit_general_bus_101',
-      name: 'General Campus Bus #101',
+      name: "General Campus Bus #101 (Men's Hostels)",
       shuttleType: 'general',
       fare: 20.0,
-      location: const LatLng(12.9692, 79.1559),
-      speed: 21.0,
+      location: const LatLng(12.9723, 79.1627),
+      speed: 22.0,
       heading: 45.0,
       stopETAs: [
-        {'stopName': 'MB (Main Building)', 'etaMinutes': 2, 'distanceKm': 0.4},
-        {'stopName': 'SJT Tower', 'etaMinutes': 5, 'distanceKm': 1.1},
-        {'stopName': "Men's Hostel", 'etaMinutes': 9, 'distanceKm': 2.0},
+        {'stopName': 'Vajpayee / Q & R-Block Cluster', 'etaMinutes': 1, 'distanceKm': 0.1},
+        {'stopName': 'L, M, N, P Block Cluster', 'etaMinutes': 3, 'distanceKm': 0.5},
+        {'stopName': 'MH Food Court & All Maart Area', 'etaMinutes': 5, 'distanceKm': 0.9},
+        {'stopName': 'GD Naidu Block / A-G Blocks', 'etaMinutes': 7, 'distanceKm': 1.3},
+        {'stopName': 'TT / Central Library Junction', 'etaMinutes': 10, 'distanceKm': 1.8},
+        {'stopName': 'SJT (Silver Jubilee Tower)', 'etaMinutes': 12, 'distanceKm': 2.3},
+      ],
+      lastUpdated: DateTime.now(),
+    ),
+    'vit_general_bus_102': ShuttleData(
+      shuttleId: 'vit_general_bus_102',
+      name: "General Campus Bus #102 (Women's Hostel)",
+      shuttleType: 'general',
+      fare: 20.0,
+      location: const LatLng(12.9675, 79.1595),
+      speed: 21.0,
+      heading: 90.0,
+      stopETAs: [
+        {'stopName': "Main Ladies' Hostel (LH) Gate", 'etaMinutes': 1, 'distanceKm': 0.1},
+        {'stopName': 'LH G Block', 'etaMinutes': 3, 'distanceKm': 0.4},
+        {'stopName': 'Periyar EVR Central Library', 'etaMinutes': 6, 'distanceKm': 1.0},
+        {'stopName': 'SMV / MB Block Portico', 'etaMinutes': 8, 'distanceKm': 1.4},
+        {'stopName': 'SJT (Silver Jubilee Tower)', 'etaMinutes': 11, 'distanceKm': 2.0},
       ],
       lastUpdated: DateTime.now(),
     ),
@@ -739,13 +759,17 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
       name: 'Faculty Exclusive Shuttle #201',
       shuttleType: 'faculty',
       fare: 0.0,
-      location: const LatLng(12.9715, 79.1633),
-      speed: 19.0,
+      location: const LatLng(12.9682, 79.1542),
+      speed: 19.5,
       heading: 180.0,
       stopETAs: [
-        {'stopName': 'Technology Tower (TT)', 'etaMinutes': 3, 'distanceKm': 0.6},
-        {'stopName': 'MB Admin Block', 'etaMinutes': 6, 'distanceKm': 1.3},
-        {'stopName': 'Main Gate', 'etaMinutes': 8, 'distanceKm': 1.9},
+        {'stopName': 'Main Gate 1 Entrance', 'etaMinutes': 1, 'distanceKm': 0.1},
+        {'stopName': 'Main Gate 2 Entrance', 'etaMinutes': 3, 'distanceKm': 0.5},
+        {'stopName': 'Dr. M.G.R. Central Admin Block', 'etaMinutes': 5, 'distanceKm': 0.9},
+        {'stopName': 'Staff & Faculty Quarters Zone', 'etaMinutes': 8, 'distanceKm': 1.4},
+        {'stopName': 'TT (Technology Tower)', 'etaMinutes': 10, 'distanceKm': 1.9},
+        {'stopName': 'SJT (Silver Jubilee Tower)', 'etaMinutes': 12, 'distanceKm': 2.4},
+        {'stopName': 'Gandhi Block / Netaji Block', 'etaMinutes': 14, 'distanceKm': 2.8},
       ],
       lastUpdated: DateTime.now(),
     ),
@@ -777,11 +801,27 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
   double _trackpadStartZoom = 16.2;
 
   final Map<String, LatLng> _campusStops = {
-    'Main Gate': const LatLng(12.9692, 79.1559),
-    'MB (Main Bldg)': const LatLng(12.9698, 79.1588),
-    'SJT Tower': const LatLng(12.9715, 79.1633),
-    'TT (Tech Tower)': const LatLng(12.9730, 79.1585),
-    "Men's Hostel": const LatLng(12.9750, 79.1610),
+    // 1. Men's Hostels Shuttle Stops
+    'Vajpayee / Q & R-Block Cluster': const LatLng(12.9723, 79.1627),
+    'L, M, N, P Block Cluster': const LatLng(12.9712, 79.1612),
+    'MH Food Court & All Maart Area': const LatLng(12.9701, 79.1601),
+    'GD Naidu Block / A-G Blocks': const LatLng(12.9692, 79.1588),
+    'TT / Central Library Junction': const LatLng(12.9691, 79.1560),
+
+    // 2. Women's Hostel Shuttle Stops
+    "Main Ladies' Hostel (LH) Gate": const LatLng(12.9675, 79.1595),
+    'LH G Block': const LatLng(12.9668, 79.1602),
+    'Periyar EVR Central Library': const LatLng(12.9688, 79.1561),
+    'SMV / MB Block Portico': const LatLng(12.9698, 79.1552),
+
+    // 3. Faculty Shuttle Stops & Shared Academic Hubs
+    'SJT (Silver Jubilee Tower)': const LatLng(12.9708, 79.1558),
+    'Main Gate 1 Entrance': const LatLng(12.9682, 79.1542),
+    'Main Gate 2 Entrance': const LatLng(12.9665, 79.1551),
+    'Dr. M.G.R. Central Admin Block': const LatLng(12.9688, 79.1550),
+    'Staff & Faculty Quarters Zone': const LatLng(12.9658, 79.1578),
+    'TT (Technology Tower)': const LatLng(12.9695, 79.1563),
+    'Gandhi Block / Netaji Block': const LatLng(12.9715, 79.1548),
   };
 
   bool get isFacultyUser => widget.userRole == UserRole.faculty;
@@ -1713,51 +1753,68 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                     ),
 
                   // Campus Stop Markers
-                  ..._campusStops.entries.map((entry) => Marker(
-                    point: entry.value,
-                    width: 100,
-                    height: 52,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFF0F172A), width: 1.2),
-                            boxShadow: const [
-                              BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
-                            ],
-                          ),
-                          child: Text(
-                            entry.key,
-                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(height: 1),
-                        Container(
-                          width: 14,
-                          height: 14,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEF4444),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2.5),
-                            boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 4)],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
+                  ..._campusStops.entries.map((entry) {
+                    final name = entry.key;
+                    final isMh = name.contains('Block') || name.contains('MH') || name.contains('GD Naidu') || name.contains('Vajpayee');
+                    final isLh = name.contains('Ladies') || name.contains('LH');
+                    final isFac = name.contains('Faculty') || name.contains('Main Gate') || name.contains('Quarters') || name.contains('Admin');
+                    final pinColor = isMh
+                        ? const Color(0xFF0284C7)
+                        : (isLh
+                            ? const Color(0xFFEC4899)
+                            : (isFac ? const Color(0xFF059669) : const Color(0xFF8B5CF6)));
 
-                  // Both Shuttles (General Bus vs Faculty Shuttle)
+                    return Marker(
+                      point: entry.value,
+                      width: 110,
+                      height: 52,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: pinColor, width: 1.2),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black45, blurRadius: 6, offset: Offset(0, 2)),
+                              ],
+                            ),
+                            child: Text(
+                              entry.key,
+                              style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: Colors.white),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: pinColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 4)],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+
+                  // All Shuttles (Men's Hostels #101 vs Women's Hostel #102 vs Faculty #201)
                   ...visibleShuttles.map((shuttle) {
                     final isFaculty = shuttle.isFaculty;
+                    final isWomen = shuttle.shuttleId.contains('102') || shuttle.name.toLowerCase().contains('women');
                     final isSelected = shuttle.shuttleId == _selectedShuttleId;
-                    final themeColor = isFaculty ? const Color(0xFF059669) : const Color(0xFF0284C7);
-                    final badgeText = isFaculty ? 'FACULTY • FREE' : 'BUS 101 • ₹20';
+                    final themeColor = isFaculty
+                        ? const Color(0xFF059669)
+                        : (isWomen ? const Color(0xFFEC4899) : const Color(0xFF0284C7));
+                    final badgeText = isFaculty
+                        ? 'FACULTY • FREE'
+                        : (isWomen ? 'LH 102 • ₹20' : 'MH 101 • ₹20');
 
                     return Marker(
                       point: shuttle.location,
@@ -1788,7 +1845,9 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                                 gradient: LinearGradient(
                                   colors: isFaculty
                                       ? [const Color(0xFF059669), const Color(0xFF047857)]
-                                      : [const Color(0xFF0284C7), const Color(0xFF0369A1)],
+                                      : (isWomen
+                                          ? [const Color(0xFFDB2777), const Color(0xFFBE185D)]
+                                          : [const Color(0xFF0284C7), const Color(0xFF0369A1)]),
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 ),
@@ -2157,9 +2216,10 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Row 1: Shuttle Quick Switcher (General Bus ₹20 vs Faculty Shuttle Free)
+                  // Row 1: Shuttle Quick Switcher (Men's Hostels ₹20, Women's Hostel ₹20, Faculty Free)
                   Row(
                     children: [
-                      // General Bus Pill
+                      // Men's Hostels Bus Pill
                       Expanded(
                         child: GestureDetector(
                           onTap: () {
@@ -2168,12 +2228,12 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                             if (s != null) _mapController.move(s.location, 16.5);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                             decoration: BoxDecoration(
                               color: _selectedShuttleId == 'vit_general_bus_101'
                                   ? const Color(0xFF0284C7).withOpacity(0.22)
                                   : const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: _selectedShuttleId == 'vit_general_bus_101'
                                     ? const Color(0xFF0284C7)
@@ -2186,25 +2246,73 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                               children: [
                                 Row(
                                   children: const [
-                                    Text('🚌', style: TextStyle(fontSize: 14)),
-                                    SizedBox(width: 5),
-                                    Text('General', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    Text('🚌', style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 4),
+                                    Text('MH', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
                                   ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF0284C7),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  child: const Text('₹20', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  child: const Text('₹20', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.white)),
                                 ),
                               ],
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
+
+                      // Women's Hostel Bus Pill
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedShuttleId = 'vit_general_bus_102');
+                            final s = _activeShuttles['vit_general_bus_102'];
+                            if (s != null) _mapController.move(s.location, 16.5);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _selectedShuttleId == 'vit_general_bus_102'
+                                  ? const Color(0xFFEC4899).withOpacity(0.22)
+                                  : const Color(0xFF1E293B),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _selectedShuttleId == 'vit_general_bus_102'
+                                    ? const Color(0xFFEC4899)
+                                    : Colors.white10,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: const [
+                                    Text('🌸', style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 4),
+                                    Text('LH', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  ],
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDB2777),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: const Text('₹20', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.white)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+
                       // Faculty Shuttle Pill
                       Expanded(
                         child: GestureDetector(
@@ -2214,12 +2322,12 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                             if (s != null) _mapController.move(s.location, 16.5);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                             decoration: BoxDecoration(
                               color: _selectedShuttleId == 'vit_faculty_shuttle_201'
                                   ? const Color(0xFF059669).withOpacity(0.22)
                                   : const Color(0xFF1E293B),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: _selectedShuttleId == 'vit_faculty_shuttle_201'
                                     ? const Color(0xFF059669)
@@ -2232,18 +2340,18 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                               children: [
                                 Row(
                                   children: const [
-                                    Text('⭐', style: TextStyle(fontSize: 14)),
-                                    SizedBox(width: 5),
-                                    Text('Faculty', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                                    Text('⭐', style: TextStyle(fontSize: 12)),
+                                    SizedBox(width: 4),
+                                    Text('Faculty', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white)),
                                   ],
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFF059669),
-                                    borderRadius: BorderRadius.circular(6),
+                                    borderRadius: BorderRadius.circular(5),
                                   ),
-                                  child: const Text('FREE', style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white)),
+                                  child: const Text('FREE', style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.bold, color: Colors.white)),
                                 ),
                               ],
                             ),

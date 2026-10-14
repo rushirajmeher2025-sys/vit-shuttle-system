@@ -490,6 +490,11 @@
       border-color: #0284c7;
       color: #38bdf8;
     }
+    .shuttle-select-btn.active.women {
+      background: rgba(236, 72, 153, 0.18);
+      border-color: #ec4899;
+      color: #f472b6;
+    }
     .shuttle-select-btn.active.faculty {
       background: rgba(5, 150, 105, 0.18);
       border-color: #059669;
@@ -509,6 +514,7 @@
       border-radius: 6px;
     }
     .fare-paid { background: #0284c7; color: white; }
+    .fare-women { background: #db2777; color: white; }
     .fare-free { background: #059669; color: white; }
 
     /* Live ETA & Speed Snapshot Row */
@@ -766,6 +772,10 @@
     .bus-marker-node.general {
       background: linear-gradient(135deg, #0284c7, #0369a1);
       border: 2px solid white;
+    }
+    .bus-marker-node.women {
+      background: linear-gradient(135deg, #db2777, #be185d);
+      border: 2px solid #fbcfe8;
     }
     .bus-marker-node.faculty {
       background: linear-gradient(135deg, #059669, #047857);
@@ -1068,12 +1078,16 @@
     <div id="passenger-view">
       <!-- 1. Quick Shuttle Switcher -->
       <div class="shuttle-quick-selector">
-        <button id="btn-general" class="shuttle-select-btn active general" onclick="selectShuttle('vit_general_bus_101')">
-          <span class="shuttle-name-label">🚌 General Bus</span>
+        <button id="btn-general-mh" class="shuttle-select-btn active general" onclick="selectShuttle('vit_general_bus_101')">
+          <span class="shuttle-name-label">🚌 Men's Hostels</span>
           <span class="shuttle-fare-badge fare-paid">₹20</span>
         </button>
+        <button id="btn-general-lh" class="shuttle-select-btn women" onclick="selectShuttle('vit_general_bus_102')">
+          <span class="shuttle-name-label">🌸 Women's Hostel</span>
+          <span class="shuttle-fare-badge fare-women">₹20</span>
+        </button>
         <button id="btn-faculty" class="shuttle-select-btn faculty" onclick="selectShuttle('vit_faculty_shuttle_201')">
-          <span class="shuttle-name-label">⭐ Faculty Shuttle</span>
+          <span class="shuttle-name-label">⭐ Faculty</span>
           <span class="shuttle-fare-badge fare-free">FREE</span>
         </button>
       </div>
@@ -1171,22 +1185,48 @@
     let isDrawerOpen = false;
 
     let campusStops = [
-      { id: 1, name: 'Main Gate', lat: 12.9692, lng: 79.1559 },
-      { id: 2, name: 'MB (Main Building)', lat: 12.9698, lng: 79.1588 },
-      { id: 3, name: 'SJT Tower', lat: 12.9715, lng: 79.1633 },
-      { id: 4, name: 'TT (Technology Tower)', lat: 12.9730, lng: 79.1585 },
-      { id: 5, name: "Men's Hostel", lat: 12.9750, lng: 79.1610 }
+      // 1. Men's Hostels Shuttle Stops
+      { id: 1, name: 'Vajpayee / Q & R-Block Cluster', category: 'mh', lat: 12.9723, lng: 79.1627 },
+      { id: 2, name: 'L, M, N, P Block Cluster', category: 'mh', lat: 12.9712, lng: 79.1612 },
+      { id: 3, name: 'MH Food Court & All Maart Area', category: 'mh', lat: 12.9701, lng: 79.1601 },
+      { id: 4, name: 'GD Naidu Block / A-G Blocks', category: 'mh', lat: 12.9692, lng: 79.1588 },
+      { id: 5, name: 'TT / Central Library Junction', category: 'mh', lat: 12.9691, lng: 79.1560 },
+
+      // 2. Women's Hostel Shuttle Stops
+      { id: 6, name: "Main Ladies' Hostel (LH) Gate", category: 'lh', lat: 12.9675, lng: 79.1595 },
+      { id: 7, name: 'LH G Block', category: 'lh', lat: 12.9668, lng: 79.1602 },
+      { id: 8, name: 'Periyar EVR Central Library', category: 'lh', lat: 12.9688, lng: 79.1561 },
+      { id: 9, name: 'SMV / MB Block Portico', category: 'lh', lat: 12.9698, lng: 79.1552 },
+
+      // 3. Faculty Shuttle Stops & Shared Academic Hubs
+      { id: 10, name: 'SJT (Silver Jubilee Tower)', category: 'academic', lat: 12.9708, lng: 79.1558 },
+      { id: 11, name: 'Main Gate 1 Entrance', category: 'faculty', lat: 12.9682, lng: 79.1542 },
+      { id: 12, name: 'Main Gate 2 Entrance', category: 'faculty', lat: 12.9665, lng: 79.1551 },
+      { id: 13, name: 'Dr. M.G.R. Central Admin Block', category: 'faculty', lat: 12.9688, lng: 79.1550 },
+      { id: 14, name: 'Staff & Faculty Quarters Zone', category: 'faculty', lat: 12.9658, lng: 79.1578 },
+      { id: 15, name: 'TT (Technology Tower)', category: 'faculty', lat: 12.9695, lng: 79.1563 },
+      { id: 16, name: 'Gandhi Block / Netaji Block', category: 'faculty', lat: 12.9715, lng: 79.1548 }
     ];
 
     let activeShuttles = {
       'vit_general_bus_101': {
         shuttleId: 'vit_general_bus_101',
-        name: 'General Campus Bus #101',
+        name: "General Campus Bus #101 (Men's Hostels)",
         shuttleType: 'general',
         fare: 20,
-        lat: 12.9692,
-        lng: 79.1559,
-        speed: 21.8,
+        lat: 12.9723,
+        lng: 79.1627,
+        speed: 22.0,
+        stopETAs: []
+      },
+      'vit_general_bus_102': {
+        shuttleId: 'vit_general_bus_102',
+        name: "General Campus Bus #102 (Women's Hostel)",
+        shuttleType: 'general',
+        fare: 20,
+        lat: 12.9675,
+        lng: 79.1595,
+        speed: 21.0,
         stopETAs: []
       },
       'vit_faculty_shuttle_201': {
@@ -1194,9 +1234,9 @@
         name: 'Faculty Exclusive Shuttle #201',
         shuttleType: 'faculty',
         fare: 0,
-        lat: 12.9715,
-        lng: 79.1633,
-        speed: 19.2,
+        lat: 12.9682,
+        lng: 79.1542,
+        speed: 19.5,
         stopETAs: []
       }
     };
@@ -1204,28 +1244,88 @@
     let shuttleMarkers = {};
     let fallbackSimulatorTimer = null;
 
-    // Load Stops & Routes
+    // Load Stops & Official Routes
     async function loadCampusData() {
       try {
         const { data: stops } = await supabaseClient.from('stops').select('*');
-        if (stops && stops.length > 0) campusStops = stops;
+        if (stops && stops.length >= 10) campusStops = stops;
       } catch (e) {}
 
+      // Render official campus stop pins with category color-coding
       campusStops.forEach(stop => {
+        let dotColor = '#38bdf8';
+        let badgeIcon = '🛏️';
+        if (stop.category === 'lh') {
+          dotColor = '#ec4899';
+          badgeIcon = '🌸';
+        } else if (stop.category === 'faculty') {
+          dotColor = '#10b981';
+          badgeIcon = '⭐';
+        } else if (stop.category === 'academic') {
+          dotColor = '#a855f7';
+          badgeIcon = '🏛️';
+        }
+
         const stopIcon = L.divIcon({
           className: 'custom-stop-marker',
-          html: `<div style="background:white; color:#0f172a; font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:8px; border:1px solid #0f172a; box-shadow:0 2px 6px rgba(0,0,0,0.3); white-space:nowrap; transform:translate(-50%, -22px); text-align:center;">
-            ${stop.name}
-            <div style="width:8px; height:8px; background:#ef4444; border:2px solid white; border-radius:50%; margin:1px auto 0 auto;"></div>
+          html: `<div style="background:#0f172a; color:#f8fafc; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:8px; border:1.5px solid ${dotColor}; box-shadow:0 3px 10px rgba(0,0,0,0.5); white-space:nowrap; transform:translate(-50%, -24px); text-align:center; display:flex; align-items:center; gap:4px;">
+            <span style="font-size:10px;">${badgeIcon}</span>
+            <span>${stop.name}</span>
+            <div style="width:7px; height:7px; background:${dotColor}; border:1.5px solid white; border-radius:50%; margin-left:2px;"></div>
           </div>`,
           iconSize: [0, 0]
         });
         L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map);
       });
 
+      // Default high-precision polylines for the 3 routes
+      const defaultCampusRoutes = [
+        {
+          name: "Men's Hostels Route (Bus #101)",
+          color: '#0284c7',
+          points: [
+            [12.9723, 79.1627],
+            [12.9712, 79.1612],
+            [12.9701, 79.1601],
+            [12.9692, 79.1588],
+            [12.9691, 79.1560],
+            [12.9708, 79.1558]
+          ]
+        },
+        {
+          name: "Women's Hostel Route (Bus #102)",
+          color: '#ec4899',
+          points: [
+            [12.9675, 79.1595],
+            [12.9668, 79.1602],
+            [12.9688, 79.1561],
+            [12.9698, 79.1552],
+            [12.9708, 79.1558]
+          ]
+        },
+        {
+          name: "Faculty Exclusive Route (Shuttle #201)",
+          color: '#059669',
+          points: [
+            [12.9682, 79.1542],
+            [12.9665, 79.1551],
+            [12.9688, 79.1550],
+            [12.9658, 79.1578],
+            [12.9695, 79.1563],
+            [12.9708, 79.1558],
+            [12.9715, 79.1548]
+          ]
+        }
+      ];
+
+      defaultCampusRoutes.forEach(r => {
+        L.polyline(r.points, { color: 'white', weight: 5.5, opacity: 0.85 }).addTo(map);
+        L.polyline(r.points, { color: r.color, weight: 3.5, opacity: 0.95 }).addTo(map);
+      });
+
       try {
         const { data: routes } = await supabaseClient.from('routes').select('*');
-        if (routes) {
+        if (routes && routes.length > 3) {
           routes.forEach(route => {
             if (Array.isArray(route.points) && route.points.length > 0) {
               const latlngs = route.points.map(p => [p.lat, p.lng]);
@@ -1724,10 +1824,19 @@
     }
 
     function updateMarker(shuttle) {
-      const isFaculty = shuttle.shuttleType === 'faculty';
-      const pillText = isFaculty ? 'FACULTY • FREE' : 'BUS 101 • ₹20';
-      const markerClass = isFaculty ? 'bus-marker-node faculty' : 'bus-marker-node general';
-      const iconContent = isFaculty ? '⭐' : '🚌';
+      let pillText = 'MH 101 • ₹20';
+      let markerClass = 'bus-marker-node general';
+      let iconContent = '🚌';
+
+      if (shuttle.shuttleType === 'faculty' || (shuttle.shuttleId && shuttle.shuttleId.includes('faculty'))) {
+        pillText = 'FACULTY • FREE';
+        markerClass = 'bus-marker-node faculty';
+        iconContent = '⭐';
+      } else if (shuttle.shuttleId === 'vit_general_bus_102' || (shuttle.name && shuttle.name.toLowerCase().includes('women'))) {
+        pillText = 'LH 102 • ₹20';
+        markerClass = 'bus-marker-node women';
+        iconContent = '🌸';
+      }
 
       const customIcon = L.divIcon({
         className: 'custom-bus-wrapper',
@@ -1750,8 +1859,9 @@
 
     function selectShuttle(shuttleId) {
       selectedShuttleId = shuttleId;
-      document.getElementById('btn-general').classList.toggle('active', shuttleId === 'vit_general_bus_101');
-      document.getElementById('btn-faculty').classList.toggle('active', shuttleId === 'vit_faculty_shuttle_201');
+      document.getElementById('btn-general-mh')?.classList.toggle('active', shuttleId === 'vit_general_bus_101');
+      document.getElementById('btn-general-lh')?.classList.toggle('active', shuttleId === 'vit_general_bus_102');
+      document.getElementById('btn-faculty')?.classList.toggle('active', shuttleId === 'vit_faculty_shuttle_201');
       
       const shuttle = activeShuttles[shuttleId];
       if (shuttle) {
