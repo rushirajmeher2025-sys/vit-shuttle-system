@@ -763,8 +763,16 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             initialZoom: 16.2,
             minZoom: 3.0,
             maxZoom: 20.0,
-            interactionOptions: InteractionOptions(
-              flags: InteractiveFlag.all,
+            interactionOptions: const InteractionOptions(
+              flags: InteractiveFlag.drag |
+                  InteractiveFlag.flingAnimation |
+                  InteractiveFlag.pinchMove |
+                  InteractiveFlag.pinchZoom |
+                  InteractiveFlag.doubleTapZoom |
+                  InteractiveFlag.doubleTapDragZoom |
+                  InteractiveFlag.scrollWheelZoom,
+              pinchZoomThreshold: 0.05,
+              enableMultiFingerGestureRace: true,
             ),
           ),
           children: [
