@@ -656,7 +656,10 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
     }
   }
 
+  Timer? _reconnectTimer;
+
   void _connectWebSocket() {
+    _reconnectTimer?.cancel();
     try {
       _channel = WebSocketChannel.connect(
         Uri.parse('ws://localhost:8080?role=student'),
@@ -677,12 +680,32 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             });
           }
         },
-        onDone: () => setState(() => _isConnected = false),
-        onError: (e) => setState(() => _isConnected = false),
+        onDone: () {
+          if (mounted) {
+            setState(() => _isConnected = false);
+            _scheduleReconnect();
+          }
+        },
+        onError: (e) {
+          if (mounted) {
+            setState(() => _isConnected = false);
+            _scheduleReconnect();
+          }
+        },
       );
     } catch (e) {
-      setState(() => _isConnected = false);
+      if (mounted) {
+        setState(() => _isConnected = false);
+        _scheduleReconnect();
+      }
     }
+  }
+
+  void _scheduleReconnect() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) _connectWebSocket();
+    });
   }
 
   Color _parseColor(String? colorHex) {
@@ -710,6 +733,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
   }
 
   Future<void> _logout() async {
+    _reconnectTimer?.cancel();
     await supabase.auth.signOut();
     if (mounted) {
       Navigator.pushAndRemoveUntil(
@@ -722,6 +746,7 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
 
   @override
   void dispose() {
+    _reconnectTimer?.cancel();
     _channel.sink.close();
     super.dispose();
   }
@@ -740,13 +765,12 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
             maxZoom: 19.0,
           ),
           children: [
-            // High-Resolution CartoDB Voyager Tiles (Apple/Google Maps aesthetic)
+            // Google Maps Standard Road Tiles (100% Free, Zero Watermark, Crisp Global Coverage)
             TileLayer(
-              urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-              subdomains: const ['a', 'b', 'c', 'd'],
+              urlTemplate: 'https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+              subdomains: const ['mt0', 'mt1', 'mt2', 'mt3'],
               userAgentPackageName: 'com.example.shuttle_flutter_app',
-              maxZoom: 19,
-              retinaMode: true,
+              maxZoom: 20,
             ),
             
             // Dynamic Transit Routes (Outer casing + vibrant colored core)
