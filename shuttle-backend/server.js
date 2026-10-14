@@ -15,18 +15,19 @@ const fs = require('fs');
 const path = require('path');
 
 const server = http.createServer(async (req, res) => {
+    const parsedUrl = (req.url || '').split('?')[0];
+
     // Serve Web Frontend
-    if (req.method === 'GET' && (req.url === '/' || req.url === '/index.html')) {
+    if (req.method === 'GET' && (parsedUrl === '/' || parsedUrl === '' || parsedUrl === '/index.html')) {
         const indexPath = path.join(__dirname, 'public', 'index.html');
-        fs.readFile(indexPath, 'utf-8', (err, html) => {
-            if (err) {
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end('Error loading web interface');
-                return;
-            }
-            res.writeHead(200, { 'Content-Type': 'text/html' });
+        try {
+            const html = fs.readFileSync(indexPath, 'utf-8');
+            res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
             res.end(html);
-        });
+        } catch (err) {
+            res.writeHead(500, { 'Content-Type': 'text/plain' });
+            res.end('Error loading web interface');
+        }
         return;
     }
 

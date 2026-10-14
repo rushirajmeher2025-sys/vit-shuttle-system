@@ -1275,8 +1275,24 @@
           </div>`,
           iconSize: [0, 0]
         });
-        L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map);
+        const stopMarker = L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map);
+        stopMarker.bindPopup(`
+          <div style="font-family:inherit; min-width:180px; padding:4px;">
+            <div style="font-weight:800; font-size:12px; color:#0f172a; margin-bottom:3px;">${stop.name}</div>
+            <div style="font-size:10.5px; color:#64748b; margin-bottom:8px;">Campus Shuttle Stop</div>
+            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%; background:#0284c7; color:white; border:none; padding:6px 10px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">🚶 Walk To This Stop</button>
+          </div>
+        `);
       });
+
+      window.navigateDirectlyToStop = function(stopId) {
+        map.closePopup();
+        const target = campusStops.find(s => s.id === stopId);
+        if (target) {
+          nearestCampusStop = target;
+          startDirectionsMode();
+        }
+      };
 
       // Default high-precision polylines for the 3 routes
       const defaultCampusRoutes = [
@@ -1415,32 +1431,77 @@
       }
     }
 
-    function calculateNearestStop(userLat, userLng, shouldCenter = false) {
+    async function calculateNearestStop(userLat, userLng, shouldCenter = false) {
       if (!campusStops || campusStops.length === 0) return;
-
-      let minDistance = Infinity;
-      let nearest = null;
-
-      campusStops.forEach(stop => {
-        const dist = getDistanceMeters(userLat, userLng, stop.lat, stop.lng);
-        if (dist < minDistance) {
-          minDistance = dist;
-          nearest = stop;
-        }
-      });
-
-      if (!nearest) return;
-
-      nearestCampusStop = nearest;
-      nearestDistanceMeters = minDistance;
-
-      const walkMins = Math.max(1, Math.round(minDistance / 75)); // ~75m per min walk
-      const distFormatted = minDistance < 1000 ? `${Math.round(minDistance)}m` : `${(minDistance/1000).toFixed(1)}km`;
 
       const bannerText = document.getElementById('nearest-stop-text');
       const bannerActions = document.getElementById('banner-actions');
 
-      bannerText.innerHTML = `<span>Nearest: <span class="highlight">${nearest.name}</span> • ${distFormatted} <span class="walk-eta">(~${walkMins}m walk)</span></span>`;
+      if (bannerText && !nearestCampusStop) {
+        bannerText.innerHTML = `<span>Calculating shortest walking paths to stops...</span>`;
+      }
+
+      let bestStop = null;
+      let bestDistance = Infinity;
+      let bestDurationSec = null;
+
+      // 1. Query OSRM Walking Distance Matrix table API for genuine pedestrian network routes
+      const stopsCoords = campusStops.map(s => `${s.lng},${s.lat}`).join(';');
+      const url = `https://router.project-osrm.org/table/v1/walking/${userLng},${userLat};${stopsCoords}?sources=0&annotations=distance,duration`;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.code === 'Ok' && data.distances && data.distances[0]) {
+            const distances = data.distances[0];
+            const durations = data.durations ? data.durations[0] : null;
+
+            for (let i = 0; i < campusStops.length; i++) {
+              const d = distances[i + 1];
+              if (d !== null && d !== undefined && !isNaN(d)) {
+                if (d < bestDistance) {
+                  bestDistance = d;
+                  bestStop = campusStops[i];
+                  bestDurationSec = durations ? durations[i + 1] : (d / 75) * 60;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('OSRM walking distance matrix timeout or error, falling back:', err);
+      }
+
+      // 2. Fallback: If routing matrix was unavailable, use direct distance with campus winding factor
+      if (!bestStop) {
+        let minDirect = Infinity;
+        campusStops.forEach(stop => {
+          const dist = getDistanceMeters(userLat, userLng, stop.lat, stop.lng);
+          if (dist < minDirect) {
+            minDirect = dist;
+            bestStop = stop;
+            bestDistance = dist * 1.35; // account for campus footpaths detour
+            bestDurationSec = (bestDistance / 75) * 60;
+          }
+        });
+      }
+
+      if (!bestStop) return;
+
+      nearestCampusStop = bestStop;
+      nearestDistanceMeters = bestDistance;
+
+      const walkMins = bestDurationSec ? Math.max(1, Math.round(bestDurationSec / 60)) : Math.max(1, Math.round(bestDistance / 75));
+      const distFormatted = bestDistance < 1000 ? `${Math.round(bestDistance)}m` : `${(bestDistance/1000).toFixed(1)}km`;
+
+      if (bannerText) {
+        bannerText.innerHTML = `<span>Nearest: <span class="highlight">${bestStop.name}</span> • ${distFormatted} <span class="walk-eta">(~${walkMins}m walk)</span></span>`;
+      }
       
       if (bannerActions) {
         bannerActions.innerHTML = `
@@ -1449,20 +1510,35 @@
         `;
       }
 
-      // Draw walking dotted path to nearest stop if not in full directions mode
+      // Draw walking dotted path to nearest stop along real pedestrian walkways if not in full directions mode
       if (!isDirectionsMode) {
-        if (walkingPolyline) map.removeLayer(walkingPolyline);
-        walkingPolyline = L.polyline([[userLat, userLng], [nearest.lat, nearest.lng]], {
-          color: '#38bdf8',
-          weight: 3.5,
-          dashArray: '5, 8',
-          opacity: 0.9
-        }).addTo(map);
+        try {
+          const routeData = await fetchWalkingRoute(userLat, userLng, bestStop.lat, bestStop.lng);
+          if (!isDirectionsMode && routeData && routeData.coordinates && routeData.coordinates.length > 0) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline(routeData.coordinates, {
+              color: '#38bdf8',
+              weight: 4,
+              dashArray: '5, 8',
+              opacity: 0.95
+            }).addTo(map);
+          }
+        } catch (e) {
+          if (!isDirectionsMode) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline([[userLat, userLng], [bestStop.lat, bestStop.lng]], {
+              color: '#38bdf8',
+              weight: 3.5,
+              dashArray: '5, 8',
+              opacity: 0.9
+            }).addTo(map);
+          }
+        }
       }
 
       // If user is within 3km of campus or manual trigger, focus on user & nearest stop
-      if ((shouldCenter || minDistance <= 3000) && !isDirectionsMode) {
-        const bounds = L.latLngBounds([[userLat, userLng], [nearest.lat, nearest.lng]]);
+      if ((shouldCenter || bestDistance <= 3000) && !isDirectionsMode) {
+        const bounds = L.latLngBounds([[userLat, userLng], [bestStop.lat, bestStop.lng]]);
         map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
       }
     }
@@ -1795,15 +1871,29 @@
         geoWatchId = null;
       }
 
-      // Restore simple dashed line if nearest stop exists
+      // Restore walking dashed line along real campus pathways
       if (userLocation && nearestCampusStop) {
-        if (walkingPolyline) map.removeLayer(walkingPolyline);
-        walkingPolyline = L.polyline([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]], {
-          color: '#38bdf8',
-          weight: 3.5,
-          dashArray: '5, 8',
-          opacity: 0.9
-        }).addTo(map);
+        fetchWalkingRoute(userLocation.lat, userLocation.lng, nearestCampusStop.lat, nearestCampusStop.lng).then(routeData => {
+          if (!isDirectionsMode && routeData && routeData.coordinates) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline(routeData.coordinates, {
+              color: '#38bdf8',
+              weight: 4,
+              dashArray: '5, 8',
+              opacity: 0.95
+            }).addTo(map);
+          }
+        }).catch(() => {
+          if (!isDirectionsMode) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]], {
+              color: '#38bdf8',
+              weight: 3.5,
+              dashArray: '5, 8',
+              opacity: 0.9
+            }).addTo(map);
+          }
+        });
       }
     }
 
