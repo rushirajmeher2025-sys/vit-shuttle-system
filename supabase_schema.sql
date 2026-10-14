@@ -22,16 +22,21 @@ CREATE TABLE IF NOT EXISTS public.routes (
 );
 
 -- 3. SHUTTLE LOGS TABLE (For 5-minute historical batch logging)
+-- Supports both shuttle categories:
+--   'general': Bus service for everyone (Fare: Rs 20)
+--   'faculty': Exclusive shuttle for faculty only (Fare: Free Rs 0)
 CREATE TABLE IF NOT EXISTS public.shuttle_logs (
     id BIGSERIAL PRIMARY KEY,
     shuttle_id TEXT NOT NULL,
+    shuttle_type TEXT DEFAULT 'general' CHECK (shuttle_type IN ('general', 'faculty')),
+    fare NUMERIC DEFAULT 20.0,
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
     speed DOUBLE PRECISION,
     timestamp TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. CROWDING REPORTS TABLE (For student passenger crowding reports)
+-- 4. CROWDING REPORTS TABLE (For passenger crowding reports)
 CREATE TABLE IF NOT EXISTS public.crowding_reports (
     id BIGSERIAL PRIMARY KEY,
     shuttle_id TEXT NOT NULL,

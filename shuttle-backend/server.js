@@ -128,7 +128,6 @@ setInterval(async () => {
         
         if (shuttleLogs.length > 0) {
             await supabase.from('shuttle_logs').insert(shuttleLogs);
-            // Clear or keep? We can just keep it and log the latest known position every 5 mins.
         }
 
         // 2. Log crowding reports
@@ -147,25 +146,60 @@ setInterval(async () => {
 
 wss.on('connection', (ws, req) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
-    const role = url.searchParams.get('role');
+    const role = url.searchParams.get('role') || 'passenger';
+    const clientShuttleId = url.searchParams.get('shuttleId');
     
-    console.log(`Client connected with role: ${role}`);
+    console.log(`Client connected with role: ${role}${clientShuttleId ? ` (shuttle: ${clientShuttleId})` : ''}`);
     ws.role = role;
+    ws.shuttleId = clientShuttleId;
+
+    // Send currently active shuttles to newly connected client immediately
+    const activeList = Object.values(activeShuttlePositions).map(s => {
+        const stopETAs = cachedStops.map(stop => {
+            const etaData = calculateETA(s.lat, s.lng, stop.lat, stop.lng, s.speed);
+            return {
+                stopId: stop.id,
+                stopName: stop.name,
+                distanceKm: etaData.distanceKm,
+                etaMinutes: etaData.etaMinutes
+            };
+        });
+        return {
+            ...s,
+            stopETAs
+        };
+    });
+
+    if (activeList.length > 0) {
+        ws.send(JSON.stringify({
+            type: 'ALL_SHUTTLES',
+            shuttles: activeList
+        }));
+    }
 
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
             
             if (data.type === 'LOCATION_UPDATE' || data.type === 'SHUTTLE_MOVED') {
-                const speed = data.speed;
-                const shuttleId = data.shuttleId || 'default-shuttle';
+                const speed = data.speed !== undefined ? data.speed : 18;
+                const shuttleId = data.shuttleId || 'vit_general_bus_101';
+                const shuttleType = data.shuttleType || (shuttleId.includes('faculty') ? 'faculty' : 'general');
+                const fare = data.fare !== undefined ? data.fare : (shuttleType === 'faculty' ? 0 : 20);
+                const name = data.name || (shuttleType === 'faculty' ? 'Faculty Exclusive Shuttle' : 'General Campus Bus');
                 
-                // Track for 5-minute interval logging
+                // Track for 5-minute interval logging & state caching
                 activeShuttlePositions[shuttleId] = {
                     shuttleId: shuttleId,
+                    name: name,
+                    shuttleType: shuttleType,
+                    fare: fare,
                     lat: data.lat,
                     lng: data.lng,
-                    speed: speed || 18
+                    speed: speed,
+                    heading: data.heading || 0,
+                    capacity: data.capacity || (shuttleType === 'faculty' ? 20 : 40),
+                    lastUpdated: new Date().toISOString()
                 };
                 
                 // Calculate ETA for all cached stops
@@ -182,11 +216,16 @@ wss.on('connection', (ws, req) => {
                 const broadcastPayload = {
                     ...data,
                     type: 'SHUTTLE_MOVED',
+                    shuttleId: shuttleId,
+                    name: name,
+                    shuttleType: shuttleType,
+                    fare: fare,
                     stopETAs: stopETAs
                 };
 
+                // Broadcast to all listening passenger/student/faculty/web clients
                 wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN && client.role === 'student') {
+                    if (client.readyState === WebSocket.OPEN && client.role !== 'driver') {
                         client.send(JSON.stringify(broadcastPayload));
                     }
                 });
@@ -198,9 +237,9 @@ wss.on('connection', (ws, req) => {
                     timestamp: data.timestamp || new Date().toISOString()
                 });
                 
-                // Broadcast crowding update to all students in real-time
+                // Broadcast crowding update in real-time
                 wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN && client.role === 'student') {
+                    if (client.readyState === WebSocket.OPEN && client.role !== 'driver') {
                         client.send(JSON.stringify(data));
                     }
                 });
