@@ -754,6 +754,13 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
   String _selectedShuttleId = 'vit_general_bus_101';
   String _shuttleFilter = 'all'; // 'all', 'general', 'faculty'
   bool _isDrawerExpanded = false;
+
+  // Passenger GPS Location & Nearest Campus Stop
+  LatLng? _userLocation;
+  String? _nearestStopName;
+  double? _nearestStopDistanceMeters;
+  int? _nearestStopWalkMinutes;
+  bool _isLocatingUser = false;
   
   List<Map<String, dynamic>> _allRoutes = [];
   String _selectedRouteId = 'all';
@@ -780,6 +787,75 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
     }
     _connectWebSocket();
     _fetchRoutesFromSupabase();
+    _requestLocationAndFindNearestStop(manual: false);
+  }
+
+  Future<void> _requestLocationAndFindNearestStop({bool manual = false}) async {
+    setState(() => _isLocatingUser = true);
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        if (mounted) {
+          setState(() => _isLocatingUser = false);
+          if (manual) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Location permission is required to find your nearest stop.')),
+            );
+          }
+        }
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 8),
+      );
+
+      final userPos = LatLng(position.latitude, position.longitude);
+
+      String closestStop = _campusStops.keys.first;
+      double minDistance = double.infinity;
+
+      for (var entry in _campusStops.entries) {
+        final dist = Geolocator.distanceBetween(
+          userPos.latitude,
+          userPos.longitude,
+          entry.value.latitude,
+          entry.value.longitude,
+        );
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestStop = entry.key;
+        }
+      }
+
+      final walkMinutes = (minDistance / 75).ceil().clamp(1, 120);
+
+      if (mounted) {
+        setState(() {
+          _userLocation = userPos;
+          _nearestStopName = closestStop;
+          _nearestStopDistanceMeters = minDistance;
+          _nearestStopWalkMinutes = walkMinutes;
+          _isLocatingUser = false;
+        });
+
+        if (manual || minDistance <= 3000) {
+          final stopPos = _campusStops[closestStop]!;
+          final midLat = (userPos.latitude + stopPos.latitude) / 2;
+          final midLng = (userPos.longitude + stopPos.longitude) / 2;
+          _mapController.move(LatLng(midLat, midLng), 16.5);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLocatingUser = false);
+      }
+    }
   }
 
   Future<void> _fetchRoutesFromSupabase() async {
@@ -1254,12 +1330,49 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                       color: _parseColor(route['color']),
                     );
                   }),
+                  if (_userLocation != null && _nearestStopName != null && _campusStops.containsKey(_nearestStopName))
+                    Polyline(
+                      points: [_userLocation!, _campusStops[_nearestStopName!]!],
+                      strokeWidth: 3.5,
+                      color: const Color(0xFF38BDF8),
+                    ),
                 ],
               ),
 
               // Markers: Campus Stops and Live Moving Shuttles
               MarkerLayer(
                 markers: [
+                  // Passenger Live Location Marker
+                  if (_userLocation != null)
+                    Marker(
+                      point: _userLocation!,
+                      width: 44,
+                      height: 44,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 38,
+                            height: 38,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF0284C7).withOpacity(0.25),
+                            ),
+                          ),
+                          Container(
+                            width: 15,
+                            height: 15,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF0284C7),
+                              border: Border.all(color: Colors.white, width: 2.5),
+                              boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 6)],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
                   // Campus Stop Markers
                   ..._campusStops.entries.map((entry) => Marker(
                     point: entry.value,
@@ -1389,7 +1502,7 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
           ),
         ),
 
-        // 2. Ultra-Compact Floating Top Pill Bar (~44px high)
+        // 2. Ultra-Compact Floating Top Pill Bar & Nearest Stop Banner
         Positioned(
           top: 14,
           left: 14,
@@ -1398,112 +1511,171 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
             alignment: Alignment.topCenter,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 520),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xEE0F172A),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white12),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black38, blurRadius: 14, offset: Offset(0, 4)),
-                ],
-              ),
-              child: Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // VIT Transit Badge & Role
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: isFacultyUser ? const Color(0xFF059669) : const Color(0xFF0284C7),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          isFacultyUser ? 'Faculty' : 'Student',
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
-                        ),
+                      color: const Color(0xEE0F172A),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white12),
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black38, blurRadius: 14, offset: Offset(0, 4)),
                       ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Route dropdown pill
-                  Expanded(
-                    child: Container(
-                      height: 30,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedRouteId,
-                          isDense: true,
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF1E293B),
-                          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 16),
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedRouteId = val);
-                          },
-                          items: [
-                            const DropdownMenuItem(value: 'all', child: Text('All Campus Routes', style: TextStyle(color: Colors.white))),
-                            ..._allRoutes.map((r) => DropdownMenuItem(
-                              value: r['id'].toString(),
-                              child: Text(r['route_name'] ?? 'Route ${r['id']}', style: const TextStyle(color: Colors.white)),
-                            )),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-
-                  // Live Status Pill
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _isConnected ? const Color(0x2222C55E) : const Color(0x22EF4444),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: _isConnected ? const Color(0x5522C55E) : const Color(0x55EF4444),
-                      ),
-                    ),
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        // VIT Transit Badge & Role
                         Container(
-                          width: 6,
-                          height: 6,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _isConnected ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
-                            shape: BoxShape.circle,
+                            color: isFacultyUser ? const Color(0xFF059669) : const Color(0xFF0284C7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                isFacultyUser ? 'Faculty' : 'Student',
+                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _isConnected ? 'LIVE' : 'OFFLINE',
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: _isConnected ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                        const SizedBox(width: 8),
+
+                        // Route dropdown pill
+                        Expanded(
+                          child: Container(
+                            height: 30,
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _selectedRouteId,
+                                isDense: true,
+                                isExpanded: true,
+                                dropdownColor: const Color(0xFF1E293B),
+                                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 16),
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                                onChanged: (val) {
+                                  if (val != null) setState(() => _selectedRouteId = val);
+                                },
+                                items: [
+                                  const DropdownMenuItem(value: 'all', child: Text('All Campus Routes', style: TextStyle(color: Colors.white))),
+                                  ..._allRoutes.map((r) => DropdownMenuItem(
+                                    value: r['id'].toString(),
+                                    child: Text(r['route_name'] ?? 'Route ${r['id']}', style: const TextStyle(color: Colors.white)),
+                                  )),
+                                ],
+                              ),
+                            ),
                           ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Live Status Pill
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: _isConnected ? const Color(0x2222C55E) : const Color(0x22EF4444),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: _isConnected ? const Color(0x5522C55E) : const Color(0x55EF4444),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: _isConnected ? const Color(0xFF22C55E) : const Color(0xFFEF4444),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                _isConnected ? 'LIVE' : 'OFFLINE',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: _isConnected ? const Color(0xFF4ADE80) : const Color(0xFFF87171),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Logout Button
+                        IconButton(
+                          icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFF87171)),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          constraints: const BoxConstraints(),
+                          onPressed: _logout,
+                          tooltip: 'Logout',
                         ),
                       ],
                     ),
                   ),
 
-                  // Logout Button
-                  IconButton(
-                    icon: const Icon(Icons.logout_rounded, size: 16, color: Color(0xFFF87171)),
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    constraints: const BoxConstraints(),
-                    onPressed: _logout,
-                    tooltip: 'Logout',
+                  const SizedBox(height: 6),
+
+                  // Nearest Stop Floating Pill
+                  GestureDetector(
+                    onTap: () => _requestLocationAndFindNearestStop(manual: true),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xEE0F172A),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: _nearestStopName != null ? const Color(0x6638BDF8) : Colors.white12,
+                        ),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(0, 3)),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Text('📍', style: TextStyle(fontSize: 13)),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              _isLocatingUser
+                                  ? 'Locating your nearest campus stop...'
+                                  : (_nearestStopName != null
+                                      ? 'Nearest: $_nearestStopName • ${(_nearestStopDistanceMeters!).toStringAsFixed(0)}m (~$_nearestStopWalkMinutes min walk)'
+                                      : 'Tap to allow location & find nearest stop'),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _nearestStopName != null ? Colors.white : const Color(0xFF94A3B8),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0284C7),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _nearestStopName != null ? 'Focus' : 'Enable GPS',
+                              style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1511,7 +1683,7 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
           ),
         ),
 
-        // 3. Floating Map Controls (Zoom In, Zoom Out, Center)
+        // 3. Floating Map Controls (Zoom In, Zoom Out, GPS Locate, Center)
         Positioned(
           right: 14,
           bottom: 148,
@@ -1551,6 +1723,20 @@ class _PassengerMapScreenState extends State<PassengerMapScreen> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xEE0F172A),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white12),
+                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 3))],
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.gps_fixed_rounded, color: Color(0xFF38BDF8), size: 18),
+                  tooltip: 'My Location & Nearest Stop',
+                  onPressed: () => _requestLocationAndFindNearestStop(manual: true),
                 ),
               ),
               const SizedBox(height: 8),

@@ -156,6 +156,100 @@
       100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
     }
 
+    /* Nearest Stop Floating Pill */
+    .nearest-stop-pill {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 14px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .nearest-stop-pill:hover {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+    }
+    .nearest-stop-icon {
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nearest-stop-text {
+      flex: 1;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nearest-stop-text .highlight {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+    .nearest-stop-text .walk-eta {
+      color: #4ade80;
+      font-size: 0.68rem;
+      margin-left: 4px;
+    }
+    .nearest-stop-action-btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nearest-stop-action-btn:hover { background: #0369a1; }
+
+    /* User Blue Dot Marker with pulsing radar */
+    .user-location-marker {
+      position: relative;
+      width: 24px;
+      height: 24px;
+    }
+    .user-location-dot {
+      width: 14px;
+      height: 14px;
+      background: #0284c7;
+      border: 2.5px solid white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.8);
+      z-index: 2;
+    }
+    .user-location-pulse {
+      width: 34px;
+      height: 34px;
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: userPulse 2s infinite ease-out;
+      z-index: 1;
+    }
+    @keyframes userPulse {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+    }
+
     /* 3. Floating Map Controls (Right Edge) */
     .floating-map-controls {
       position: absolute;
@@ -554,13 +648,23 @@
         <span>LIVE</span>
       </div>
     </div>
+
+    <!-- 2b. Location & Nearest Stop Floating Pill -->
+    <div id="nearest-stop-banner" class="nearest-stop-pill" onclick="handleNearestStopClick()">
+      <div class="nearest-stop-icon">📍</div>
+      <div class="nearest-stop-text" id="nearest-stop-text">
+        <span>Tap to find your nearest campus stop...</span>
+      </div>
+      <button class="nearest-stop-action-btn" id="nearest-stop-btn">Enable GPS</button>
+    </div>
   </div>
 
   <!-- 3. FLOATING MAP CONTROLS -->
   <div class="floating-map-controls">
     <div class="map-btn" onclick="zoomIn()" title="Zoom In">+</div>
     <div class="map-btn" onclick="zoomOut()" title="Zoom Out">−</div>
-    <div class="map-btn" onclick="centerOnShuttle()" title="Center Shuttle" style="color:#38bdf8; font-size:14px;">📍</div>
+    <div class="map-btn" onclick="requestLocationAndFindNearestStop(true)" title="My Location & Nearest Stop" style="color:#38bdf8; font-size:16px;">🎯</div>
+    <div class="map-btn" onclick="centerOnShuttle()" title="Center Shuttle" style="color:#22c55e; font-size:14px;">📍</div>
   </div>
 
   <!-- 4. SLEEK COMPACT BOTTOM TRAY (Leaves 85%+ visible map space) -->
@@ -737,8 +841,139 @@
           });
         }
       } catch (e) {}
+
+      // Request location access to locate user & nearest campus stop
+      requestLocationAndFindNearestStop(false);
     }
     loadCampusData();
+
+    // 4. Geolocation & Nearest Stop Calculation
+    let userLocation = null;
+    let userMarker = null;
+    let walkingPolyline = null;
+    let nearestCampusStop = null;
+    let nearestDistanceMeters = null;
+
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function requestLocationAndFindNearestStop(manual = false) {
+      const bannerText = document.getElementById('nearest-stop-text');
+      const actionBtn = document.getElementById('nearest-stop-btn');
+
+      if (!navigator.geolocation) {
+        bannerText.innerHTML = `<span>GPS not supported by browser</span>`;
+        actionBtn.style.display = 'none';
+        return;
+      }
+
+      bannerText.innerHTML = `<span>Locating your position...</span>`;
+      actionBtn.textContent = 'Locating';
+      actionBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          userLocation = { lat, lng };
+
+          updateUserLocationMarker(lat, lng);
+          calculateNearestStop(lat, lng, manual);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error.message);
+          bannerText.innerHTML = `<span>Location access needed for nearest stop</span>`;
+          actionBtn.textContent = 'Enable GPS';
+          actionBtn.disabled = false;
+          if (manual) {
+            alert('Location access is required to find your nearest stop. Please allow location access in your browser address bar.');
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+      );
+    }
+
+    function updateUserLocationMarker(lat, lng) {
+      const userIcon = L.divIcon({
+        className: 'user-icon-wrap',
+        html: `
+          <div class="user-location-marker">
+            <div class="user-location-pulse"></div>
+            <div class="user-location-dot"></div>
+          </div>
+        `,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      if (!userMarker) {
+        userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+      } else {
+        userMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    function calculateNearestStop(userLat, userLng, shouldCenter = false) {
+      if (!campusStops || campusStops.length === 0) return;
+
+      let minDistance = Infinity;
+      let nearest = null;
+
+      campusStops.forEach(stop => {
+        const dist = getDistanceMeters(userLat, userLng, stop.lat, stop.lng);
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearest = stop;
+        }
+      });
+
+      if (!nearest) return;
+
+      nearestCampusStop = nearest;
+      nearestDistanceMeters = minDistance;
+
+      const walkMins = Math.max(1, Math.round(minDistance / 75)); // ~75m per min walk
+      const distFormatted = minDistance < 1000 ? `${Math.round(minDistance)}m` : `${(minDistance/1000).toFixed(1)}km`;
+
+      const bannerText = document.getElementById('nearest-stop-text');
+      const actionBtn = document.getElementById('nearest-stop-btn');
+
+      bannerText.innerHTML = `<span>Nearest: <span class="highlight">${nearest.name}</span> • ${distFormatted} <span class="walk-eta">(~${walkMins}m walk)</span></span>`;
+      actionBtn.textContent = 'Focus';
+      actionBtn.disabled = false;
+
+      // Draw walking dotted path to nearest stop
+      if (walkingPolyline) map.removeLayer(walkingPolyline);
+      walkingPolyline = L.polyline([[userLat, userLng], [nearest.lat, nearest.lng]], {
+        color: '#38bdf8',
+        weight: 3.5,
+        dashArray: '5, 8',
+        opacity: 0.9
+      }).addTo(map);
+
+      // If user is within 3km of campus or manual trigger, focus on user & nearest stop
+      if (shouldCenter || minDistance <= 3000) {
+        const bounds = L.latLngBounds([[userLat, userLng], [nearest.lat, nearest.lng]]);
+        map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
+      }
+    }
+
+    function handleNearestStopClick() {
+      if (userLocation && nearestCampusStop) {
+        const bounds = L.latLngBounds([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]]);
+        map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
+      } else {
+        requestLocationAndFindNearestStop(true);
+      }
+    }
 
     function calculateETA(shuttleLat, shuttleLng, stopLat, stopLng, speed = 20) {
       const R = 6371;
