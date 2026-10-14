@@ -730,74 +730,178 @@ class _StudentMapScreenState extends State<StudentMapScreen> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // 1. The Campus Map
+        // 1. The Campus Map (Modern Vector-style Retina Tiles)
         FlutterMap(
           mapController: _mapController,
           options: const MapOptions(
-            initialCenter: LatLng(12.9692, 79.1559), // VIT Vellore
-            initialZoom: 15.6,
+            initialCenter: LatLng(12.9715, 79.1595), // Centered on VIT Vellore Academic & Hostel Zones
+            initialZoom: 16.2,
+            minZoom: 14.0,
+            maxZoom: 19.0,
           ),
           children: [
+            // High-Resolution CartoDB Voyager Tiles (Apple/Google Maps aesthetic)
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+              subdomains: const ['a', 'b', 'c', 'd'],
               userAgentPackageName: 'com.example.shuttle_flutter_app',
+              maxZoom: 19,
+              retinaMode: true,
             ),
             
-            // Dynamic Routes
+            // Dynamic Transit Routes (Outer casing + vibrant colored core)
             PolylineLayer(
-              polylines: _allRoutes.where((route) {
-                return _selectedRouteId == 'all' || route['id'].toString() == _selectedRouteId;
-              }).map((route) {
-                var rawPoints = route['points'];
-                List<LatLng> points = [];
-                if (rawPoints != null && rawPoints is List) {
-                  for (var p in rawPoints) {
-                    if (p is Map) {
-                      points.add(LatLng((p['lat'] as num).toDouble(), (p['lng'] as num).toDouble()));
+              polylines: [
+                // Outer subtle casing for official transit look
+                ..._allRoutes.where((route) {
+                  return _selectedRouteId == 'all' || route['id'].toString() == _selectedRouteId;
+                }).map((route) {
+                  var rawPoints = route['points'];
+                  List<LatLng> points = [];
+                  if (rawPoints != null && rawPoints is List) {
+                    for (var p in rawPoints) {
+                      if (p is Map) {
+                        points.add(LatLng((p['lat'] as num).toDouble(), (p['lng'] as num).toDouble()));
+                      }
                     }
                   }
-                }
-                return Polyline(
-                  points: points,
-                  strokeWidth: 4.5,
-                  color: _parseColor(route['color']),
-                );
-              }).toList(),
+                  return Polyline(
+                    points: points,
+                    strokeWidth: 7.0,
+                    color: Colors.white.withOpacity(0.9),
+                  );
+                }),
+                // Colored core route line
+                ..._allRoutes.where((route) {
+                  return _selectedRouteId == 'all' || route['id'].toString() == _selectedRouteId;
+                }).map((route) {
+                  var rawPoints = route['points'];
+                  List<LatLng> points = [];
+                  if (rawPoints != null && rawPoints is List) {
+                    for (var p in rawPoints) {
+                      if (p is Map) {
+                        points.add(LatLng((p['lat'] as num).toDouble(), (p['lng'] as num).toDouble()));
+                      }
+                    }
+                  }
+                  return Polyline(
+                    points: points,
+                    strokeWidth: 4.5,
+                    color: _parseColor(route['color']),
+                  );
+                }),
+              ],
             ),
 
-            // Stop Markers & Shuttle Marker
+            // Labeled Stop Markers & Animated Live Shuttle Marker
             MarkerLayer(
               markers: [
+                // Campus Stop Markers with visible name pill
                 ..._campusStops.entries.map((entry) => Marker(
                   point: entry.value,
-                  width: 36,
-                  height: 36,
-                  child: Tooltip(
-                    message: entry.key,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade600,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                  width: 100,
+                  height: 52,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFF0F172A), width: 1.2),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+                          ],
+                        ),
+                        child: Text(
+                          entry.key,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF0F172A),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      child: const Icon(Icons.location_on, color: Colors.white, size: 20),
-                    ),
+                      const SizedBox(height: 1),
+                      Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEF4444),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2.5),
+                          boxShadow: const [
+                            BoxShadow(color: Colors.black38, blurRadius: 4),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 )),
+                // Live Moving Shuttle Marker with Speed Badge and Radar Glow
                 if (_shuttleLocation != null)
                   Marker(
                     point: _shuttleLocation!,
-                    width: 50,
-                    height: 50,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0284C7),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 4))],
-                      ),
-                      child: const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 28),
+                    width: 74,
+                    height: 74,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Radar pulse outer glow
+                        Container(
+                          width: 66,
+                          height: 66,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0284C7).withOpacity(0.22),
+                          ),
+                        ),
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF0284C7).withOpacity(0.35),
+                          ),
+                        ),
+                        // Inner Bus Avatar
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: const [
+                              BoxShadow(color: Colors.black45, blurRadius: 8, offset: Offset(0, 3)),
+                            ],
+                          ),
+                          child: const Icon(Icons.directions_bus_rounded, color: Colors.white, size: 20),
+                        ),
+                        // Top live speed chip
+                        Positioned(
+                          top: 0,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0F172A),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.white70, width: 0.8),
+                            ),
+                            child: Text(
+                              _shuttleSpeed > 0 ? '${_shuttleSpeed.toStringAsFixed(0)} km/h' : 'BUS 1',
+                              style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
               ],
