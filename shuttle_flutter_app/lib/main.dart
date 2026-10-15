@@ -472,6 +472,176 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  void _signInWithGoogle(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        final actionText = _isLogin ? 'Sign In' : 'Sign Up';
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  '$actionText with Google',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Center(
+                child: Text(
+                  isStudent
+                      ? 'Choose your verified @vitstudent.ac.in account'
+                      : (isFaculty
+                          ? 'Choose your verified @vit.ac.in account'
+                          : 'Choose your authorized Shuttle Driver account'),
+                  style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 18),
+              if (isStudent) ...[
+                _buildGoogleAccountTile(
+                  name: 'Rushi Raj Meher',
+                  email: 'rushi.meher2023@vitstudent.ac.in',
+                  badge: '🎓 Verified Student • 21BCE1042',
+                  avatarColor: const Color(0xFF0284C7),
+                  avatarLetter: 'R',
+                  onTap: () => _completeGoogleLogin('rushi.meher2023@vitstudent.ac.in'),
+                ),
+                _buildGoogleAccountTile(
+                  name: 'Arjun Kumar',
+                  email: 'arjun.k2024@vitstudent.ac.in',
+                  badge: '🎓 Verified Student • 22BCE2410',
+                  avatarColor: const Color(0xFF4F46E5),
+                  avatarLetter: 'A',
+                  onTap: () => _completeGoogleLogin('arjun.k2024@vitstudent.ac.in'),
+                ),
+              ] else if (isFaculty) ...[
+                _buildGoogleAccountTile(
+                  name: 'Dr. C. Raman',
+                  email: 'c.raman@vit.ac.in',
+                  badge: '⭐ Verified Faculty • VIT-FAC-4091',
+                  avatarColor: const Color(0xFF059669),
+                  avatarLetter: 'C',
+                  onTap: () => _completeGoogleLogin('c.raman@vit.ac.in'),
+                ),
+                _buildGoogleAccountTile(
+                  name: 'Prof. Ananya Iyer',
+                  email: 'ananya.iyer@vit.ac.in',
+                  badge: '⭐ Verified Faculty • VIT-FAC-1102',
+                  avatarColor: const Color(0xFF0D9488),
+                  avatarLetter: 'A',
+                  onTap: () => _completeGoogleLogin('ananya.iyer@vit.ac.in'),
+                ),
+              ] else ...[
+                _buildGoogleAccountTile(
+                  name: 'Rajesh Driver',
+                  email: 'driver.raj@vit.ac.in',
+                  badge: '🚖 Authorized Driver • Bus #101',
+                  avatarColor: const Color(0xFFD97706),
+                  avatarLetter: 'R',
+                  onTap: () => _completeGoogleLogin('driver.raj@vit.ac.in'),
+                ),
+                _buildGoogleAccountTile(
+                  name: 'Murugan Driver',
+                  email: 'driver.murugan@vit.ac.in',
+                  badge: '🚖 Authorized Driver • Bus #102',
+                  avatarColor: const Color(0xFFEA580C),
+                  avatarLetter: 'M',
+                  onTap: () => _completeGoogleLogin('driver.murugan@vit.ac.in'),
+                ),
+              ],
+              _buildGoogleAccountTile(
+                name: 'Use another Google account',
+                email: isStudent ? 'name@vitstudent.ac.in' : (isFaculty ? 'faculty@vit.ac.in' : 'driver@vit.ac.in'),
+                badge: 'Institutional Single Sign-On',
+                avatarColor: const Color(0xFF64748B),
+                avatarLetter: '+',
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _emailController.text = isStudent
+                      ? 'student@vitstudent.ac.in'
+                      : (isFaculty ? 'faculty@vit.ac.in' : 'driver@vit.ac.in');
+                },
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _completeGoogleLogin(String email) {
+    Navigator.pop(context);
+    if (isDriver) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MobileShell(
+            child: PassengerMapScreen(userRole: widget.role, userEmail: email),
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildGoogleAccountTile({
+    required String name,
+    required String email,
+    required String badge,
+    required Color avatarColor,
+    required String avatarLetter,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+        leading: CircleAvatar(
+          backgroundColor: avatarColor,
+          radius: 18,
+          child: Text(avatarLetter, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(email, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+            const SizedBox(height: 1),
+            Text(badge, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: primaryColor)),
+          ],
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFF94A3B8)),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -612,7 +782,42 @@ class _AuthScreenState extends State<AuthScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // Role-tailored Google Sign In / Sign Up Button
+          OutlinedButton.icon(
+            onPressed: _isLoading ? null : () => _signInWithGoogle(context),
+            icon: const Icon(Icons.account_circle_outlined, color: Color(0xFF0284C7), size: 20),
+            label: Text(
+              _isLogin
+                  ? (isStudent
+                      ? 'Sign In with Google (@vitstudent.ac.in)'
+                      : (isFaculty ? 'Sign In with Google (@vit.ac.in)' : 'Sign In with Google (Driver ID)'))
+                  : (isStudent
+                      ? 'Sign Up with Google (@vitstudent.ac.in)'
+                      : (isFaculty ? 'Sign Up with Google (@vit.ac.in)' : 'Sign Up with Google (Driver ID)')),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12.5, color: Color(0xFF1E293B)),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.5),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Text('OR WITH EMAIL & PASSWORD', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+              ),
+              const Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+            ],
+          ),
+          const SizedBox(height: 14),
 
           // Email Input
           Text(
