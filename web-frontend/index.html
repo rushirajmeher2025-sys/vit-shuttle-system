@@ -3378,6 +3378,28 @@
       openGooglePickerModal(activeAuthRole);
     }
 
+    async function launchRealGoogleOAuth() {
+      closeGooglePicker();
+      const hdDomain = activeAuthRole === 'student' ? 'vitstudent.ac.in' : (activeAuthRole === 'faculty' ? 'vit.ac.in' : '');
+      const redirectTarget = window.location.origin + window.location.pathname;
+      localStorage.setItem('vit_intended_role', activeAuthRole || 'student');
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectTarget,
+            queryParams: hdDomain ? { hd: hdDomain } : {}
+          }
+        });
+        if (error) {
+          console.error('Supabase Google OAuth error:', error);
+          alert('OAuth notice: ' + error.message);
+        }
+      } catch (err) {
+        console.error('OAuth trigger error:', err);
+      }
+    }
+
     function openGooglePickerModal(suggestedRole) {
       if (suggestedRole) activeAuthRole = suggestedRole;
       const role = activeAuthRole || 'student';
@@ -3402,8 +3424,20 @@
       }
 
       if (listEl) {
+        const realButtonLabel = `${actionVerb} with Personal / VIT Google Account`;
         if (role === 'student') {
           listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #0284c7; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(2,132,199,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED STUDENT DEMO</span>
+            </div>
             <div class="google-account-item" onclick="selectGoogleAccount('student', 'rushi.meher2023@vitstudent.ac.in', 'Rushi Raj Meher', '21BCE1042')">
               <div class="google-avatar-circle student-avatar">R</div>
               <div style="flex:1;">
@@ -3430,6 +3464,17 @@
           `;
         } else if (role === 'faculty') {
           listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #059669; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(5,150,105,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED FACULTY DEMO</span>
+            </div>
             <div class="google-account-item" onclick="selectGoogleAccount('faculty', 'c.raman@vit.ac.in', 'Dr. C. Raman', 'VIT-FAC-4091')">
               <div class="google-avatar-circle faculty-avatar">C</div>
               <div style="flex:1;">
@@ -3456,6 +3501,17 @@
           `;
         } else {
           listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #d97706; background:linear-gradient(135deg, #d97706, #b45309); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(217,119,6,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED DRIVER DEMO</span>
+            </div>
             <div class="google-account-item" onclick="selectGoogleAccount('driver', 'driver.raj@vit.ac.in', 'Rajesh Driver', 'BUS-101-DRV')">
               <div class="google-avatar-circle" style="background:#d97706;">R</div>
               <div style="flex:1;">
@@ -3593,7 +3649,16 @@
         if (session && session.user) {
           const email = (session.user.email || '').toLowerCase();
           const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
-          const role = email.endsWith('@vit.ac.in') && !email.endsWith('@vitstudent.ac.in') ? 'faculty' : (email.includes('driver') ? 'driver' : 'student');
+          const intendedRole = localStorage.getItem('vit_intended_role');
+          localStorage.removeItem('vit_intended_role');
+
+          let role = intendedRole || 'student';
+          if (email.endsWith('@vit.ac.in') && !email.endsWith('@vitstudent.ac.in')) {
+            role = 'faculty';
+          } else if (email.endsWith('@vitstudent.ac.in')) {
+            role = 'student';
+          }
+
           loginUserSuccess({
             role: role,
             email: email,
