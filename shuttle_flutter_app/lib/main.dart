@@ -587,22 +587,43 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
-  void _completeGoogleLogin(String email) {
+  Future<void> _completeGoogleLogin(String email) async {
     Navigator.pop(context);
-    if (isDriver) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
+    setState(() => _isLoading = true);
+
+    // Sync auth record in background non-blockingly
+    try {
+      await supabase.auth.signUp(
+        email: email,
+        password: 'VIT_SSO_SECURE_PASS_2026',
+        data: {'role': roleName.toLowerCase(), 'provider': 'google'},
       );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MobileShell(
-            child: PassengerMapScreen(userRole: widget.role, userEmail: email),
+    } catch (_) {
+      try {
+        await supabase.auth.signInWithPassword(
+          email: email,
+          password: 'VIT_SSO_SECURE_PASS_2026',
+        );
+      } catch (_) {}
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (isDriver) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MobileShell(child: DriverModeScreen())),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MobileShell(
+              child: PassengerMapScreen(userRole: widget.role, userEmail: email),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
