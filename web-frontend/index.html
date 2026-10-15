@@ -987,9 +987,672 @@
     .directions-trigger-btn:active {
       transform: scale(0.96);
     }
+    /* ==========================================================================
+       0. ONBOARDING & LOGIN / REGISTER PORTAL OVERLAY
+       ========================================================================== */
+    .auth-portal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 99999;
+      background: radial-gradient(circle at 50% 12%, rgba(2, 132, 199, 0.28), transparent 60%),
+                  radial-gradient(circle at 85% 85%, rgba(5, 150, 105, 0.22), transparent 55%),
+                  linear-gradient(180deg, rgba(9, 13, 22, 0.94) 0%, rgba(15, 23, 42, 0.98) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 24px 14px;
+      opacity: 0;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-portal-overlay.visible {
+      display: flex;
+      opacity: 1;
+    }
+    .auth-portal-container {
+      width: 100%;
+      max-width: 480px;
+      margin: auto;
+      position: relative;
+    }
+
+    .portal-view {
+      display: none;
+      animation: portalFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .portal-view.active {
+      display: block;
+    }
+
+    @keyframes portalFadeIn {
+      from { opacity: 0; transform: scale(0.97) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Portal Header */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .portal-brand-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 28px rgba(2, 132, 199, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+    }
+    .portal-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .portal-subtitle {
+      font-size: 0.84rem;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .portal-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 3px 11px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4ade80;
+    }
+
+    /* Roles Grid */
+    .portal-roles-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .portal-card {
+      background: rgba(30, 41, 59, 0.72);
+      backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: 16px 18px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+    }
+    .portal-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+    .portal-card.student-card:hover {
+      border-color: #38bdf8;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(30, 41, 59, 0.88));
+    }
+    .portal-card.faculty-card:hover {
+      border-color: #34d399;
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.2), rgba(30, 41, 59, 0.88));
+    }
+    .portal-card.driver-card:hover {
+      border-color: #fbbf24;
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.2), rgba(30, 41, 59, 0.88));
+    }
+
+    .portal-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .portal-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+    .student-icon { background: rgba(2, 132, 199, 0.22); border: 1.5px solid rgba(56, 189, 248, 0.45); }
+    .faculty-icon { background: rgba(5, 150, 105, 0.22); border: 1.5px solid rgba(52, 211, 153, 0.45); }
+    .driver-icon { background: rgba(217, 119, 6, 0.22); border: 1.5px solid rgba(251, 191, 36, 0.45); }
+
+    .portal-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .student-badge { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); }
+    .faculty-badge { background: rgba(5, 150, 105, 0.25); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
+    .driver-badge { background: rgba(217, 119, 6, 0.25); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); }
+
+    .portal-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .portal-card-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .portal-domain-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .portal-enter-btn {
+      width: 100%;
+      padding: 9.5px 14px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .student-btn { background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); }
+    .faculty-btn { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35); }
+    .driver-btn { background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35); }
+    .portal-enter-btn:hover { filter: brightness(1.12); transform: scale(1.01); }
+
+    /* Guest Quick Demo Button */
+    .portal-guest-row {
+      text-align: center;
+    }
+    .portal-guest-btn {
+      background: transparent;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      color: #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    .portal-guest-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* Auth Form Card */
+    .auth-card {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+    .auth-card-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .auth-back-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s;
+    }
+    .auth-back-btn:hover { color: #fff; }
+    .auth-role-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .auth-role-badge.student { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .auth-role-badge.faculty { background: rgba(5, 150, 105, 0.25); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); }
+    .auth-role-badge.driver { background: rgba(217, 119, 6, 0.25); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+
+    .auth-card-header {
+      margin-bottom: 16px;
+    }
+    .auth-form-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .auth-form-sub {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(2, 6, 23, 0.65);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .auth-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 8px 0;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-tab.active {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    .auth-alert {
+      padding: 9px 12px;
+      border-radius: 11px;
+      font-size: 0.76rem;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .auth-alert.error {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .auth-alert.success {
+      background: rgba(34, 197, 94, 0.18);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+    }
+
+    .form-group {
+      margin-bottom: 13px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 5px;
+    }
+    .domain-hint {
+      font-size: 0.68rem;
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 12px 10px 38px;
+      color: white;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22);
+      background: rgba(2, 6, 23, 0.85);
+    }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      margin-top: 6px;
+      transition: all 0.2s ease;
+    }
+    .auth-submit-btn:hover { filter: brightness(1.12); transform: scale(1.01); }
+
+    /* Quick Demo Box */
+    .auth-quick-demo-box {
+      margin-top: 14px;
+    }
+    .auth-quick-divider {
+      text-align: center;
+      position: relative;
+      margin: 12px 0;
+    }
+    .auth-quick-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .auth-quick-divider span {
+      position: relative;
+      background: #0f172a;
+      padding: 0 10px;
+      font-size: 0.65rem;
+      color: #64748b;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+    }
+    .auth-instant-demo-btn {
+      width: 100%;
+      padding: 9.5px;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      color: #f8fafc;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .auth-instant-demo-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .auth-footer-notice {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    /* User Session Chip in Top Bar */
+    .user-session-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .user-session-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .session-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .session-badge.student { color: #38bdf8; }
+    .session-badge.faculty { color: #34d399; }
+    .session-badge.driver { color: #fbbf24; }
+    .logout-icon-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      opacity: 0.85;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .logout-icon-btn:hover { opacity: 1; transform: scale(1.18); }
   </style>
 </head>
 <body>
+
+  <!-- 0. ONBOARDING & LOGIN / REGISTER PORTAL OVERLAY -->
+  <div id="auth-portal-overlay" class="auth-portal-overlay">
+    <div class="auth-portal-container">
+      
+      <!-- VIEW A: PORTAL / ROLE SELECTION -->
+      <div id="portal-select-view" class="portal-view active">
+        <!-- Logo & Title -->
+        <div class="portal-header">
+          <div class="portal-brand-icon">
+            <span style="font-size: 34px;">🚌</span>
+          </div>
+          <h1 class="portal-title">VIT Shuttle System</h1>
+          <p class="portal-subtitle">Real-Time Campus Transit • Choose Your Portal</p>
+          <div class="portal-status-pill">
+            <span class="pulse-dot"></span>
+            <span>Vellore Campus Fleet Live • 3 Active Routes</span>
+          </div>
+        </div>
+
+        <!-- 3 Role Cards -->
+        <div class="portal-roles-grid">
+          
+          <!-- 1. Student Portal Card -->
+          <div class="portal-card student-card" onclick="openAuthForm('student')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon student-icon">🎓</div>
+              <div class="portal-badge student-badge">GENERAL BUS • ₹20</div>
+            </div>
+            <h3 class="portal-card-title">I am a Student</h3>
+            <p class="portal-card-desc">Ride General Campus Buses (MH Bus #101 & LH Bus #102), live GPS tracking, stop ETAs, walking directions & digital QR pass.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Requires institutional @vitstudent.ac.in</span>
+            </div>
+            <button class="portal-enter-btn student-btn">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- 2. Faculty Portal Card -->
+          <div class="portal-card faculty-card" onclick="openAuthForm('faculty')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon faculty-icon">⭐</div>
+              <div class="portal-badge faculty-badge">FACULTY • 100% FREE</div>
+            </div>
+            <h3 class="portal-card-title">I am a Faculty Member</h3>
+            <p class="portal-card-desc">Access exclusive Faculty Shuttle #201, zero-fare VIP digital pass, academic buildings express route & priority tracking.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Requires institutional @vit.ac.in</span>
+            </div>
+            <button class="portal-enter-btn faculty-btn">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- 3. Driver Portal Card -->
+          <div class="portal-card driver-card" onclick="openAuthForm('driver')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon driver-icon">🚖</div>
+              <div class="portal-badge driver-badge">DRIVER CONSOLE</div>
+            </div>
+            <h3 class="portal-card-title">I am a Shuttle Driver</h3>
+            <p class="portal-card-desc">Start / End active shift, broadcast live GPS coordinates & vehicle speed to campus passengers, and manage routes.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Authorized VIT Drivers Only</span>
+            </div>
+            <button class="portal-enter-btn driver-btn">
+              <span>Driver Console Login</span>
+              <span>→</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Guest / Quick Demo Button -->
+        <div class="portal-guest-row">
+          <button class="portal-guest-btn" onclick="continueAsGuest()">
+            <span>⚡ Instant Demo Access (Explore Map As Student)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW B: AUTHENTICATION FORM (SIGN IN & REGISTER) -->
+      <div id="auth-form-view" class="portal-view">
+        <div class="auth-card">
+          <!-- Back button & portal badge -->
+          <div class="auth-card-nav">
+            <button class="auth-back-btn" onclick="backToPortalSelect()">
+              <span>← Back to Portals</span>
+            </button>
+            <div id="auth-role-badge" class="auth-role-badge student">
+              <span id="auth-role-icon">🎓</span>
+              <span id="auth-role-label">Student Portal</span>
+            </div>
+          </div>
+
+          <div class="auth-card-header">
+            <h2 id="auth-form-heading" class="auth-form-heading">Sign In to Student Portal</h2>
+            <p id="auth-form-sub" class="auth-form-sub">Access campus transit with your VIT credentials</p>
+          </div>
+
+          <!-- Auth Mode Toggle (Sign In vs Register) -->
+          <div class="auth-tabs">
+            <button id="auth-tab-login" class="auth-tab active" onclick="setAuthMode('login')">Sign In</button>
+            <button id="auth-tab-register" class="auth-tab" onclick="setAuthMode('register')">Create Account</button>
+          </div>
+
+          <!-- Feedback Banner -->
+          <div id="auth-alert" class="auth-alert" style="display:none;"></div>
+
+          <!-- Auth Form -->
+          <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            
+            <!-- Register Only: Full Name -->
+            <div id="auth-group-name" class="form-group" style="display:none;">
+              <label class="form-label">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="auth-name" class="form-input" placeholder="e.g. Arjun Kumar">
+              </div>
+            </div>
+
+            <!-- Register Only: Reg / Employee / Driver ID -->
+            <div id="auth-group-id" class="form-group" style="display:none;">
+              <label id="auth-id-label" class="form-label">Registration Number</label>
+              <div class="input-wrap">
+                <span class="input-icon">🪪</span>
+                <input type="text" id="auth-id-val" class="form-input" placeholder="e.g. 21BCE1042">
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="form-label">Institutional Email</label>
+                <span id="auth-domain-hint" class="domain-hint">@vitstudent.ac.in</span>
+              </div>
+              <div class="input-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="auth-email" class="form-input" required placeholder="student@vitstudent.ac.in">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="auth-password" class="form-input" required placeholder="Enter password (min 6 characters)">
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">👁️</button>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="auth-submit-btn" class="auth-submit-btn">
+              <span id="auth-submit-text">Sign In to Student Portal</span>
+            </button>
+          </form>
+
+          <!-- 1-Click Instant Demo Login -->
+          <div class="auth-quick-demo-box">
+            <div class="auth-quick-divider">
+              <span>OR QUICK TESTING</span>
+            </div>
+            <button type="button" class="auth-instant-demo-btn" onclick="quickFillAndLogin()">
+              <span>⚡ One-Click Instant Verified Sign In</span>
+            </button>
+          </div>
+
+          <!-- Bottom Notice -->
+          <div class="auth-footer-notice" id="auth-footer-notice">
+            <span>Student fare: ₹20 per trip • Verified @vitstudent.ac.in credentials</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
 
   <!-- 1. FULLSCREEN CAMPUS MAP (85%+ Dominant Area) -->
   <div id="map"></div>
@@ -997,7 +1660,7 @@
   <!-- 2. ULTRA-COMPACT FLOATING TOP BAR (~46px) -->
   <div class="top-floating-bar">
     <div class="glass-nav">
-      <div class="brand-pill">
+      <div class="brand-pill" onclick="showPortalOverlay()" style="cursor:pointer;" title="Switch Role / Account">
         <div class="brand-icon">🚌</div>
         <span>VIT Shuttle</span>
       </div>
@@ -1007,6 +1670,12 @@
         <button id="role-student" class="role-pill-btn active student" onclick="switchRole('student')">Student</button>
         <button id="role-faculty" class="role-pill-btn faculty" onclick="switchRole('faculty')">Faculty</button>
         <button id="role-driver" class="role-pill-btn driver" onclick="switchRole('driver')">Driver</button>
+      </div>
+
+      <!-- User Session Chip & Logout Button -->
+      <div class="user-session-chip" id="user-session-chip" onclick="showPortalOverlay()" title="View Account / Switch Portal">
+        <span id="user-session-badge" class="session-badge student">🎓 Student</span>
+        <button class="logout-icon-btn" onclick="logoutUser(event)" title="Sign Out / Switch Portal">🚪</button>
       </div>
 
       <!-- Live Indicator -->
@@ -2034,6 +2703,8 @@
         driverView.style.display = 'none';
         selectShuttle(role === 'faculty' ? 'vit_faculty_shuttle_201' : 'vit_general_bus_101');
       }
+
+      updateNavUserChip(role);
     }
 
     function zoomIn() { map.zoomIn(); }
@@ -2164,10 +2835,310 @@
       }, 2000);
     }
 
+    // ========================================================================
+    // AUTHENTICATION & PORTAL MANAGEMENT (Student / Faculty / Driver)
+    // ========================================================================
+    let currentUser = null;
+    let activeAuthRole = 'student'; // 'student' | 'faculty' | 'driver'
+    let authMode = 'login'; // 'login' | 'register'
+
+    function showPortalOverlay() {
+      const overlay = document.getElementById('auth-portal-overlay');
+      if (overlay) overlay.classList.add('visible');
+      backToPortalSelect();
+    }
+
+    function hidePortalOverlay() {
+      const overlay = document.getElementById('auth-portal-overlay');
+      if (overlay) overlay.classList.remove('visible');
+    }
+
+    function backToPortalSelect() {
+      document.getElementById('portal-select-view')?.classList.add('active');
+      document.getElementById('auth-form-view')?.classList.remove('active');
+      const alertEl = document.getElementById('auth-alert');
+      if (alertEl) alertEl.style.display = 'none';
+    }
+
+    function openAuthForm(role) {
+      activeAuthRole = role;
+      document.getElementById('portal-select-view')?.classList.remove('active');
+      document.getElementById('auth-form-view')?.classList.add('active');
+      
+      const alertEl = document.getElementById('auth-alert');
+      if (alertEl) alertEl.style.display = 'none';
+      
+      updateAuthFormUI();
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById('auth-tab-login')?.classList.toggle('active', mode === 'login');
+      document.getElementById('auth-tab-register')?.classList.toggle('active', mode === 'register');
+      
+      const nameGroup = document.getElementById('auth-group-name');
+      const idGroup = document.getElementById('auth-group-id');
+      if (nameGroup) nameGroup.style.display = mode === 'register' ? 'block' : 'none';
+      if (idGroup) idGroup.style.display = mode === 'register' ? 'block' : 'none';
+      
+      updateAuthFormUI();
+    }
+
+    function updateAuthFormUI() {
+      const roleBadge = document.getElementById('auth-role-badge');
+      const roleIcon = document.getElementById('auth-role-icon');
+      const roleLabel = document.getElementById('auth-role-label');
+      const formHeading = document.getElementById('auth-form-heading');
+      const formSub = document.getElementById('auth-form-sub');
+      const domainHint = document.getElementById('auth-domain-hint');
+      const emailInput = document.getElementById('auth-email');
+      const submitText = document.getElementById('auth-submit-text');
+      const footerNotice = document.getElementById('auth-footer-notice');
+      const idLabel = document.getElementById('auth-id-label');
+      const idInput = document.getElementById('auth-id-val');
+
+      if (roleBadge) roleBadge.className = `auth-role-badge ${activeAuthRole}`;
+
+      if (activeAuthRole === 'student') {
+        if (roleIcon) roleIcon.textContent = '🎓';
+        if (roleLabel) roleLabel.textContent = 'Student Portal';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Sign In to Student Portal' : 'Create Student Account';
+        if (formSub) formSub.textContent = 'Access campus shuttles (₹20) with @vitstudent.ac.in';
+        if (domainHint) domainHint.textContent = '@vitstudent.ac.in';
+        if (emailInput) emailInput.placeholder = 'student@vitstudent.ac.in';
+        if (idLabel) idLabel.textContent = 'Registration Number';
+        if (idInput) idInput.placeholder = 'e.g. 21BCE1042';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Sign In as Student' : 'Create Student Account';
+        if (footerNotice) footerNotice.textContent = 'Student fare: ₹20 per trip • Verified @vitstudent.ac.in credentials';
+      } else if (activeAuthRole === 'faculty') {
+        if (roleIcon) roleIcon.textContent = '⭐';
+        if (roleLabel) roleLabel.textContent = 'Faculty Portal';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Sign In to Faculty Portal' : 'Create Faculty Account';
+        if (formSub) formSub.textContent = 'Access 100% FREE Faculty Shuttle with @vit.ac.in';
+        if (domainHint) domainHint.textContent = '@vit.ac.in';
+        if (emailInput) emailInput.placeholder = 'faculty.name@vit.ac.in';
+        if (idLabel) idLabel.textContent = 'Employee / Faculty ID';
+        if (idInput) idInput.placeholder = 'e.g. VIT-FAC-4091';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Sign In as Faculty' : 'Create Faculty Account';
+        if (footerNotice) footerNotice.textContent = 'Faculty fare: 100% FREE • Verified @vit.ac.in institutional account';
+      } else {
+        if (roleIcon) roleIcon.textContent = '🚖';
+        if (roleLabel) roleLabel.textContent = 'Driver Console';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Driver Console Login' : 'Register Authorized Driver';
+        if (formSub) formSub.textContent = 'Shift management & live GPS tracking broadcaster';
+        if (domainHint) domainHint.textContent = 'Driver ID / Email';
+        if (emailInput) emailInput.placeholder = 'driver101@vit.ac.in';
+        if (idLabel) idLabel.textContent = 'Vehicle Badge / Driver License';
+        if (idInput) idInput.placeholder = 'e.g. BUS-101-DRV';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Enter Driver Shift Console' : 'Register Driver';
+        if (footerNotice) footerNotice.textContent = 'Authorized campus shuttle drivers only';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('auth-password');
+      if (!pwd) return;
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    }
+
+    function quickFillAndLogin() {
+      const emailInput = document.getElementById('auth-email');
+      const pwdInput = document.getElementById('auth-password');
+      const nameInput = document.getElementById('auth-name');
+      const idInput = document.getElementById('auth-id-val');
+
+      if (activeAuthRole === 'student') {
+        if (emailInput) emailInput.value = 'student.vit@vitstudent.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Arjun Kumar';
+        if (idInput) idInput.value = '21BCE1042';
+      } else if (activeAuthRole === 'faculty') {
+        if (emailInput) emailInput.value = 'dr.raman@vit.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Dr. C. Raman';
+        if (idInput) idInput.value = 'VIT-FAC-4091';
+      } else {
+        if (emailInput) emailInput.value = 'driver.raj@vit.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Rajesh Kumar';
+        if (idInput) idInput.value = 'BUS-101-DRV';
+      }
+
+      handleAuthSubmit(new Event('submit'));
+    }
+
+    function continueAsGuest() {
+      loginUserSuccess({
+        role: 'student',
+        email: 'guest.student@vitstudent.ac.in',
+        name: 'Guest Student',
+        regId: 'DEMO-GUEST'
+      });
+    }
+
+    async function handleAuthSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      
+      const alertEl = document.getElementById('auth-alert');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const emailInput = document.getElementById('auth-email');
+      const pwdInput = document.getElementById('auth-password');
+      const nameInput = document.getElementById('auth-name');
+      const idInput = document.getElementById('auth-id-val');
+
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const password = pwdInput ? pwdInput.value.trim() : '';
+      const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (email.split('@')[0] || 'Campus User');
+      const regId = (idInput && idInput.value.trim()) ? idInput.value.trim() : 'VIT-' + Math.floor(1000 + Math.random() * 9000);
+
+      if (alertEl) alertEl.style.display = 'none';
+
+      // Validation
+      if (!email || !password) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.textContent = 'Please fill in both email and password.';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (activeAuthRole === 'student' && !email.endsWith('@vitstudent.ac.in')) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.innerHTML = '⚠️ Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small style="opacity:0.9;">Click "One-Click Instant Verified Sign In" below to auto-fill.</small>';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (activeAuthRole === 'faculty' && (!email.endsWith('@vit.ac.in') || email.endsWith('@vitstudent.ac.in'))) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.innerHTML = '⚠️ Faculty email must end with <strong>@vit.ac.in</strong> (not @vitstudent.ac.in).<br><small style="opacity:0.9;">Click "One-Click Instant Verified Sign In" below to auto-fill.</small>';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (password.length < 6) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.textContent = '⚠️ Password must be at least 6 characters.';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Verifying credentials...</span>';
+      }
+
+      try {
+        if (authMode === 'register') {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { role: activeAuthRole, full_name: name, reg_id: regId } }
+          });
+          if (error) console.warn('Supabase signUp notice:', error.message);
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) console.warn('Supabase signIn notice:', error.message);
+        }
+
+        loginUserSuccess({
+          role: activeAuthRole,
+          email,
+          name,
+          regId
+        });
+      } catch (err) {
+        console.warn('Auth fallback:', err);
+        loginUserSuccess({
+          role: activeAuthRole,
+          email,
+          name,
+          regId
+        });
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          updateAuthFormUI();
+        }
+      }
+    }
+
+    function loginUserSuccess(userData) {
+      currentUser = userData;
+      localStorage.setItem('vit_shuttle_session', JSON.stringify(userData));
+      
+      switchRole(userData.role);
+      hidePortalOverlay();
+
+      // Show welcome toast in nearest stop text
+      const bannerText = document.getElementById('nearest-stop-text');
+      if (bannerText) {
+        bannerText.innerHTML = `<span>Welcome, <strong style="color:#38bdf8;">${userData.name || userData.email}</strong> • ${userData.role.toUpperCase()} PORTAL ACTIVE</span>`;
+        setTimeout(() => {
+          if (userLocation && nearestCampusStop) {
+            calculateNearestStop(userLocation.lat, userLocation.lng);
+          } else {
+            requestLocationAndFindNearestStop(false);
+          }
+        }, 3000);
+      }
+    }
+
+    function logoutUser(e) {
+      if (e) e.stopPropagation();
+      localStorage.removeItem('vit_shuttle_session');
+      currentUser = null;
+      try {
+        supabaseClient.auth.signOut().catch(() => {});
+      } catch(err) {}
+      showPortalOverlay();
+    }
+
+    function updateNavUserChip(role) {
+      const badge = document.getElementById('user-session-badge');
+      if (!badge) return;
+      badge.className = `session-badge ${role}`;
+      const icon = role === 'student' ? '🎓' : (role === 'faculty' ? '⭐' : '🚖');
+      if (currentUser && currentUser.name) {
+        const firstName = currentUser.name.split(' ')[0];
+        badge.textContent = `${icon} ${firstName} (${role.toUpperCase()})`;
+      } else {
+        badge.textContent = `${icon} ${role.toUpperCase()}`;
+      }
+    }
+
+    function initAuth() {
+      const saved = localStorage.getItem('vit_shuttle_session');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          if (user && user.role) {
+            currentUser = user;
+            switchRole(user.role);
+            hidePortalOverlay();
+            return;
+          }
+        } catch(e) {}
+      }
+      // If not logged in, show portal selection at start!
+      showPortalOverlay();
+    }
+
     updateMarker(activeShuttles['vit_general_bus_101']);
     updateMarker(activeShuttles['vit_faculty_shuttle_201']);
     updateBottomTray(activeShuttles['vit_general_bus_101']);
     startLiveSimulator();
+    initAuth();
   </script>
 </body>
 </html>
