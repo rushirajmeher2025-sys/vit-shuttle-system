@@ -59,6 +59,28 @@ You can build the production Android APK automatically using the provided script
 
 ---
 
+## Web Deployment (Vercel)
+
+The repository provides two ways to run and deploy on Vercel:
+
+### Option 1: Instant Root Vercel Deployment (Recommended • Zero-Config)
+The repository includes a ready-to-deploy root [`index.html`](file:///c:/Users/Rushi%20Raj%20Meher/shuttle%20app/vit-shuttle-system/index.html) and [`vercel.json`](file:///c:/Users/Rushi%20Raj%20Meher/shuttle%20app/vit-shuttle-system/vercel.json):
+1. Import your GitHub repository directly into [Vercel](https://vercel.com/new).
+2. Leave the Root Directory as `./` (default).
+3. Click **Deploy**.
+4. The web app goes live immediately with:
+   - Built-in autonomous campus fleet simulator fallback (simulates all 3 shuttles driving around VIT campus seamlessly without requiring a running backend).
+   - Real-time Supabase Auth with official Google OAuth and 1-click accounts.
+   - Turn-by-turn walking directions to nearest campus stops.
+   - Dual-tier digital QR boarding passes (₹20 General Bus vs Free Faculty Transit Pass).
+
+### Option 2: Flutter Web Build on Vercel
+1. Run [`.\build_web.ps1`](file:///c:/Users/Rushi%20Raj%20Meher/shuttle%20app/vit-shuttle-system/build_web.ps1) in PowerShell.
+2. The production web bundle and [`vercel.json`](file:///c:/Users/Rushi%20Raj%20Meher/shuttle%20app/vit-shuttle-system/shuttle_flutter_app/vercel.json) will be generated in `shuttle_flutter_app/build/web`.
+3. Drag and drop the `shuttle_flutter_app/build/web` folder to [vercel.com/new](https://vercel.com/new) or deploy via Vercel CLI (`vercel deploy --prod`).
+
+---
+
 ## Backend Deployment (Node.js)
 The `shuttle-backend` directory contains a containerized Node.js WebSocket and HTTP server ready for the cloud.
 
