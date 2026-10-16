@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/classic",
+      "destination": "/classic.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

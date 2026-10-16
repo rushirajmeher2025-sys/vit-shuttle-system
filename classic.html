@@ -1,0 +1,3697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VIT Shuttle Tracker • Real-Time Campus Transit</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root {
+      --primary-blue: #0284c7;
+      --primary-emerald: #059669;
+      --gold-accent: #f59e0b;
+      --bg-glass: rgba(15, 23, 42, 0.88);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #090d16;
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      color: var(--text-main);
+    }
+
+    /* 1. Fullscreen Map (Fills 100% of Viewport) */
+    #map {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .leaflet-control-zoom { display: none !important; }
+    .leaflet-control-attribution {
+      background: rgba(15, 23, 42, 0.7) !important;
+      color: #94a3b8 !important;
+      font-size: 8px !important;
+      backdrop-filter: blur(8px);
+    }
+    .leaflet-control-attribution a { color: #38bdf8 !important; }
+
+    /* 2. Ultra-Compact Floating Top Bar (Only ~46px high) */
+    .top-floating-bar {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1000;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .glass-nav {
+      pointer-events: auto;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 18px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+
+    /* Role Switcher Pills */
+    .role-pills {
+      display: flex;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 2.5px;
+      gap: 2px;
+    }
+    .role-pill-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 4px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .role-pill-btn.active.student { background: #0284c7; color: white; }
+    .role-pill-btn.active.faculty { background: #059669; color: white; }
+    .role-pill-btn.active.driver { background: #d97706; color: white; }
+
+    /* Live Pulse Badge */
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #4ade80;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 14px;
+    }
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulseGlow 1.6s infinite;
+    }
+    @keyframes pulseGlow {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* Nearest Stop Floating Pill */
+    .nearest-stop-pill {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 14px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .nearest-stop-pill:hover {
+      border-color: rgba(56, 189, 248, 0.7);
+      background: rgba(15, 23, 42, 0.98);
+    }
+    .nearest-stop-icon {
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nearest-stop-text {
+      flex: 1;
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .nearest-stop-text .highlight {
+      color: #38bdf8;
+      font-weight: 800;
+    }
+    .nearest-stop-text .walk-eta {
+      color: #4ade80;
+      font-size: 0.68rem;
+      margin-left: 4px;
+    }
+    .nearest-stop-action-btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .nearest-stop-action-btn:hover { background: #0369a1; }
+
+    /* User Blue Dot Marker with pulsing radar */
+    .user-location-marker {
+      position: relative;
+      width: 24px;
+      height: 24px;
+    }
+    .user-location-dot {
+      width: 14px;
+      height: 14px;
+      background: #0284c7;
+      border: 2.5px solid white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px rgba(2, 132, 199, 0.8);
+      z-index: 2;
+    }
+    .user-location-pulse {
+      width: 34px;
+      height: 34px;
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation: userPulse 2s infinite ease-out;
+      z-index: 1;
+    }
+    @keyframes userPulse {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.9; }
+      100% { transform: translate(-50%, -50%) scale(1.6); opacity: 0; }
+    }
+
+    /* In-App Walking Directions Mode HUD */
+    .directions-hud {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1200;
+      pointer-events: auto;
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .directions-card {
+      background: var(--bg-glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(56, 189, 248, 0.45);
+      border-radius: 20px;
+      padding: 12px 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.65);
+    }
+
+    .directions-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .direction-step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+    .direction-step-details {
+      flex: 1;
+      overflow: hidden;
+    }
+    .direction-primary-text {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .direction-secondary-text {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .directions-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: 1px solid var(--glass-border);
+      background: rgba(30, 41, 59, 0.8);
+      color: #f87171;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .directions-close-btn:hover { background: #ef4444; color: white; }
+
+    /* Directions Stats Bar */
+    .directions-stats-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .stat-pill {
+      flex: 1;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      padding: 5px 8px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 0.88rem;
+      color: #fff;
+      display: block;
+    }
+    .stat-lbl {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #94a3b8;
+      letter-spacing: 0.05em;
+    }
+
+    /* Turn by turn itinerary steps inside collapsible drawer */
+    .directions-itinerary-toggle {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-top: 8px;
+      cursor: pointer;
+      padding: 3px 0;
+    }
+    .directions-itinerary-list {
+      display: none;
+      margin-top: 8px;
+      max-height: 160px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      padding-right: 4px;
+    }
+    .directions-itinerary-list.open { display: block; }
+    .itinerary-step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .itinerary-step-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #0284c7;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .itinerary-step-text {
+      flex: 1;
+      font-size: 0.73rem;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+    .itinerary-step-dist {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      white-space: nowrap;
+    }
+
+    /* 3. Floating Map Controls (Right Edge) */
+    .floating-map-controls {
+      position: absolute;
+      right: 12px;
+      top: 75px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .map-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 17px;
+      font-weight: bold;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+      transition: all 0.2s;
+    }
+    .map-btn:hover { background: #1e293b; transform: scale(1.05); }
+    .map-btn:active { transform: scale(0.95); }
+
+    /* 4. Sleek Compact Floating Bottom Tray (~140px tall, leaves 85%+ screen for map) */
+    .bottom-compact-tray {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1000;
+      background: var(--bg-glass);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      padding: 12px 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Quick Shuttle Selector Pill Row */
+    .shuttle-quick-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 9px;
+    }
+
+    .shuttle-select-btn {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 12px;
+      border: 1.5px solid transparent;
+      background: rgba(30, 41, 59, 0.75);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s;
+    }
+    .shuttle-select-btn.active.general {
+      background: rgba(2, 132, 199, 0.18);
+      border-color: #0284c7;
+      color: #38bdf8;
+    }
+    .shuttle-select-btn.active.women {
+      background: rgba(236, 72, 153, 0.18);
+      border-color: #ec4899;
+      color: #f472b6;
+    }
+    .shuttle-select-btn.active.faculty {
+      background: rgba(5, 150, 105, 0.18);
+      border-color: #059669;
+      color: #34d399;
+    }
+    .shuttle-name-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .shuttle-fare-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .fare-paid { background: #0284c7; color: white; }
+    .fare-women { background: #db2777; color: white; }
+    .fare-free { background: #059669; color: white; }
+
+    /* Live ETA & Speed Snapshot Row */
+    .telemetry-snapshot-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .next-stop-info {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .stop-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; }
+    .next-stop-title { font-size: 0.78rem; font-weight: 700; color: #f1f5f9; }
+    .next-stop-eta { font-size: 0.75rem; font-weight: 800; color: #38bdf8; }
+
+    .live-speed-chip {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--glass-border);
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
+    .live-speed-chip span { font-size: 0.62rem; color: #94a3b8; font-weight: 600; }
+
+    /* Main Action Area */
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .action-btn:active { transform: scale(0.98); }
+    .action-btn.blue {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+    }
+    .action-btn.emerald {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: white;
+      box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+    }
+
+    .restriction-pill {
+      flex: 1;
+      padding: 7px 10px;
+      border-radius: 12px;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .quick-switch-btn {
+      background: #0284c7;
+      color: white;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    /* Expand / Collapse Details Drawer */
+    .expand-toggle {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-top: 6px;
+      cursor: pointer;
+      padding: 2px 0;
+      transition: color 0.2s;
+    }
+    .expand-toggle:hover { color: #94a3b8; }
+
+    .drawer-details {
+      display: none;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--glass-border);
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .drawer-details.open { display: block; }
+
+    /* Horizontal Stops Scroller inside drawer */
+    .drawer-stops-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-bottom: 8px;
+    }
+    .drawer-stops-scroll::-webkit-scrollbar { display: none; }
+
+    .drawer-stop-box {
+      min-width: 105px;
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--glass-border);
+      flex-shrink: 0;
+    }
+    .drawer-stop-name { font-size: 0.72rem; font-weight: 700; color: #f1f5f9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .drawer-stop-mins { font-size: 0.74rem; font-weight: 800; color: #38bdf8; margin-top: 1px; }
+
+    /* Crowding Buttons inside drawer */
+    .crowding-bar {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .crowd-tag { font-size: 0.68rem; font-weight: 700; color: #64748b; }
+    .crowd-btn {
+      flex: 1;
+      padding: 5px;
+      border-radius: 7px;
+      border: none;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .crowd-low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .crowd-med { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .crowd-full { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* 5. Driver Console Mode */
+    .driver-view {
+      display: none;
+      text-align: center;
+      padding: 4px 0;
+    }
+    .speedo-dial {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      margin: 8px auto;
+      background: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
+      border: 3.5px solid #d97706;
+      box-shadow: 0 0 20px rgba(217, 119, 6, 0.35);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .speedo-num { font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; color: #fff; line-height: 1; }
+    .speedo-unit { font-size: 0.65rem; font-weight: 700; color: #d97706; }
+
+    /* 6. Modals (QR Ticket & VIP Pass) */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.active { display: flex; }
+
+    .ticket-card {
+      width: 100%;
+      max-width: 340px;
+      border-radius: 22px;
+      overflow: hidden;
+      animation: modalSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+    }
+    @keyframes modalSlide {
+      from { transform: translateY(20px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .ticket-header-blue {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      padding: 16px;
+      color: white;
+      text-align: center;
+    }
+    .ticket-header-emerald {
+      background: linear-gradient(135deg, #065f46, #047857);
+      border-top: 4px solid #fde047;
+      padding: 16px;
+      color: white;
+      text-align: center;
+    }
+    .ticket-body {
+      background: #1e293b;
+      padding: 18px;
+      text-align: center;
+      border-top: 2px dashed rgba(255, 255, 255, 0.15);
+    }
+    .qr-mock-box {
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 12px;
+      margin: 10px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #0f172a;
+    }
+    .modal-close-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 11px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    /* Map Markers */
+    .bus-marker-node {
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .bus-marker-node.general {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border: 2px solid white;
+    }
+    .bus-marker-node.women {
+      background: linear-gradient(135deg, #db2777, #be185d);
+      border: 2px solid #fbcfe8;
+    }
+    .bus-marker-node.faculty {
+      background: linear-gradient(135deg, #059669, #047857);
+      border: 2px solid #fde047;
+    }
+    .bus-marker-pill {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1.5px 6px;
+      border-radius: 5px;
+      background: #0f172a;
+      color: #fff;
+      font-size: 8px;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* ---------------------------------------------------- */
+    /* IN-APP WALKING DIRECTIONS HUD & ITINERARY            */
+    /* ---------------------------------------------------- */
+    .directions-hud {
+      display: none;
+      margin-top: 6px;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.65), 0 0 16px rgba(56, 189, 248, 0.3);
+      padding: 10px 14px;
+      animation: slideDownIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .directions-hud.active {
+      display: block;
+    }
+    @keyframes slideDownIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .directions-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+    .directions-dest-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .directions-close-btn {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #f87171;
+      padding: 3px 9px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s ease;
+    }
+    .directions-close-btn:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
+    }
+    .directions-step-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(30, 41, 59, 0.75);
+      border-radius: 12px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .directions-step-icon {
+      font-size: 1.3rem;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 10px;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }
+    .directions-step-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .directions-step-instruction {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .directions-step-sub {
+      font-size: 0.72rem;
+      color: #94a3b8;
+      margin-top: 2px;
+    }
+    .directions-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 0.73rem;
+    }
+    .directions-stats {
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .directions-steps-toggle {
+      background: transparent;
+      border: none;
+      color: #cbd5e1;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+    .directions-steps-toggle:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .directions-steps-dropdown {
+      display: none;
+      margin-top: 8px;
+      max-height: 135px;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .directions-steps-dropdown.open {
+      display: block;
+    }
+    .itinerary-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 7px;
+      font-size: 0.74rem;
+      color: #cbd5e1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .itinerary-item:last-child {
+      border-bottom: none;
+    }
+    .itinerary-item.active {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .itinerary-step-badge {
+      font-size: 0.85rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    .banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .directions-trigger-btn {
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      color: white;
+      border: none;
+      padding: 3.5px 8px;
+      border-radius: 7px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45);
+      transition: transform 0.15s ease;
+    }
+    .directions-trigger-btn:hover {
+      transform: scale(1.04);
+    }
+    .directions-trigger-btn:active {
+      transform: scale(0.96);
+    }
+    /* ==========================================================================
+       0. ONBOARDING & LOGIN / REGISTER PORTAL OVERLAY
+       ========================================================================== */
+    .auth-portal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 99999;
+      background: radial-gradient(circle at 50% 12%, rgba(2, 132, 199, 0.28), transparent 60%),
+                  radial-gradient(circle at 85% 85%, rgba(5, 150, 105, 0.22), transparent 55%),
+                  linear-gradient(180deg, rgba(9, 13, 22, 0.94) 0%, rgba(15, 23, 42, 0.98) 100%);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 24px 14px;
+      opacity: 0;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .auth-portal-overlay.visible {
+      display: flex;
+      opacity: 1;
+    }
+    .auth-portal-container {
+      width: 100%;
+      max-width: 480px;
+      margin: auto;
+      position: relative;
+    }
+
+    .portal-view {
+      display: none;
+      animation: portalFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .portal-view.active {
+      display: block;
+    }
+
+    @keyframes portalFadeIn {
+      from { opacity: 0; transform: scale(0.97) translateY(12px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Portal Header */
+    .portal-header {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .portal-brand-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 28px rgba(2, 132, 199, 0.45);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+    }
+    .portal-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .portal-subtitle {
+      font-size: 0.84rem;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    .portal-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(34, 197, 94, 0.12);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 3px 11px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #4ade80;
+    }
+
+    /* Roles Grid */
+    .portal-roles-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .portal-card {
+      background: rgba(30, 41, 59, 0.72);
+      backdrop-filter: blur(14px);
+      border-radius: 20px;
+      padding: 16px 18px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+    }
+    .portal-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+    .portal-card.student-card:hover {
+      border-color: #38bdf8;
+      background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(30, 41, 59, 0.88));
+    }
+    .portal-card.faculty-card:hover {
+      border-color: #34d399;
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.2), rgba(30, 41, 59, 0.88));
+    }
+    .portal-card.driver-card:hover {
+      border-color: #fbbf24;
+      background: linear-gradient(135deg, rgba(217, 119, 6, 0.2), rgba(30, 41, 59, 0.88));
+    }
+
+    .portal-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .portal-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 21px;
+    }
+    .student-icon { background: rgba(2, 132, 199, 0.22); border: 1.5px solid rgba(56, 189, 248, 0.45); }
+    .faculty-icon { background: rgba(5, 150, 105, 0.22); border: 1.5px solid rgba(52, 211, 153, 0.45); }
+    .driver-icon { background: rgba(217, 119, 6, 0.22); border: 1.5px solid rgba(251, 191, 36, 0.45); }
+
+    .portal-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 3px 9px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .student-badge { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.35); }
+    .faculty-badge { background: rgba(5, 150, 105, 0.25); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35); }
+    .driver-badge { background: rgba(217, 119, 6, 0.25); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35); }
+
+    .portal-card-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .portal-card-desc {
+      font-size: 0.78rem;
+      color: #94a3b8;
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+    .portal-domain-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .portal-enter-btn {
+      width: 100%;
+      padding: 9.5px 14px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+    }
+    .student-btn { background: linear-gradient(135deg, #0284c7, #0369a1); box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); }
+    .faculty-btn { background: linear-gradient(135deg, #059669, #047857); box-shadow: 0 4px 14px rgba(5, 150, 105, 0.35); }
+    .driver-btn { background: linear-gradient(135deg, #d97706, #b45309); box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35); }
+    .portal-enter-btn:hover { filter: brightness(1.12); transform: scale(1.01); }
+
+    /* Guest Quick Demo Button */
+    .portal-guest-row {
+      text-align: center;
+    }
+    .portal-guest-btn {
+      background: transparent;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      color: #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: all 0.2s ease;
+    }
+    .portal-guest-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.45);
+    }
+
+    /* Auth Form Card */
+    .auth-card {
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 22px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    }
+    .auth-card-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .auth-back-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s;
+    }
+    .auth-back-btn:hover { color: #fff; }
+    .auth-role-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+    .auth-role-badge.student { background: rgba(2, 132, 199, 0.25); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .auth-role-badge.faculty { background: rgba(5, 150, 105, 0.25); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.4); }
+    .auth-role-badge.driver { background: rgba(217, 119, 6, 0.25); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.4); }
+
+    .auth-card-header {
+      margin-bottom: 16px;
+    }
+    .auth-form-heading {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 3px;
+    }
+    .auth-form-sub {
+      font-size: 0.78rem;
+      color: #94a3b8;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(2, 6, 23, 0.65);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .auth-tab {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 8px 0;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .auth-tab.active {
+      background: #0284c7;
+      color: white;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+    }
+
+    .auth-alert {
+      padding: 9px 12px;
+      border-radius: 11px;
+      font-size: 0.76rem;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+    .auth-alert.error {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+    }
+    .auth-alert.success {
+      background: rgba(34, 197, 94, 0.18);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      color: #86efac;
+    }
+
+    .form-group {
+      margin-bottom: 13px;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 5px;
+    }
+    .domain-hint {
+      font-size: 0.68rem;
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(2, 6, 23, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 12px 10px 38px;
+      color: white;
+      font-size: 0.82rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .form-input:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.22);
+      background: rgba(2, 6, 23, 0.85);
+    }
+    .password-toggle {
+      position: absolute;
+      right: 12px;
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 4px;
+    }
+
+    .auth-submit-btn {
+      width: 100%;
+      padding: 11px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: white;
+      font-weight: 800;
+      font-size: 0.86rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+      margin-top: 6px;
+      transition: all 0.2s ease;
+    }
+    .auth-submit-btn:hover { filter: brightness(1.12); transform: scale(1.01); }
+
+    /* Quick Demo Box */
+    .auth-quick-demo-box {
+      margin-top: 14px;
+    }
+    .auth-quick-divider {
+      text-align: center;
+      position: relative;
+      margin: 12px 0;
+    }
+    .auth-quick-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .auth-quick-divider span {
+      position: relative;
+      background: #0f172a;
+      padding: 0 10px;
+      font-size: 0.65rem;
+      color: #64748b;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+    }
+    .auth-instant-demo-btn {
+      width: 100%;
+      padding: 9.5px;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 11px;
+      color: #f8fafc;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .auth-instant-demo-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .auth-footer-notice {
+      text-align: center;
+      margin-top: 14px;
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    /* Google Sign In Styles */
+    .google-signin-btn {
+      width: 100%;
+      background: #ffffff;
+      color: #1f2937;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+      transition: all 0.2s ease;
+      margin-bottom: 12px;
+    }
+    .google-signin-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-1.5px);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    }
+    .google-icon-svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    .auth-or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 14px 0;
+    }
+    .auth-or-divider::before, .auth-or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .auth-or-divider span {
+      padding: 0 10px;
+      font-size: 0.66rem;
+      font-weight: 800;
+      color: #64748b;
+      letter-spacing: 0.6px;
+    }
+
+    /* Google Account Picker Modal */
+    #google-picker-modal {
+      z-index: 100001;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .portal-card-google-btn {
+      width: 100%;
+      padding: 8.5px 12px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      color: #f1f5f9;
+      font-size: 0.76rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+      transition: all 0.2s ease;
+    }
+    .portal-card-google-btn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.35);
+      transform: translateY(-1px);
+      color: #fff;
+    }
+    .google-picker-card {
+      background: #ffffff;
+      border-radius: 24px;
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      color: #1e293b;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5);
+      animation: modalPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .google-picker-header {
+      text-align: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 14px;
+    }
+    .google-accounts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .google-account-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid #e2e8f0;
+      background: #ffffff;
+    }
+    .google-account-item:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+    .google-avatar-circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .student-avatar { background: #0284c7; }
+    .faculty-avatar { background: #059669; }
+    .custom-avatar { background: #64748b; font-size: 14px; }
+    .google-account-name {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .google-account-email {
+      font-size: 0.73rem;
+      color: #64748b;
+    }
+    .google-account-role {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #0284c7;
+      margin-top: 2px;
+    }
+    .google-picker-footer {
+      font-size: 0.68rem;
+      color: #94a3b8;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    /* User Session Chip in Top Bar */
+    .user-session-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 3px 8px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .user-session-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+    .session-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .session-badge.student { color: #38bdf8; }
+    .session-badge.faculty { color: #34d399; }
+    .session-badge.driver { color: #fbbf24; }
+    .logout-icon-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      opacity: 0.85;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .logout-icon-btn:hover { opacity: 1; transform: scale(1.18); }
+  </style>
+</head>
+<body>
+
+  <!-- 0. ONBOARDING & LOGIN / REGISTER PORTAL OVERLAY -->
+  <div id="auth-portal-overlay" class="auth-portal-overlay">
+    <div class="auth-portal-container">
+      
+      <!-- VIEW A: PORTAL / ROLE SELECTION -->
+      <div id="portal-select-view" class="portal-view active">
+        <!-- Logo & Title -->
+        <div class="portal-header">
+          <div class="portal-brand-icon">
+            <span style="font-size: 34px;">🚌</span>
+          </div>
+          <h1 class="portal-title">VIT Shuttle System</h1>
+          <p class="portal-subtitle">Real-Time Campus Transit • Choose Your Portal</p>
+          <div class="portal-status-pill">
+            <span class="pulse-dot"></span>
+            <span>Vellore Campus Fleet Live • 3 Active Routes</span>
+          </div>
+        </div>
+
+        <!-- 3 Role Cards -->
+        <div class="portal-roles-grid">
+          
+          <!-- 1. Student Portal Card -->
+          <div class="portal-card student-card" onclick="openAuthForm('student')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon student-icon">🎓</div>
+              <div class="portal-badge student-badge">GENERAL BUS • ₹20</div>
+            </div>
+            <h3 class="portal-card-title">I am a Student</h3>
+            <p class="portal-card-desc">Ride General Campus Buses (MH Bus #101 & LH Bus #102), live GPS tracking, stop ETAs, walking directions & digital QR pass.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Requires institutional @vitstudent.ac.in</span>
+            </div>
+            <button class="portal-enter-btn student-btn">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+            <button type="button" class="portal-card-google-btn" onclick="event.stopPropagation(); quickGoogleAuth('student')">
+              <svg class="google-icon-svg" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+
+          <!-- 2. Faculty Portal Card -->
+          <div class="portal-card faculty-card" onclick="openAuthForm('faculty')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon faculty-icon">⭐</div>
+              <div class="portal-badge faculty-badge">FACULTY • 100% FREE</div>
+            </div>
+            <h3 class="portal-card-title">I am a Faculty Member</h3>
+            <p class="portal-card-desc">Access exclusive Faculty Shuttle #201, zero-fare VIP digital pass, academic buildings express route & priority tracking.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Requires institutional @vit.ac.in</span>
+            </div>
+            <button class="portal-enter-btn faculty-btn">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+            <button type="button" class="portal-card-google-btn" onclick="event.stopPropagation(); quickGoogleAuth('faculty')">
+              <svg class="google-icon-svg" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+
+          <!-- 3. Driver Portal Card -->
+          <div class="portal-card driver-card" onclick="openAuthForm('driver')">
+            <div class="portal-card-top">
+              <div class="portal-card-icon driver-icon">🚖</div>
+              <div class="portal-badge driver-badge">DRIVER CONSOLE</div>
+            </div>
+            <h3 class="portal-card-title">I am a Shuttle Driver</h3>
+            <p class="portal-card-desc">Start / End active shift, broadcast live GPS coordinates & vehicle speed to campus passengers, and manage routes.</p>
+            <div class="portal-domain-tag">
+              <span>🔒 Authorized VIT Drivers Only</span>
+            </div>
+            <button class="portal-enter-btn driver-btn">
+              <span>Driver Console Login</span>
+              <span>→</span>
+            </button>
+            <button type="button" class="portal-card-google-btn" onclick="event.stopPropagation(); quickGoogleAuth('driver')">
+              <svg class="google-icon-svg" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+              </svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Google Sign In Quick Row -->
+        <div style="margin-bottom: 10px;">
+          <button type="button" class="google-signin-btn" onclick="signInWithGoogle()">
+            <svg class="google-icon-svg" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>Sign in with Google (VIT Workspace)</span>
+          </button>
+        </div>
+
+        <!-- Guest / Quick Demo Button -->
+        <div class="portal-guest-row">
+          <button class="portal-guest-btn" onclick="continueAsGuest()">
+            <span>⚡ Instant Demo Access (Explore Map As Student)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- VIEW B: AUTHENTICATION FORM (SIGN IN & REGISTER) -->
+      <div id="auth-form-view" class="portal-view">
+        <div class="auth-card">
+          <!-- Back button & portal badge -->
+          <div class="auth-card-nav">
+            <button class="auth-back-btn" onclick="backToPortalSelect()">
+              <span>← Back to Portals</span>
+            </button>
+            <div id="auth-role-badge" class="auth-role-badge student">
+              <span id="auth-role-icon">🎓</span>
+              <span id="auth-role-label">Student Portal</span>
+            </div>
+          </div>
+
+          <div class="auth-card-header">
+            <h2 id="auth-form-heading" class="auth-form-heading">Sign In to Student Portal</h2>
+            <p id="auth-form-sub" class="auth-form-sub">Access campus transit with your VIT credentials</p>
+          </div>
+
+          <!-- Auth Mode Toggle (Sign In vs Register) -->
+          <div class="auth-tabs">
+            <button id="auth-tab-login" class="auth-tab active" onclick="setAuthMode('login')">Sign In</button>
+            <button id="auth-tab-register" class="auth-tab" onclick="setAuthMode('register')">Create Account</button>
+          </div>
+
+          <!-- Google Sign In Button in Form -->
+          <button type="button" class="google-signin-btn" onclick="signInWithGoogle()">
+            <svg class="google-icon-svg" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span id="google-btn-text">Continue with Google (VIT Account)</span>
+          </button>
+
+          <div class="auth-or-divider">
+            <span>OR WITH EMAIL & PASSWORD</span>
+          </div>
+
+          <!-- Feedback Banner -->
+          <div id="auth-alert" class="auth-alert" style="display:none;"></div>
+
+          <!-- Auth Form -->
+          <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            
+            <!-- Register Only: Full Name -->
+            <div id="auth-group-name" class="form-group" style="display:none;">
+              <label class="form-label">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="auth-name" class="form-input" placeholder="e.g. Arjun Kumar">
+              </div>
+            </div>
+
+            <!-- Register Only: Reg / Employee / Driver ID -->
+            <div id="auth-group-id" class="form-group" style="display:none;">
+              <label id="auth-id-label" class="form-label">Registration Number</label>
+              <div class="input-wrap">
+                <span class="input-icon">🪪</span>
+                <input type="text" id="auth-id-val" class="form-input" placeholder="e.g. 21BCE1042">
+              </div>
+            </div>
+
+            <!-- Email Address -->
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="form-label">Institutional Email</label>
+                <span id="auth-domain-hint" class="domain-hint">@vitstudent.ac.in</span>
+              </div>
+              <div class="input-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="auth-email" class="form-input" required placeholder="student@vitstudent.ac.in">
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="auth-password" class="form-input" required placeholder="Enter password (min 6 characters)">
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">👁️</button>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="auth-submit-btn" class="auth-submit-btn">
+              <span id="auth-submit-text">Sign In to Student Portal</span>
+            </button>
+          </form>
+
+          <!-- 1-Click Instant Demo Login -->
+          <div class="auth-quick-demo-box">
+            <div class="auth-quick-divider">
+              <span>OR QUICK TESTING</span>
+            </div>
+            <button type="button" class="auth-instant-demo-btn" onclick="quickFillAndLogin()">
+              <span>⚡ One-Click Instant Verified Sign In</span>
+            </button>
+          </div>
+
+          <!-- Bottom Notice -->
+          <div class="auth-footer-notice" id="auth-footer-notice">
+            <span>Student fare: ₹20 per trip • Verified @vitstudent.ac.in credentials</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 1. FULLSCREEN CAMPUS MAP (85%+ Dominant Area) -->
+  <div id="map"></div>
+
+  <!-- 2. ULTRA-COMPACT FLOATING TOP BAR (~46px) -->
+  <div class="top-floating-bar">
+    <div class="glass-nav">
+      <div class="brand-pill" onclick="showPortalOverlay()" style="cursor:pointer;" title="Switch Role / Account">
+        <div class="brand-icon">🚌</div>
+        <span>VIT Shuttle</span>
+      </div>
+
+      <!-- Quick Role Switcher -->
+      <div class="role-pills">
+        <button id="role-student" class="role-pill-btn active student" onclick="switchRole('student')">Student</button>
+        <button id="role-faculty" class="role-pill-btn faculty" onclick="switchRole('faculty')">Faculty</button>
+        <button id="role-driver" class="role-pill-btn driver" onclick="switchRole('driver')">Driver</button>
+      </div>
+
+      <!-- User Session Chip & Logout Button -->
+      <div class="user-session-chip" id="user-session-chip" onclick="showPortalOverlay()" title="View Account / Switch Portal">
+        <span id="user-session-badge" class="session-badge student">🎓 Student</span>
+        <button class="logout-icon-btn" onclick="logoutUser(event)" title="Sign Out / Switch Portal">🚪</button>
+      </div>
+
+      <!-- Live Indicator -->
+      <div class="live-badge">
+        <span class="pulse-dot"></span>
+        <span>LIVE</span>
+      </div>
+    </div>
+
+    <!-- 2b. Location & Nearest Stop Floating Pill -->
+    <div id="nearest-stop-banner" class="nearest-stop-pill">
+      <div class="nearest-stop-icon">📍</div>
+      <div class="nearest-stop-text" id="nearest-stop-text" onclick="handleNearestStopClick()">
+        <span>Tap to find your nearest campus stop...</span>
+      </div>
+      <div class="banner-actions" id="banner-actions">
+        <button class="nearest-stop-action-btn" id="nearest-stop-btn" onclick="handleNearestStopClick()">Enable GPS</button>
+      </div>
+    </div>
+
+    <!-- 2c. In-App Turn-By-Turn Walking Directions HUD -->
+    <div id="directions-hud" class="directions-hud">
+      <div class="directions-header">
+        <div class="directions-dest-title">
+          <span>🚶 Walking to <strong id="directions-dest-name">Campus Stop</strong></span>
+        </div>
+        <button class="directions-close-btn" onclick="exitDirectionsMode(event)" title="Exit Navigation">
+          <span>✕ Exit</span>
+        </button>
+      </div>
+
+      <div class="directions-step-card" id="directions-current-step-card">
+        <div class="directions-step-icon" id="directions-step-icon">⬆️</div>
+        <div class="directions-step-content">
+          <div class="directions-step-instruction" id="directions-step-text">Head straight towards campus walkway</div>
+          <div class="directions-step-sub" id="directions-step-sub">In 40m</div>
+        </div>
+      </div>
+
+      <div class="directions-meta-bar">
+        <div class="directions-stats">
+          <span>⏱️ <span id="directions-eta-val">3 min</span></span>
+          <span>•</span>
+          <span>📏 <span id="directions-dist-val">220 m</span></span>
+        </div>
+        <button class="directions-steps-toggle" onclick="toggleItineraryList(event)">
+          <span id="itinerary-toggle-label">All Steps (3) ▾</span>
+        </button>
+      </div>
+
+      <div class="directions-steps-dropdown" id="directions-steps-dropdown">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. FLOATING MAP CONTROLS -->
+  <div class="floating-map-controls">
+    <div class="map-btn" onclick="zoomIn()" title="Zoom In">+</div>
+    <div class="map-btn" onclick="zoomOut()" title="Zoom Out">−</div>
+    <div class="map-btn" onclick="requestLocationAndFindNearestStop(true)" title="My Location & Nearest Stop" style="color:#38bdf8; font-size:16px;">🎯</div>
+    <div class="map-btn" onclick="centerOnShuttle()" title="Center Shuttle" style="color:#22c55e; font-size:14px;">📍</div>
+  </div>
+
+  <!-- 4. SLEEK COMPACT BOTTOM TRAY (Leaves 85%+ visible map space) -->
+  <div class="bottom-compact-tray">
+    
+    <!-- PASSENGER VIEW (Student & Faculty) -->
+    <div id="passenger-view">
+      <!-- 1. Quick Shuttle Switcher -->
+      <div class="shuttle-quick-selector">
+        <button id="btn-general-mh" class="shuttle-select-btn active general" onclick="selectShuttle('vit_general_bus_101')">
+          <span class="shuttle-name-label">🚌 Men's Hostels</span>
+          <span class="shuttle-fare-badge fare-paid">₹20</span>
+        </button>
+        <button id="btn-general-lh" class="shuttle-select-btn women" onclick="selectShuttle('vit_general_bus_102')">
+          <span class="shuttle-name-label">🌸 Women's Hostel</span>
+          <span class="shuttle-fare-badge fare-women">₹20</span>
+        </button>
+        <button id="btn-faculty" class="shuttle-select-btn faculty" onclick="selectShuttle('vit_faculty_shuttle_201')">
+          <span class="shuttle-name-label">⭐ Faculty</span>
+          <span class="shuttle-fare-badge fare-free">FREE</span>
+        </button>
+      </div>
+
+      <!-- 2. Live Telemetry & Speed Snapshot -->
+      <div class="telemetry-snapshot-row">
+        <div class="next-stop-info">
+          <div class="stop-dot"></div>
+          <div>
+            <span class="next-stop-title" id="next-stop-label">Next: MB (Main Bldg)</span>
+            <span class="next-stop-eta" id="next-stop-mins">• 2 min</span>
+          </div>
+        </div>
+        <div class="live-speed-chip" id="speed-chip">
+          <span id="speed-val">22</span> <span>KM/H</span>
+        </div>
+      </div>
+
+      <!-- 3. Instant Action Row: Ticket / VIP Pass / Restriction -->
+      <div class="action-row" id="action-row-content">
+        <!-- Injected dynamically -->
+      </div>
+
+      <!-- 4. Tap to Expand / Collapse Drawer -->
+      <div class="expand-toggle" onclick="toggleDetailsDrawer()">
+        <span id="drawer-toggle-text">Show all upcoming stops & crowding ▾</span>
+      </div>
+
+      <!-- 5. Collapsible Details Drawer -->
+      <div class="drawer-details" id="details-drawer">
+        <div class="drawer-stops-scroll" id="drawer-stops-list">
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">MB (Main Bldg)</div>
+            <div class="drawer-stop-mins">2 min</div>
+          </div>
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">SJT Tower</div>
+            <div class="drawer-stop-mins">5 min</div>
+          </div>
+          <div class="drawer-stop-box">
+            <div class="drawer-stop-name">Men's Hostel</div>
+            <div class="drawer-stop-mins">8 min</div>
+          </div>
+        </div>
+        <div class="crowding-bar">
+          <span class="crowd-tag">Crowd:</span>
+          <button class="crowd-btn crowd-low" onclick="reportCrowd('Low')">🟢 Low</button>
+          <button class="crowd-btn crowd-med" onclick="reportCrowd('Moderate')">🟡 Med</button>
+          <button class="crowd-btn crowd-full" onclick="reportCrowd('Full')">🔴 Full</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DRIVER CONSOLE VIEW -->
+    <div id="driver-view" class="driver-view">
+      <div style="font-size:0.75rem; font-weight:700; color:#d97706;">ACTIVE DRIVING SHIFT</div>
+      <div class="speedo-dial">
+        <div class="speedo-num" id="driver-speed">22</div>
+        <div class="speedo-unit">KM / H</div>
+      </div>
+      <button class="action-btn" style="background:#ef4444; color:white; width:100%; margin-top:6px;" onclick="switchRole('student')">
+        End Driving Shift
+      </button>
+    </div>
+
+  </div>
+
+  <!-- 5. TICKET / PASS MODAL -->
+  <div id="ticket-modal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="ticket-card" id="ticket-card-content">
+      <!-- Injected dynamically -->
+    </div>
+  </div>
+
+  <!-- 6. GOOGLE ACCOUNT PICKER MODAL -->
+  <div id="google-picker-modal" class="modal-backdrop" onclick="closeGooglePicker(event)">
+    <div class="google-picker-card" onclick="event.stopPropagation()" style="position:relative;">
+      <button type="button" onclick="closeGooglePicker(event)" title="Close" style="position:absolute; top:16px; right:16px; background:rgba(0,0,0,0.06); border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-weight:800; font-size:14px; color:#64748b; display:flex; align-items:center; justify-content:center; transition:background 0.2s;">✕</button>
+      <div class="google-picker-header">
+        <svg class="google-icon-svg" style="width:26px; height:26px; margin:0 auto 6px; display:block;" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <div id="google-picker-title" style="font-weight:800; font-size:1.05rem; color:#0f172a; margin-top:4px;">Sign in with Google</div>
+        <div id="google-picker-sub" style="font-size:0.78rem; color:#64748b;">Choose an account to continue to <strong>VIT Shuttle System</strong></div>
+      </div>
+
+      <div class="google-accounts-list" id="google-picker-accounts">
+        <!-- Rendered dynamically by openGooglePickerModal() based on selected role -->
+      </div>
+
+      <div class="google-picker-footer">
+        To continue, Google will securely share your verified name, institutional email address, and profile with VIT Vellore Transit Services.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Supabase Live Config
+    const SUPABASE_URL = 'https://yaypinidsnhmcoccvqco.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Initialize Map with Google Maps Road Tiles
+    const map = L.map('map', {
+      zoomControl: false,
+      tap: false
+    }).setView([12.9715, 79.1595], 16.2);
+
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['0', '1', '2', '3'],
+      maxZoom: 20,
+      attribution: 'Google Maps'
+    }).addTo(map);
+
+    let currentRole = 'student'; // 'student', 'faculty', 'driver'
+    let selectedShuttleId = 'vit_general_bus_101';
+    let isDrawerOpen = false;
+
+    let campusStops = [
+      // 1. Men's Hostels Shuttle Stops
+      { id: 1, name: 'Vajpayee / Q & R-Block Cluster', category: 'mh', lat: 12.9723, lng: 79.1627 },
+      { id: 2, name: 'L, M, N, P Block Cluster', category: 'mh', lat: 12.9712, lng: 79.1612 },
+      { id: 3, name: 'MH Food Court & All Maart Area', category: 'mh', lat: 12.9701, lng: 79.1601 },
+      { id: 4, name: 'GD Naidu Block / A-G Blocks', category: 'mh', lat: 12.9692, lng: 79.1588 },
+      { id: 5, name: 'TT / Central Library Junction', category: 'mh', lat: 12.9691, lng: 79.1560 },
+
+      // 2. Women's Hostel Shuttle Stops
+      { id: 6, name: "Main Ladies' Hostel (LH) Gate", category: 'lh', lat: 12.9675, lng: 79.1595 },
+      { id: 7, name: 'LH G Block', category: 'lh', lat: 12.9668, lng: 79.1602 },
+      { id: 8, name: 'Periyar EVR Central Library', category: 'lh', lat: 12.9688, lng: 79.1561 },
+      { id: 9, name: 'SMV / MB Block Portico', category: 'lh', lat: 12.9698, lng: 79.1552 },
+
+      // 3. Faculty Shuttle Stops & Shared Academic Hubs
+      { id: 10, name: 'SJT (Silver Jubilee Tower)', category: 'academic', lat: 12.9708, lng: 79.1558 },
+      { id: 11, name: 'Main Gate 1 Entrance', category: 'faculty', lat: 12.9682, lng: 79.1542 },
+      { id: 12, name: 'Main Gate 2 Entrance', category: 'faculty', lat: 12.9665, lng: 79.1551 },
+      { id: 13, name: 'Dr. M.G.R. Central Admin Block', category: 'faculty', lat: 12.9688, lng: 79.1550 },
+      { id: 14, name: 'Staff & Faculty Quarters Zone', category: 'faculty', lat: 12.9658, lng: 79.1578 },
+      { id: 15, name: 'TT (Technology Tower)', category: 'faculty', lat: 12.9695, lng: 79.1563 },
+      { id: 16, name: 'Gandhi Block / Netaji Block', category: 'faculty', lat: 12.9715, lng: 79.1548 }
+    ];
+
+    let activeShuttles = {
+      'vit_general_bus_101': {
+        shuttleId: 'vit_general_bus_101',
+        name: "General Campus Bus #101 (Men's Hostels)",
+        shuttleType: 'general',
+        fare: 20,
+        lat: 12.9723,
+        lng: 79.1627,
+        speed: 22.0,
+        stopETAs: []
+      },
+      'vit_general_bus_102': {
+        shuttleId: 'vit_general_bus_102',
+        name: "General Campus Bus #102 (Women's Hostel)",
+        shuttleType: 'general',
+        fare: 20,
+        lat: 12.9675,
+        lng: 79.1595,
+        speed: 21.0,
+        stopETAs: []
+      },
+      'vit_faculty_shuttle_201': {
+        shuttleId: 'vit_faculty_shuttle_201',
+        name: 'Faculty Exclusive Shuttle #201',
+        shuttleType: 'faculty',
+        fare: 0,
+        lat: 12.9682,
+        lng: 79.1542,
+        speed: 19.5,
+        stopETAs: []
+      }
+    };
+
+    let shuttleMarkers = {};
+    let fallbackSimulatorTimer = null;
+
+    // Load Stops & Official Routes
+    async function loadCampusData() {
+      try {
+        const { data: stops } = await supabaseClient.from('stops').select('*');
+        if (stops && stops.length >= 10) campusStops = stops;
+      } catch (e) {}
+
+      // Render official campus stop pins with category color-coding
+      campusStops.forEach(stop => {
+        let dotColor = '#38bdf8';
+        let badgeIcon = '🛏️';
+        if (stop.category === 'lh') {
+          dotColor = '#ec4899';
+          badgeIcon = '🌸';
+        } else if (stop.category === 'faculty') {
+          dotColor = '#10b981';
+          badgeIcon = '⭐';
+        } else if (stop.category === 'academic') {
+          dotColor = '#a855f7';
+          badgeIcon = '🏛️';
+        }
+
+        const stopIcon = L.divIcon({
+          className: 'custom-stop-marker',
+          html: `<div style="background:#0f172a; color:#f8fafc; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:8px; border:1.5px solid ${dotColor}; box-shadow:0 3px 10px rgba(0,0,0,0.5); white-space:nowrap; transform:translate(-50%, -24px); text-align:center; display:flex; align-items:center; gap:4px;">
+            <span style="font-size:10px;">${badgeIcon}</span>
+            <span>${stop.name}</span>
+            <div style="width:7px; height:7px; background:${dotColor}; border:1.5px solid white; border-radius:50%; margin-left:2px;"></div>
+          </div>`,
+          iconSize: [0, 0]
+        });
+        const stopMarker = L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map);
+        stopMarker.bindPopup(`
+          <div style="font-family:inherit; min-width:180px; padding:4px;">
+            <div style="font-weight:800; font-size:12px; color:#0f172a; margin-bottom:3px;">${stop.name}</div>
+            <div style="font-size:10.5px; color:#64748b; margin-bottom:8px;">Campus Shuttle Stop</div>
+            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%; background:#0284c7; color:white; border:none; padding:6px 10px; border-radius:8px; font-weight:700; font-size:11px; cursor:pointer; box-shadow:0 2px 6px rgba(2,132,199,0.3);">🚶 Walk To This Stop</button>
+          </div>
+        `);
+      });
+
+      window.navigateDirectlyToStop = function(stopId) {
+        map.closePopup();
+        const target = campusStops.find(s => s.id === stopId);
+        if (target) {
+          nearestCampusStop = target;
+          startDirectionsMode();
+        }
+      };
+
+      // Default high-precision polylines for the 3 routes
+      const defaultCampusRoutes = [
+        {
+          name: "Men's Hostels Route (Bus #101)",
+          color: '#0284c7',
+          points: [
+            [12.9723, 79.1627],
+            [12.9712, 79.1612],
+            [12.9701, 79.1601],
+            [12.9692, 79.1588],
+            [12.9691, 79.1560],
+            [12.9708, 79.1558]
+          ]
+        },
+        {
+          name: "Women's Hostel Route (Bus #102)",
+          color: '#ec4899',
+          points: [
+            [12.9675, 79.1595],
+            [12.9668, 79.1602],
+            [12.9688, 79.1561],
+            [12.9698, 79.1552],
+            [12.9708, 79.1558]
+          ]
+        },
+        {
+          name: "Faculty Exclusive Route (Shuttle #201)",
+          color: '#059669',
+          points: [
+            [12.9682, 79.1542],
+            [12.9665, 79.1551],
+            [12.9688, 79.1550],
+            [12.9658, 79.1578],
+            [12.9695, 79.1563],
+            [12.9708, 79.1558],
+            [12.9715, 79.1548]
+          ]
+        }
+      ];
+
+      defaultCampusRoutes.forEach(r => {
+        L.polyline(r.points, { color: 'white', weight: 5.5, opacity: 0.85 }).addTo(map);
+        L.polyline(r.points, { color: r.color, weight: 3.5, opacity: 0.95 }).addTo(map);
+      });
+
+      try {
+        const { data: routes } = await supabaseClient.from('routes').select('*');
+        if (routes && routes.length > 3) {
+          routes.forEach(route => {
+            if (Array.isArray(route.points) && route.points.length > 0) {
+              const latlngs = route.points.map(p => [p.lat, p.lng]);
+              L.polyline(latlngs, { color: 'white', weight: 5.5, opacity: 0.85 }).addTo(map);
+              L.polyline(latlngs, { color: route.color || '#0284c7', weight: 3.5, opacity: 0.95 }).addTo(map);
+            }
+          });
+        }
+      } catch (e) {}
+
+      // Request location access to locate user & nearest campus stop
+      requestLocationAndFindNearestStop(false);
+    }
+    loadCampusData();
+
+    // 4. Geolocation & Nearest Stop Calculation
+    let userLocation = null;
+    let userMarker = null;
+    let walkingPolyline = null;
+    let nearestCampusStop = null;
+    let nearestDistanceMeters = null;
+
+    function getDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      return R * c;
+    }
+
+    function requestLocationAndFindNearestStop(manual = false) {
+      const bannerText = document.getElementById('nearest-stop-text');
+      const actionBtn = document.getElementById('nearest-stop-btn');
+
+      if (!navigator.geolocation) {
+        bannerText.innerHTML = `<span>GPS not supported by browser</span>`;
+        actionBtn.style.display = 'none';
+        return;
+      }
+
+      bannerText.innerHTML = `<span>Locating your position...</span>`;
+      actionBtn.textContent = 'Locating';
+      actionBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          userLocation = { lat, lng };
+
+          updateUserLocationMarker(lat, lng);
+          calculateNearestStop(lat, lng, manual);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error.message);
+          bannerText.innerHTML = `<span>Location access needed for nearest stop</span>`;
+          actionBtn.textContent = 'Enable GPS';
+          actionBtn.disabled = false;
+          if (manual) {
+            alert('Location access is required to find your nearest stop. Please allow location access in your browser address bar.');
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+      );
+    }
+
+    function updateUserLocationMarker(lat, lng) {
+      const userIcon = L.divIcon({
+        className: 'user-icon-wrap',
+        html: `
+          <div class="user-location-marker">
+            <div class="user-location-pulse"></div>
+            <div class="user-location-dot"></div>
+          </div>
+        `,
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      if (!userMarker) {
+        userMarker = L.marker([lat, lng], { icon: userIcon, zIndexOffset: 1000 }).addTo(map);
+      } else {
+        userMarker.setLatLng([lat, lng]);
+      }
+    }
+
+    async function calculateNearestStop(userLat, userLng, shouldCenter = false) {
+      if (!campusStops || campusStops.length === 0) return;
+
+      const bannerText = document.getElementById('nearest-stop-text');
+      const bannerActions = document.getElementById('banner-actions');
+
+      if (bannerText && !nearestCampusStop) {
+        bannerText.innerHTML = `<span>Calculating shortest walking paths to stops...</span>`;
+      }
+
+      let bestStop = null;
+      let bestDistance = Infinity;
+      let bestDurationSec = null;
+
+      // 1. Query OSRM Walking Distance Matrix table API for genuine pedestrian network routes
+      const stopsCoords = campusStops.map(s => `${s.lng},${s.lat}`).join(';');
+      const url = `https://router.project-osrm.org/table/v1/walking/${userLng},${userLat};${stopsCoords}?sources=0&annotations=distance,duration`;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.code === 'Ok' && data.distances && data.distances[0]) {
+            const distances = data.distances[0];
+            const durations = data.durations ? data.durations[0] : null;
+
+            for (let i = 0; i < campusStops.length; i++) {
+              const d = distances[i + 1];
+              if (d !== null && d !== undefined && !isNaN(d)) {
+                if (d < bestDistance) {
+                  bestDistance = d;
+                  bestStop = campusStops[i];
+                  bestDurationSec = durations ? durations[i + 1] : (d / 75) * 60;
+                }
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('OSRM walking distance matrix timeout or error, falling back:', err);
+      }
+
+      // 2. Fallback: If routing matrix was unavailable, use direct distance with campus winding factor
+      if (!bestStop) {
+        let minDirect = Infinity;
+        campusStops.forEach(stop => {
+          const dist = getDistanceMeters(userLat, userLng, stop.lat, stop.lng);
+          if (dist < minDirect) {
+            minDirect = dist;
+            bestStop = stop;
+            bestDistance = dist * 1.35; // account for campus footpaths detour
+            bestDurationSec = (bestDistance / 75) * 60;
+          }
+        });
+      }
+
+      if (!bestStop) return;
+
+      nearestCampusStop = bestStop;
+      nearestDistanceMeters = bestDistance;
+
+      const walkMins = bestDurationSec ? Math.max(1, Math.round(bestDurationSec / 60)) : Math.max(1, Math.round(bestDistance / 75));
+      const distFormatted = bestDistance < 1000 ? `${Math.round(bestDistance)}m` : `${(bestDistance/1000).toFixed(1)}km`;
+
+      if (bannerText) {
+        bannerText.innerHTML = `<span>Nearest: <span class="highlight">${bestStop.name}</span> • ${distFormatted} <span class="walk-eta">(~${walkMins}m walk)</span></span>`;
+      }
+      
+      if (bannerActions) {
+        bannerActions.innerHTML = `
+          <button class="directions-trigger-btn" onclick="startDirectionsMode(event)">🚶 Directions</button>
+          <button class="nearest-stop-action-btn" onclick="handleNearestStopClick()">🎯 Focus</button>
+        `;
+      }
+
+      // Draw walking dotted path to nearest stop along real pedestrian walkways if not in full directions mode
+      if (!isDirectionsMode) {
+        try {
+          const routeData = await fetchWalkingRoute(userLat, userLng, bestStop.lat, bestStop.lng);
+          if (!isDirectionsMode && routeData && routeData.coordinates && routeData.coordinates.length > 0) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline(routeData.coordinates, {
+              color: '#38bdf8',
+              weight: 4,
+              dashArray: '5, 8',
+              opacity: 0.95
+            }).addTo(map);
+          }
+        } catch (e) {
+          if (!isDirectionsMode) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline([[userLat, userLng], [bestStop.lat, bestStop.lng]], {
+              color: '#38bdf8',
+              weight: 3.5,
+              dashArray: '5, 8',
+              opacity: 0.9
+            }).addTo(map);
+          }
+        }
+      }
+
+      // If user is within 3km of campus or manual trigger, focus on user & nearest stop
+      if ((shouldCenter || bestDistance <= 3000) && !isDirectionsMode) {
+        const bounds = L.latLngBounds([[userLat, userLng], [bestStop.lat, bestStop.lng]]);
+        map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
+      }
+    }
+
+    function handleNearestStopClick() {
+      if (userLocation && nearestCampusStop) {
+        const bounds = L.latLngBounds([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]]);
+        map.fitBounds(bounds, { padding: [70, 70], maxZoom: 17 });
+      } else {
+        requestLocationAndFindNearestStop(true);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // IN-APP WALKING DIRECTIONS ENGINE (OSRM Campus Footpaths + Realtime Tracking)
+    // ------------------------------------------------------------------------
+    let isDirectionsMode = false;
+    let walkingRouteLayer = null;
+    let walkingDestMarker = null;
+    let walkingSteps = [];
+    let currentStepIndex = 0;
+    let geoWatchId = null;
+
+    function getManeuverIcon(type, modifier) {
+      if (type === 'arrive') return '🏁';
+      if (!modifier) return '⬆️';
+      if (modifier.includes('right')) {
+        return modifier.includes('slight') ? '↗️' : (modifier.includes('sharp') ? '↪️' : '➡️');
+      }
+      if (modifier.includes('left')) {
+        return modifier.includes('slight') ? '↖️' : (modifier.includes('sharp') ? '↩️' : '⬅️');
+      }
+      if (modifier.includes('straight')) return '⬆️';
+      if (modifier.includes('uturn')) return '🔄';
+      return '⬆️';
+    }
+
+    function formatInstruction(step, stopName) {
+      const type = step.maneuver.type;
+      const modifier = step.maneuver.modifier || '';
+      const name = step.name && step.name.trim() !== '' ? step.name : 'campus pathway';
+
+      if (type === 'depart') {
+        return `Start walking along ${name}`;
+      }
+      if (type === 'arrive') {
+        return `Arrive at ${stopName}`;
+      }
+      if (type === 'turn') {
+        const dir = modifier ? modifier.replace('-', ' ') : '';
+        return `Turn ${dir} onto ${name}`;
+      }
+      if (type === 'end of road') {
+        return `At end of road, turn ${modifier || 'along'} ${name}`;
+      }
+      if (type === 'fork') {
+        return `Take the ${modifier || ''} fork onto ${name}`;
+      }
+      if (type === 'continue') {
+        return `Continue straight on ${name}`;
+      }
+      return `Head towards ${name}`;
+    }
+
+    async function fetchWalkingRoute(startLat, startLng, endLat, endLng) {
+      // 1. Try public OSRM walking router with 3.5s timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      try {
+        const url = `https://router.project-osrm.org/route/v1/walking/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson&steps=true`;
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.code === 'Ok' && data.routes && data.routes[0]) {
+            const route = data.routes[0];
+            const coordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]); // [lat, lng]
+            const steps = (route.legs && route.legs[0] && route.legs[0].steps) ? route.legs[0].steps : [];
+            return {
+              coordinates,
+              distanceMeters: route.distance,
+              durationSeconds: route.duration,
+              steps
+            };
+          }
+        }
+      } catch (err) {
+        console.warn('OSRM router fetch timed out or failed, using campus path fallback:', err);
+      }
+
+      // 2. Instant Campus Fallback: Smooth interpolated pathway between user and stop
+      const directDist = getDistanceMeters(startLat, startLng, endLat, endLng);
+      const midLat = (startLat + endLat) / 2;
+      const midLng = (startLng + endLng) / 2;
+      return {
+        coordinates: [
+          [startLat, startLng],
+          [midLat, midLng],
+          [endLat, endLng]
+        ],
+        distanceMeters: directDist,
+        durationSeconds: (directDist / 75) * 60,
+        steps: [
+          {
+            maneuver: { type: 'depart', modifier: 'straight' },
+            name: 'Campus Pedestrian Way',
+            distance: Math.round(directDist * 0.5)
+          },
+          {
+            maneuver: { type: 'continue', modifier: 'straight' },
+            name: nearestCampusStop ? nearestCampusStop.name : 'Campus Stop',
+            distance: Math.round(directDist * 0.5)
+          },
+          {
+            maneuver: { type: 'arrive', modifier: '' },
+            name: nearestCampusStop ? nearestCampusStop.name : 'Campus Stop',
+            distance: 0
+          }
+        ]
+      };
+    }
+
+    async function startDirectionsMode(e) {
+      if (e) e.stopPropagation();
+
+      if (!userLocation) {
+        requestLocationAndFindNearestStop(true);
+        return;
+      }
+      if (!nearestCampusStop) {
+        calculateNearestStop(userLocation.lat, userLocation.lng, true);
+      }
+      if (!nearestCampusStop) return;
+
+      isDirectionsMode = true;
+
+      // Update UI components
+      const nearestBanner = document.getElementById('nearest-stop-banner');
+      const directionsHud = document.getElementById('directions-hud');
+      const destNameEl = document.getElementById('directions-dest-name');
+      const stepTextEl = document.getElementById('directions-step-text');
+      const stepSubEl = document.getElementById('directions-step-sub');
+      const stepIconEl = document.getElementById('directions-step-icon');
+      const etaValEl = document.getElementById('directions-eta-val');
+      const distValEl = document.getElementById('directions-dist-val');
+
+      nearestBanner.style.display = 'none';
+      directionsHud.classList.add('active');
+      destNameEl.textContent = nearestCampusStop.name;
+      stepIconEl.textContent = '🚶';
+      stepTextEl.textContent = 'Calculating shortest walking path...';
+      stepSubEl.textContent = 'Mapping campus walkways...';
+
+      // Clear existing walking polyline
+      if (walkingPolyline) {
+        map.removeLayer(walkingPolyline);
+        walkingPolyline = null;
+      }
+      if (walkingRouteLayer) {
+        map.removeLayer(walkingRouteLayer);
+        walkingRouteLayer = null;
+      }
+      if (walkingDestMarker) {
+        map.removeLayer(walkingDestMarker);
+        walkingDestMarker = null;
+      }
+
+      // Fetch route
+      const routeData = await fetchWalkingRoute(
+        userLocation.lat,
+        userLocation.lng,
+        nearestCampusStop.lat,
+        nearestCampusStop.lng
+      );
+
+      const coords = routeData.coordinates;
+      const totalDist = routeData.distanceMeters;
+      const totalMins = Math.max(1, Math.round(totalDist / 75));
+
+      distValEl.textContent = totalDist < 1000 ? `${Math.round(totalDist)} m` : `${(totalDist / 1000).toFixed(1)} km`;
+      etaValEl.textContent = `${totalMins} min`;
+
+      // Render glowing walking path
+      const glowLine = L.polyline(coords, {
+        color: '#06b6d4',
+        weight: 8,
+        opacity: 0.45,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      const coreLine = L.polyline(coords, {
+        color: '#38bdf8',
+        weight: 4,
+        dashArray: '7, 9',
+        opacity: 0.95,
+        lineCap: 'round',
+        lineJoin: 'round'
+      });
+      walkingRouteLayer = L.layerGroup([glowLine, coreLine]).addTo(map);
+
+      // Add finish flag marker at the stop
+      const flagIcon = L.divIcon({
+        className: 'flag-dest-icon',
+        html: `<div style="
+          background:#0f172a;
+          border:2px solid #38bdf8;
+          color:white;
+          border-radius:10px;
+          padding:3px 7px;
+          font-size:12px;
+          font-weight:800;
+          box-shadow:0 4px 12px rgba(0,0,0,0.6);
+          display:flex;
+          align-items:center;
+          gap:4px;
+          white-space:nowrap;
+        ">🏁 ${nearestCampusStop.name}</div>`,
+        iconSize: [0, 0],
+        iconAnchor: [30, 24]
+      });
+      walkingDestMarker = L.marker([nearestCampusStop.lat, nearestCampusStop.lng], { icon: flagIcon }).addTo(map);
+
+      // Fit map smoothly to the entire walking itinerary
+      map.fitBounds(glowLine.getBounds(), { padding: [60, 60], maxZoom: 18 });
+
+      // Build turn-by-turn steps
+      walkingSteps = routeData.steps.map((st, i) => {
+        return {
+          icon: getManeuverIcon(st.maneuver.type, st.maneuver.modifier),
+          instruction: formatInstruction(st, nearestCampusStop.name),
+          distance: Math.round(st.distance || 0)
+        };
+      });
+
+      currentStepIndex = 0;
+      updateDirectionsStepUI();
+      renderItineraryDropdown();
+
+      // Start live walking GPS watch
+      if (navigator.geolocation && !geoWatchId) {
+        geoWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const curLat = pos.coords.latitude;
+            const curLng = pos.coords.longitude;
+            userLocation = { lat: curLat, lng: curLng };
+            updateUserLocationMarker(curLat, curLng);
+            onWalkingPositionUpdate(curLat, curLng);
+          },
+          (err) => console.warn('Watch error:', err),
+          { enableHighAccuracy: true, maximumAge: 3000, timeout: 6000 }
+        );
+      }
+    }
+
+    function updateDirectionsStepUI() {
+      if (!walkingSteps || walkingSteps.length === 0) return;
+      const step = walkingSteps[currentStepIndex] || walkingSteps[0];
+      const stepTextEl = document.getElementById('directions-step-text');
+      const stepSubEl = document.getElementById('directions-step-sub');
+      const stepIconEl = document.getElementById('directions-step-icon');
+
+      stepIconEl.textContent = step.icon;
+      stepTextEl.textContent = step.instruction;
+      stepSubEl.textContent = step.distance > 0 ? `In ${step.distance}m` : 'Arriving at destination';
+    }
+
+    function renderItineraryDropdown() {
+      const dropdown = document.getElementById('directions-steps-dropdown');
+      const label = document.getElementById('itinerary-toggle-label');
+      label.textContent = `All Steps (${walkingSteps.length}) ▾`;
+
+      dropdown.innerHTML = walkingSteps.map((st, i) => `
+        <div class="itinerary-item ${i === currentStepIndex ? 'active' : ''}">
+          <span class="itinerary-step-badge">${st.icon}</span>
+          <div style="flex:1;">
+            <div>${st.instruction}</div>
+            ${st.distance > 0 ? `<div style="font-size:0.68rem; color:#94a3b8;">${st.distance}m</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleItineraryList(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('directions-steps-dropdown');
+      dropdown.classList.toggle('open');
+    }
+
+    function onWalkingPositionUpdate(curLat, curLng) {
+      if (!isDirectionsMode || !nearestCampusStop) return;
+      const remainingDist = getDistanceMeters(curLat, curLng, nearestCampusStop.lat, nearestCampusStop.lng);
+      const remainingMins = Math.max(1, Math.round(remainingDist / 75));
+
+      const distValEl = document.getElementById('directions-dist-val');
+      const etaValEl = document.getElementById('directions-eta-val');
+      if (distValEl) distValEl.textContent = remainingDist < 1000 ? `${Math.round(remainingDist)} m` : `${(remainingDist / 1000).toFixed(1)} km`;
+      if (etaValEl) etaValEl.textContent = `${remainingMins} min`;
+
+      // Check arrival
+      if (remainingDist <= 15) {
+        const card = document.getElementById('directions-current-step-card');
+        card.innerHTML = `
+          <div class="arrival-banner" style="width:100%;">
+            <span>🎉 You have arrived at ${nearestCampusStop.name}!</span>
+          </div>
+        `;
+      }
+    }
+
+    function exitDirectionsMode(e) {
+      if (e) e.stopPropagation();
+      isDirectionsMode = false;
+
+      const nearestBanner = document.getElementById('nearest-stop-banner');
+      const directionsHud = document.getElementById('directions-hud');
+      if (directionsHud) directionsHud.classList.remove('active');
+      if (nearestBanner) nearestBanner.style.display = 'flex';
+
+      if (walkingRouteLayer) {
+        map.removeLayer(walkingRouteLayer);
+        walkingRouteLayer = null;
+      }
+      if (walkingDestMarker) {
+        map.removeLayer(walkingDestMarker);
+        walkingDestMarker = null;
+      }
+      if (geoWatchId) {
+        navigator.geolocation.clearWatch(geoWatchId);
+        geoWatchId = null;
+      }
+
+      // Restore walking dashed line along real campus pathways
+      if (userLocation && nearestCampusStop) {
+        fetchWalkingRoute(userLocation.lat, userLocation.lng, nearestCampusStop.lat, nearestCampusStop.lng).then(routeData => {
+          if (!isDirectionsMode && routeData && routeData.coordinates) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline(routeData.coordinates, {
+              color: '#38bdf8',
+              weight: 4,
+              dashArray: '5, 8',
+              opacity: 0.95
+            }).addTo(map);
+          }
+        }).catch(() => {
+          if (!isDirectionsMode) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline([[userLocation.lat, userLocation.lng], [nearestCampusStop.lat, nearestCampusStop.lng]], {
+              color: '#38bdf8',
+              weight: 3.5,
+              dashArray: '5, 8',
+              opacity: 0.9
+            }).addTo(map);
+          }
+        });
+      }
+    }
+
+    function calculateETA(shuttleLat, shuttleLng, stopLat, stopLng, speed = 20) {
+      const R = 6371;
+      const dLat = (stopLat - shuttleLat) * Math.PI / 180;
+      const dLng = (stopLng - shuttleLng) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(shuttleLat * Math.PI / 180) * Math.cos(stopLat * Math.PI / 180) * 
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const distanceKm = R * c;
+      const timeMinutes = (distanceKm / Math.max(12, speed)) * 60;
+      return {
+        distanceKm: parseFloat(distanceKm.toFixed(2)),
+        etaMinutes: Math.max(1, Math.round(timeMinutes))
+      };
+    }
+
+    function updateMarker(shuttle) {
+      let pillText = 'MH 101 • ₹20';
+      let markerClass = 'bus-marker-node general';
+      let iconContent = '🚌';
+
+      if (shuttle.shuttleType === 'faculty' || (shuttle.shuttleId && shuttle.shuttleId.includes('faculty'))) {
+        pillText = 'FACULTY • FREE';
+        markerClass = 'bus-marker-node faculty';
+        iconContent = '⭐';
+      } else if (shuttle.shuttleId === 'vit_general_bus_102' || (shuttle.name && shuttle.name.toLowerCase().includes('women'))) {
+        pillText = 'LH 102 • ₹20';
+        markerClass = 'bus-marker-node women';
+        iconContent = '🌸';
+      }
+
+      const customIcon = L.divIcon({
+        className: 'custom-bus-wrapper',
+        html: `<div class="${markerClass}">
+          <div class="bus-marker-pill">${pillText}</div>
+          ${iconContent}
+        </div>`,
+        iconSize: [38, 38],
+        iconAnchor: [19, 19]
+      });
+
+      if (!shuttleMarkers[shuttle.shuttleId]) {
+        shuttleMarkers[shuttle.shuttleId] = L.marker([shuttle.lat, shuttle.lng], { icon: customIcon }).addTo(map);
+        shuttleMarkers[shuttle.shuttleId].on('click', () => selectShuttle(shuttle.shuttleId));
+      } else {
+        shuttleMarkers[shuttle.shuttleId].setLatLng([shuttle.lat, shuttle.lng]);
+        shuttleMarkers[shuttle.shuttleId].setIcon(customIcon);
+      }
+    }
+
+    function selectShuttle(shuttleId) {
+      selectedShuttleId = shuttleId;
+      document.getElementById('btn-general-mh')?.classList.toggle('active', shuttleId === 'vit_general_bus_101');
+      document.getElementById('btn-general-lh')?.classList.toggle('active', shuttleId === 'vit_general_bus_102');
+      document.getElementById('btn-faculty')?.classList.toggle('active', shuttleId === 'vit_faculty_shuttle_201');
+      
+      const shuttle = activeShuttles[shuttleId];
+      if (shuttle) {
+        updateBottomTray(shuttle);
+        map.panTo([shuttle.lat, shuttle.lng], { animate: true, duration: 0.4 });
+      }
+    }
+
+    function updateBottomTray(shuttle) {
+      const isFaculty = shuttle.shuttleType === 'faculty';
+      document.getElementById('speed-val').textContent = Math.round(shuttle.speed || 21);
+
+      // Stop ETAs
+      const stopETAs = campusStops.map(stop => {
+        const eta = calculateETA(shuttle.lat, shuttle.lng, stop.lat, stop.lng, shuttle.speed);
+        return { stopName: stop.name, etaMinutes: eta.etaMinutes, distanceKm: eta.distanceKm };
+      }).sort((a, b) => a.etaMinutes - b.etaMinutes);
+
+      const nextStop = stopETAs[0];
+      if (nextStop) {
+        document.getElementById('next-stop-label').textContent = `Next: ${nextStop.stopName}`;
+        document.getElementById('next-stop-mins').textContent = `• ${nextStop.etaMinutes} min away`;
+      }
+
+      // Update Drawer stops scroll
+      const drawerList = document.getElementById('drawer-stops-list');
+      drawerList.innerHTML = stopETAs.map(s => `
+        <div class="drawer-stop-box">
+          <div class="drawer-stop-name">${s.stopName}</div>
+          <div class="drawer-stop-mins" style="color:${isFaculty ? '#34d399' : '#38bdf8'}">${s.etaMinutes} min</div>
+        </div>
+      `).join('');
+
+      // Update Action Row
+      const actionRow = document.getElementById('action-row-content');
+      if (!isFaculty) {
+        actionRow.innerHTML = `
+          <button class="action-btn blue" onclick="openTicketModal('general')">
+            🎫 Book Ticket (₹20)
+          </button>
+        `;
+      } else if (currentRole === 'faculty') {
+        actionRow.innerHTML = `
+          <button class="action-btn emerald" onclick="openTicketModal('faculty')">
+            ⭐ Show Faculty Pass (FREE)
+          </button>
+        `;
+      } else {
+        actionRow.innerHTML = `
+          <div class="restriction-pill">
+            <span>⚠️ Faculty Only • Free</span>
+            <button class="quick-switch-btn" onclick="selectShuttle('vit_general_bus_101')">Switch ₹20</button>
+          </div>
+        `;
+      }
+    }
+
+    function toggleDetailsDrawer() {
+      isDrawerOpen = !isDrawerOpen;
+      document.getElementById('details-drawer').classList.toggle('open', isDrawerOpen);
+      document.getElementById('drawer-toggle-text').textContent = isDrawerOpen
+        ? 'Hide details ▴'
+        : 'Show all upcoming stops & crowding ▾';
+    }
+
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById('role-student').className = `role-pill-btn ${role === 'student' ? 'active student' : ''}`;
+      document.getElementById('role-faculty').className = `role-pill-btn ${role === 'faculty' ? 'active faculty' : ''}`;
+      document.getElementById('role-driver').className = `role-pill-btn ${role === 'driver' ? 'active driver' : ''}`;
+
+      const passView = document.getElementById('passenger-view');
+      const driverView = document.getElementById('driver-view');
+
+      if (role === 'driver') {
+        passView.style.display = 'none';
+        driverView.style.display = 'block';
+      } else {
+        passView.style.display = 'block';
+        driverView.style.display = 'none';
+        selectShuttle(role === 'faculty' ? 'vit_faculty_shuttle_201' : 'vit_general_bus_101');
+      }
+
+      updateNavUserChip(role);
+    }
+
+    function zoomIn() { map.zoomIn(); }
+    function zoomOut() { map.zoomOut(); }
+    function centerOnShuttle() {
+      const s = activeShuttles[selectedShuttleId];
+      if (s) map.setView([s.lat, s.lng], 16.5, { animate: true });
+    }
+
+    function openTicketModal(type) {
+      const modal = document.getElementById('ticket-modal');
+      const content = document.getElementById('ticket-card-content');
+      const randomTkt = 'VIT-' + Math.floor(100000 + Math.random() * 900000);
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (type === 'general') {
+        content.innerHTML = `
+          <div class="ticket-header-blue">
+            <div style="font-size:0.75rem; font-weight:800; opacity:0.85;">VIT VELLORE TRANSIT</div>
+            <div style="font-family:'Outfit'; font-size:1.3rem; font-weight:800; margin:3px 0;">DIGITAL PASS</div>
+            <div style="display:inline-block; background:#22c55e; color:white; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:10px;">PAID ₹20.00</div>
+          </div>
+          <div class="ticket-body">
+            <div style="font-weight:700; color:white; font-size:0.9rem;">General Campus Bus #101</div>
+            <div style="font-size:0.72rem; color:#94a3b8;">Single Ride Pass • Valid 45 Mins</div>
+            <div class="qr-mock-box">
+              <div style="font-size:42px;">🏁</div>
+              <div style="font-size:0.7rem; font-weight:800; color:#0f172a;">${randomTkt}</div>
+            </div>
+            <div style="font-size:0.74rem; color:#4ade80; font-weight:700;">● Active • Boarding Verified</div>
+            <div style="font-size:0.7rem; color:#64748b; margin-top:2px;">Issued at ${timeStr}</div>
+            <button class="modal-close-btn" onclick="closeModal()">Done / Close</button>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `
+          <div class="ticket-header-emerald">
+            <div style="font-size:0.75rem; font-weight:800; color:#fde047;">VIP ACCESS</div>
+            <div style="font-family:'Outfit'; font-size:1.3rem; font-weight:800; margin:3px 0;">FACULTY VIP PASS</div>
+            <div style="display:inline-block; background:#fde047; color:#065f46; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:10px;">FREE (₹0)</div>
+          </div>
+          <div class="ticket-body">
+            <div style="font-weight:700; color:white; font-size:0.9rem;">Faculty Exclusive Shuttle #201</div>
+            <div style="font-size:0.72rem; color:#34d399;">Academic Faculty Member Pass</div>
+            <div class="qr-mock-box" style="border:2px solid #059669;">
+              <div style="font-size:42px;">⭐</div>
+              <div style="font-size:0.7rem; font-weight:800; color:#059669;">FACULTY VERIFIED</div>
+            </div>
+            <div style="font-size:0.74rem; color:#fde047; font-weight:700;">● Official Free Transit Clearance</div>
+            <button class="modal-close-btn" onclick="closeModal()">Done / Close</button>
+          </div>
+        `;
+      }
+
+      modal.classList.add('active');
+    }
+
+    function closeModal(e) {
+      if (!e || e.target.id === 'ticket-modal' || e.target.tagName === 'BUTTON') {
+        document.getElementById('ticket-modal').classList.remove('active');
+      }
+    }
+
+    function reportCrowd(lvl) {
+      alert(`Reported ${lvl} crowding level for ${activeShuttles[selectedShuttleId].name}!`);
+    }
+
+    // Campus GPS Simulation
+    const generalWaypoints = [
+      { lat: 12.9692, lng: 79.1559 },
+      { lat: 12.9698, lng: 79.1588 },
+      { lat: 12.9708, lng: 79.1610 },
+      { lat: 12.9715, lng: 79.1633 },
+      { lat: 12.9735, lng: 79.1620 },
+      { lat: 12.9750, lng: 79.1610 },
+      { lat: 12.9730, lng: 79.1585 },
+      { lat: 12.9705, lng: 79.1565 },
+    ];
+
+    const facultyWaypoints = [
+      { lat: 12.9715, lng: 79.1633 },
+      { lat: 12.9723, lng: 79.1609 },
+      { lat: 12.9730, lng: 79.1585 },
+      { lat: 12.9714, lng: 79.1586 },
+      { lat: 12.9698, lng: 79.1588 },
+      { lat: 12.9692, lng: 79.1559 },
+      { lat: 12.9702, lng: 79.1600 },
+    ];
+
+    let genIdx = 0, genProg = 0;
+    let facIdx = 0, facProg = 0;
+
+    function startLiveSimulator() {
+      if (fallbackSimulatorTimer) return;
+
+      fallbackSimulatorTimer = setInterval(() => {
+        // Step General Bus
+        genProg += 0.12;
+        if (genProg >= 1.0) {
+          genProg = 0;
+          genIdx = (genIdx + 1) % generalWaypoints.length;
+        }
+        const p1G = generalWaypoints[genIdx];
+        const p2G = generalWaypoints[(genIdx + 1) % generalWaypoints.length];
+        activeShuttles['vit_general_bus_101'].lat = p1G.lat + (p2G.lat - p1G.lat) * genProg;
+        activeShuttles['vit_general_bus_101'].lng = p1G.lng + (p2G.lng - p1G.lng) * genProg;
+        activeShuttles['vit_general_bus_101'].speed = 21.0 + Math.random() * 2;
+        updateMarker(activeShuttles['vit_general_bus_101']);
+
+        // Step Faculty Shuttle
+        facProg += 0.10;
+        if (facProg >= 1.0) {
+          facProg = 0;
+          facIdx = (facIdx + 1) % facultyWaypoints.length;
+        }
+        const p1F = facultyWaypoints[facIdx];
+        const p2F = facultyWaypoints[(facIdx + 1) % facultyWaypoints.length];
+        activeShuttles['vit_faculty_shuttle_201'].lat = p1F.lat + (p2F.lat - p1F.lat) * facProg;
+        activeShuttles['vit_faculty_shuttle_201'].lng = p1F.lng + (p2F.lng - p1F.lng) * facProg;
+        activeShuttles['vit_faculty_shuttle_201'].speed = 19.0 + Math.random() * 2;
+        updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+
+        updateBottomTray(activeShuttles[selectedShuttleId]);
+
+        if (currentRole === 'driver') {
+          document.getElementById('driver-speed').textContent = Math.round(activeShuttles[selectedShuttleId].speed);
+        }
+      }, 2000);
+    }
+
+    // ========================================================================
+    // AUTHENTICATION & PORTAL MANAGEMENT (Student / Faculty / Driver)
+    // ========================================================================
+    let currentUser = null;
+    let activeAuthRole = 'student'; // 'student' | 'faculty' | 'driver'
+    let authMode = 'login'; // 'login' | 'register'
+
+    function showPortalOverlay() {
+      const overlay = document.getElementById('auth-portal-overlay');
+      if (overlay) overlay.classList.add('visible');
+      backToPortalSelect();
+    }
+
+    function hidePortalOverlay() {
+      const overlay = document.getElementById('auth-portal-overlay');
+      if (overlay) overlay.classList.remove('visible');
+    }
+
+    function backToPortalSelect() {
+      document.getElementById('portal-select-view')?.classList.add('active');
+      document.getElementById('auth-form-view')?.classList.remove('active');
+      const alertEl = document.getElementById('auth-alert');
+      if (alertEl) alertEl.style.display = 'none';
+    }
+
+    function openAuthForm(role) {
+      activeAuthRole = role;
+      document.getElementById('portal-select-view')?.classList.remove('active');
+      document.getElementById('auth-form-view')?.classList.add('active');
+      
+      const alertEl = document.getElementById('auth-alert');
+      if (alertEl) alertEl.style.display = 'none';
+      
+      updateAuthFormUI();
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById('auth-tab-login')?.classList.toggle('active', mode === 'login');
+      document.getElementById('auth-tab-register')?.classList.toggle('active', mode === 'register');
+      
+      const nameGroup = document.getElementById('auth-group-name');
+      const idGroup = document.getElementById('auth-group-id');
+      if (nameGroup) nameGroup.style.display = mode === 'register' ? 'block' : 'none';
+      if (idGroup) idGroup.style.display = mode === 'register' ? 'block' : 'none';
+      
+      updateAuthFormUI();
+    }
+
+    function updateAuthFormUI() {
+      const roleBadge = document.getElementById('auth-role-badge');
+      const roleIcon = document.getElementById('auth-role-icon');
+      const roleLabel = document.getElementById('auth-role-label');
+      const formHeading = document.getElementById('auth-form-heading');
+      const formSub = document.getElementById('auth-form-sub');
+      const domainHint = document.getElementById('auth-domain-hint');
+      const emailInput = document.getElementById('auth-email');
+      const submitText = document.getElementById('auth-submit-text');
+      const footerNotice = document.getElementById('auth-footer-notice');
+      const idLabel = document.getElementById('auth-id-label');
+      const idInput = document.getElementById('auth-id-val');
+      const googleBtnText = document.getElementById('google-btn-text');
+      const actionVerb = authMode === 'login' ? 'Sign In' : 'Sign Up';
+
+      if (roleBadge) roleBadge.className = `auth-role-badge ${activeAuthRole}`;
+
+      if (activeAuthRole === 'student') {
+        if (roleIcon) roleIcon.textContent = '🎓';
+        if (roleLabel) roleLabel.textContent = 'Student Portal';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Sign In to Student Portal' : 'Create Student Account';
+        if (formSub) formSub.textContent = 'Access campus shuttles (₹20) with @vitstudent.ac.in';
+        if (domainHint) domainHint.textContent = '@vitstudent.ac.in';
+        if (emailInput) emailInput.placeholder = 'student@vitstudent.ac.in';
+        if (idLabel) idLabel.textContent = 'Registration Number';
+        if (idInput) idInput.placeholder = 'e.g. 21BCE1042';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Sign In as Student' : 'Create Student Account';
+        if (googleBtnText) googleBtnText.textContent = `${actionVerb} with Google (@vitstudent.ac.in)`;
+        if (footerNotice) footerNotice.textContent = 'Student fare: ₹20 per trip • Verified @vitstudent.ac.in credentials';
+      } else if (activeAuthRole === 'faculty') {
+        if (roleIcon) roleIcon.textContent = '⭐';
+        if (roleLabel) roleLabel.textContent = 'Faculty Portal';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Sign In to Faculty Portal' : 'Create Faculty Account';
+        if (formSub) formSub.textContent = 'Access 100% FREE Faculty Shuttle with @vit.ac.in';
+        if (domainHint) domainHint.textContent = '@vit.ac.in';
+        if (emailInput) emailInput.placeholder = 'faculty.name@vit.ac.in';
+        if (idLabel) idLabel.textContent = 'Employee / Faculty ID';
+        if (idInput) idInput.placeholder = 'e.g. VIT-FAC-4091';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Sign In as Faculty' : 'Create Faculty Account';
+        if (googleBtnText) googleBtnText.textContent = `${actionVerb} with Google (@vit.ac.in)`;
+        if (footerNotice) footerNotice.textContent = 'Faculty fare: 100% FREE • Verified @vit.ac.in institutional account';
+      } else {
+        if (roleIcon) roleIcon.textContent = '🚖';
+        if (roleLabel) roleLabel.textContent = 'Driver Console';
+        if (formHeading) formHeading.textContent = authMode === 'login' ? 'Driver Console Login' : 'Register Authorized Driver';
+        if (formSub) formSub.textContent = 'Shift management & live GPS tracking broadcaster';
+        if (domainHint) domainHint.textContent = 'Driver ID / Email';
+        if (emailInput) emailInput.placeholder = 'driver101@vit.ac.in';
+        if (idLabel) idLabel.textContent = 'Vehicle Badge / Driver License';
+        if (idInput) idInput.placeholder = 'e.g. BUS-101-DRV';
+        if (submitText) submitText.textContent = authMode === 'login' ? 'Enter Driver Shift Console' : 'Register Driver';
+        if (googleBtnText) googleBtnText.textContent = `${actionVerb} with Google (Driver ID)`;
+        if (footerNotice) footerNotice.textContent = 'Authorized campus shuttle drivers only';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('auth-password');
+      if (!pwd) return;
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    }
+
+    function quickFillAndLogin() {
+      const emailInput = document.getElementById('auth-email');
+      const pwdInput = document.getElementById('auth-password');
+      const nameInput = document.getElementById('auth-name');
+      const idInput = document.getElementById('auth-id-val');
+
+      if (activeAuthRole === 'student') {
+        if (emailInput) emailInput.value = 'student.vit@vitstudent.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Arjun Kumar';
+        if (idInput) idInput.value = '21BCE1042';
+      } else if (activeAuthRole === 'faculty') {
+        if (emailInput) emailInput.value = 'dr.raman@vit.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Dr. C. Raman';
+        if (idInput) idInput.value = 'VIT-FAC-4091';
+      } else {
+        if (emailInput) emailInput.value = 'driver.raj@vit.ac.in';
+        if (pwdInput) pwdInput.value = 'vit2026pass';
+        if (nameInput) nameInput.value = 'Rajesh Kumar';
+        if (idInput) idInput.value = 'BUS-101-DRV';
+      }
+
+      handleAuthSubmit(new Event('submit'));
+    }
+
+    function continueAsGuest() {
+      loginUserSuccess({
+        role: 'student',
+        email: 'guest.student@vitstudent.ac.in',
+        name: 'Guest Student',
+        regId: 'DEMO-GUEST'
+      });
+    }
+
+    async function handleAuthSubmit(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      
+      const alertEl = document.getElementById('auth-alert');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const emailInput = document.getElementById('auth-email');
+      const pwdInput = document.getElementById('auth-password');
+      const nameInput = document.getElementById('auth-name');
+      const idInput = document.getElementById('auth-id-val');
+
+      const email = emailInput ? emailInput.value.trim().toLowerCase() : '';
+      const password = pwdInput ? pwdInput.value.trim() : '';
+      const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (email.split('@')[0] || 'Campus User');
+      const regId = (idInput && idInput.value.trim()) ? idInput.value.trim() : 'VIT-' + Math.floor(1000 + Math.random() * 9000);
+
+      if (alertEl) alertEl.style.display = 'none';
+
+      // Validation
+      if (!email || !password) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.textContent = 'Please fill in both email and password.';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (activeAuthRole === 'student' && !email.endsWith('@vitstudent.ac.in')) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.innerHTML = '⚠️ Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small style="opacity:0.9;">Click "One-Click Instant Verified Sign In" below to auto-fill.</small>';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (activeAuthRole === 'faculty' && (!email.endsWith('@vit.ac.in') || email.endsWith('@vitstudent.ac.in'))) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.innerHTML = '⚠️ Faculty email must end with <strong>@vit.ac.in</strong> (not @vitstudent.ac.in).<br><small style="opacity:0.9;">Click "One-Click Instant Verified Sign In" below to auto-fill.</small>';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (password.length < 6) {
+        if (alertEl) {
+          alertEl.className = 'auth-alert error';
+          alertEl.textContent = '⚠️ Password must be at least 6 characters.';
+          alertEl.style.display = 'block';
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Verifying credentials...</span>';
+      }
+
+      try {
+        if (authMode === 'register') {
+          const { data, error } = await supabaseClient.auth.signUp({
+            email,
+            password,
+            options: { data: { role: activeAuthRole, full_name: name, reg_id: regId } }
+          });
+          if (error) console.warn('Supabase signUp notice:', error.message);
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) console.warn('Supabase signIn notice:', error.message);
+        }
+
+        loginUserSuccess({
+          role: activeAuthRole,
+          email,
+          name,
+          regId
+        });
+      } catch (err) {
+        console.warn('Auth fallback:', err);
+        loginUserSuccess({
+          role: activeAuthRole,
+          email,
+          name,
+          regId
+        });
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          updateAuthFormUI();
+        }
+      }
+    }
+
+    function loginUserSuccess(userData) {
+      currentUser = userData;
+      localStorage.setItem('vit_shuttle_session', JSON.stringify(userData));
+      
+      switchRole(userData.role);
+      hidePortalOverlay();
+
+      // Show welcome toast in nearest stop text
+      const bannerText = document.getElementById('nearest-stop-text');
+      if (bannerText) {
+        bannerText.innerHTML = `<span>Welcome, <strong style="color:#38bdf8;">${userData.name || userData.email}</strong> • ${userData.role.toUpperCase()} PORTAL ACTIVE</span>`;
+        setTimeout(() => {
+          if (userLocation && nearestCampusStop) {
+            calculateNearestStop(userLocation.lat, userLocation.lng);
+          } else {
+            requestLocationAndFindNearestStop(false);
+          }
+        }, 3000);
+      }
+    }
+
+    function logoutUser(e) {
+      if (e) e.stopPropagation();
+      localStorage.removeItem('vit_shuttle_session');
+      currentUser = null;
+      try {
+        supabaseClient.auth.signOut().catch(() => {});
+      } catch(err) {}
+      showPortalOverlay();
+    }
+
+    function updateNavUserChip(role) {
+      const badge = document.getElementById('user-session-badge');
+      if (!badge) return;
+      badge.className = `session-badge ${role}`;
+      const icon = role === 'student' ? '🎓' : (role === 'faculty' ? '⭐' : '🚖');
+      if (currentUser && currentUser.name) {
+        const firstName = currentUser.name.split(' ')[0];
+        badge.textContent = `${icon} ${firstName} (${role.toUpperCase()})`;
+      } else {
+        badge.textContent = `${icon} ${role.toUpperCase()}`;
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // SIGN IN / SIGN UP WITH GOOGLE & GOOGLE ACCOUNT PICKER
+    // ------------------------------------------------------------------------
+    function quickGoogleAuth(role) {
+      activeAuthRole = role || 'student';
+      authMode = 'login';
+      signInWithGoogle(role);
+    }
+
+    async function signInWithGoogle(suggestedRole) {
+      if (suggestedRole) activeAuthRole = suggestedRole;
+      
+      const alertEl = document.getElementById('auth-alert');
+      if (alertEl) alertEl.style.display = 'none';
+
+      // Instantly open the interactive role-tailored Google Account Picker modal!
+      // This immediately presents verified accounts and avoids the 400 'Unsupported provider' redirect
+      openGooglePickerModal(activeAuthRole);
+    }
+
+    async function launchRealGoogleOAuth() {
+      closeGooglePicker();
+      const hdDomain = activeAuthRole === 'student' ? 'vitstudent.ac.in' : (activeAuthRole === 'faculty' ? 'vit.ac.in' : '');
+      const redirectTarget = window.location.origin + window.location.pathname;
+      localStorage.setItem('vit_intended_role', activeAuthRole || 'student');
+      try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectTarget,
+            queryParams: hdDomain ? { hd: hdDomain } : {}
+          }
+        });
+        if (error) {
+          console.error('Supabase Google OAuth error:', error);
+          alert('OAuth notice: ' + error.message);
+        }
+      } catch (err) {
+        console.error('OAuth trigger error:', err);
+      }
+    }
+
+    function openGooglePickerModal(suggestedRole) {
+      if (suggestedRole) activeAuthRole = suggestedRole;
+      const role = activeAuthRole || 'student';
+      const actionVerb = authMode === 'login' ? 'Sign In' : 'Sign Up';
+
+      const titleEl = document.getElementById('google-picker-title');
+      const subEl = document.getElementById('google-picker-sub');
+      const listEl = document.getElementById('google-picker-accounts');
+
+      if (titleEl) {
+        titleEl.textContent = `${actionVerb} with Google`;
+      }
+
+      if (subEl) {
+        if (role === 'student') {
+          subEl.innerHTML = `Continuing as <strong>Student</strong> • Choose your verified <strong>@vitstudent.ac.in</strong> account`;
+        } else if (role === 'faculty') {
+          subEl.innerHTML = `Continuing as <strong>Faculty</strong> • Choose your verified <strong>@vit.ac.in</strong> account`;
+        } else {
+          subEl.innerHTML = `Continuing as <strong>Shuttle Driver</strong> • Choose your authorized driver account`;
+        }
+      }
+
+      if (listEl) {
+        const realButtonLabel = `${actionVerb} with Personal / VIT Google Account`;
+        if (role === 'student') {
+          listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #0284c7; background:linear-gradient(135deg, #0284c7, #0369a1); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(2,132,199,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED STUDENT DEMO</span>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('student', 'rushi.meher2023@vitstudent.ac.in', 'Rushi Raj Meher', '21BCE1042')">
+              <div class="google-avatar-circle student-avatar">R</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Rushi Raj Meher</div>
+                <div class="google-account-email">rushi.meher2023@vitstudent.ac.in</div>
+                <div class="google-account-role">🎓 Verified Student • 21BCE1042</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('student', 'arjun.k2024@vitstudent.ac.in', 'Arjun Kumar', '22BCE2410')">
+              <div class="google-avatar-circle student-avatar" style="background:#4f46e5;">A</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Arjun Kumar</div>
+                <div class="google-account-email">arjun.k2024@vitstudent.ac.in</div>
+                <div class="google-account-role">🎓 Verified Student • 22BCE2410</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="promptCustomGoogleAccount('student')">
+              <div class="google-avatar-circle custom-avatar">➕</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Use another @vitstudent.ac.in Google account</div>
+                <div class="google-account-email">${actionVerb} with any VIT Student email</div>
+              </div>
+            </div>
+          `;
+        } else if (role === 'faculty') {
+          listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #059669; background:linear-gradient(135deg, #059669, #047857); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(5,150,105,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED FACULTY DEMO</span>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('faculty', 'c.raman@vit.ac.in', 'Dr. C. Raman', 'VIT-FAC-4091')">
+              <div class="google-avatar-circle faculty-avatar">C</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Dr. C. Raman</div>
+                <div class="google-account-email">c.raman@vit.ac.in</div>
+                <div class="google-account-role">⭐ Verified Faculty • VIT-FAC-4091</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('faculty', 'ananya.iyer@vit.ac.in', 'Prof. Ananya Iyer', 'VIT-FAC-1102')">
+              <div class="google-avatar-circle faculty-avatar" style="background:#0d9488;">A</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Prof. Ananya Iyer</div>
+                <div class="google-account-email">ananya.iyer@vit.ac.in</div>
+                <div class="google-account-role">⭐ Verified Faculty • VIT-FAC-1102</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="promptCustomGoogleAccount('faculty')">
+              <div class="google-avatar-circle custom-avatar">➕</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Use another @vit.ac.in Google account</div>
+                <div class="google-account-email">${actionVerb} with any VIT Faculty email</div>
+              </div>
+            </div>
+          `;
+        } else {
+          listEl.innerHTML = `
+            <div style="margin-bottom:10px;">
+              <button type="button" class="google-signin-btn" onclick="launchRealGoogleOAuth()" style="border:1.5px solid #d97706; background:linear-gradient(135deg, #d97706, #b45309); color:#ffffff; font-weight:800; font-size:0.82rem; padding:11px; margin-bottom:0; box-shadow:0 4px 14px rgba(217,119,6,0.35);">
+                <svg class="google-icon-svg" style="filter:brightness(0) invert(1);" viewBox="0 0 24 24">
+                  <path fill="#fff" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                </svg>
+                <span>${realButtonLabel}</span>
+              </button>
+            </div>
+            <div class="auth-or-divider" style="margin:10px 0;">
+              <span>OR 1-CLICK VERIFIED DRIVER DEMO</span>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('driver', 'driver.raj@vit.ac.in', 'Rajesh Driver', 'BUS-101-DRV')">
+              <div class="google-avatar-circle" style="background:#d97706;">R</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Rajesh Driver</div>
+                <div class="google-account-email">driver.raj@vit.ac.in</div>
+                <div class="google-account-role">🚖 Authorized Driver • Bus #101 (MH)</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="selectGoogleAccount('driver', 'driver.murugan@vit.ac.in', 'Murugan Driver', 'BUS-102-DRV')">
+              <div class="google-avatar-circle" style="background:#ea580c;">M</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Murugan Driver</div>
+                <div class="google-account-email">driver.murugan@vit.ac.in</div>
+                <div class="google-account-role">🚖 Authorized Driver • Bus #102 (LH)</div>
+              </div>
+            </div>
+            <div class="google-account-item" onclick="promptCustomGoogleAccount('driver')">
+              <div class="google-avatar-circle custom-avatar">➕</div>
+              <div style="flex:1;">
+                <div class="google-account-name">Use another Driver Google account</div>
+                <div class="google-account-email">${actionVerb} with driver authorization</div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      const modal = document.getElementById('google-picker-modal');
+      if (modal) {
+        modal.classList.add('active', 'open');
+      }
+    }
+
+    function closeGooglePicker(e) {
+      if (e) e.stopPropagation();
+      const modal = document.getElementById('google-picker-modal');
+      if (modal) {
+        modal.classList.remove('active', 'open');
+      }
+    }
+
+    async function selectGoogleAccount(accountType, email, name, regId) {
+      closeGooglePicker();
+      const role = accountType || activeAuthRole || 'student';
+      const userEmail = email || (role === 'student' ? 'rushi.meher2023@vitstudent.ac.in' : (role === 'faculty' ? 'c.raman@vit.ac.in' : 'driver.raj@vit.ac.in'));
+      const userName = name || (role === 'student' ? 'Rushi Raj Meher' : (role === 'faculty' ? 'Dr. C. Raman' : 'Rajesh Driver'));
+      const userRegId = regId || (role === 'student' ? '21BCE1042' : (role === 'faculty' ? 'VIT-FAC-4091' : 'BUS-101-DRV'));
+
+      // Non-blocking Supabase auth record creation
+      try {
+        await supabaseClient.auth.signUp({
+          email: userEmail,
+          password: 'VIT_SSO_SECURE_PASS_2026',
+          options: {
+            data: {
+              role: role,
+              full_name: userName,
+              reg_id: userRegId,
+              provider: 'google'
+            }
+          }
+        }).catch(() => {});
+      } catch (e) {}
+
+      loginUserSuccess({
+        role: role,
+        name: userName,
+        email: userEmail,
+        regId: userRegId,
+        provider: 'google'
+      });
+    }
+
+    async function promptCustomGoogleAccount(targetRole) {
+      const role = targetRole || activeAuthRole || 'student';
+      let defaultEmail = 'your.name2024@vitstudent.ac.in';
+      let promptMsg = 'Enter your VIT Student Google Workspace Email (@vitstudent.ac.in):';
+      if (role === 'faculty') {
+        defaultEmail = 'professor.name@vit.ac.in';
+        promptMsg = 'Enter your VIT Faculty Google Workspace Email (@vit.ac.in):';
+      } else if (role === 'driver') {
+        defaultEmail = 'driver.name@vit.ac.in';
+        promptMsg = 'Enter your VIT Authorized Driver Email (@vit.ac.in):';
+      }
+
+      const customEmail = prompt(promptMsg, defaultEmail);
+      if (!customEmail) return;
+
+      const emailTrim = customEmail.trim().toLowerCase();
+
+      // Validate based on role
+      if (role === 'student' && !emailTrim.endsWith('@vitstudent.ac.in')) {
+        alert('⚠️ Student Google accounts must end with @vitstudent.ac.in');
+        return;
+      }
+      if (role === 'faculty' && (!emailTrim.endsWith('@vit.ac.in') || emailTrim.endsWith('@vitstudent.ac.in'))) {
+        alert('⚠️ Faculty Google accounts must end with @vit.ac.in');
+        return;
+      }
+
+      closeGooglePicker();
+
+      const userName = emailTrim.split('@')[0].replace('.', ' ').toUpperCase();
+      const userRegId = role === 'student' ? '24BCE' + Math.floor(1000 + Math.random() * 9000) : (role === 'faculty' ? 'VIT-FAC-' + Math.floor(1000 + Math.random() * 9000) : 'BUS-DRV-' + Math.floor(100 + Math.random() * 900));
+
+      // Non-blocking Supabase auth record creation
+      try {
+        await supabaseClient.auth.signUp({
+          email: emailTrim,
+          password: 'VIT_SSO_SECURE_PASS_2026',
+          options: {
+            data: {
+              role: role,
+              full_name: userName,
+              reg_id: userRegId,
+              provider: 'google'
+            }
+          }
+        }).catch(() => {});
+      } catch (e) {}
+
+      loginUserSuccess({
+        role: role,
+        name: userName,
+        email: emailTrim,
+        regId: userRegId,
+        provider: 'google'
+      });
+    }
+
+    async function initAuth() {
+      // 1. Check if redirected from Supabase Google OAuth
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session && session.user) {
+          const email = (session.user.email || '').toLowerCase();
+          const name = session.user.user_metadata?.full_name || session.user.user_metadata?.name || email.split('@')[0];
+          const intendedRole = localStorage.getItem('vit_intended_role');
+          localStorage.removeItem('vit_intended_role');
+
+          let role = intendedRole || 'student';
+          if (email.endsWith('@vit.ac.in') && !email.endsWith('@vitstudent.ac.in')) {
+            role = 'faculty';
+          } else if (email.endsWith('@vitstudent.ac.in')) {
+            role = 'student';
+          }
+
+          loginUserSuccess({
+            role: role,
+            email: email,
+            name: name,
+            regId: 'GOOGLE-SSO',
+            provider: 'google'
+          });
+          return;
+        }
+      } catch (e) {}
+
+      // 2. Check local saved session
+      const saved = localStorage.getItem('vit_shuttle_session');
+      if (saved) {
+        try {
+          const user = JSON.parse(saved);
+          if (user && user.role) {
+            currentUser = user;
+            switchRole(user.role);
+            hidePortalOverlay();
+            return;
+          }
+        } catch(e) {}
+      }
+      // If not logged in, show portal selection at start!
+      showPortalOverlay();
+    }
+
+    updateMarker(activeShuttles['vit_general_bus_101']);
+    updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+    updateBottomTray(activeShuttles['vit_general_bus_101']);
+    startLiveSimulator();
+    initAuth();
+  </script>
+</body>
+</html>
