@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>VIT Shuttle Tracker • Ultra Real-Time Campus Transit</title>
+  <title>VIT Shuttle System • Campus Transportation Platform</title>
 
-  <!-- Google Fonts: Inter & Space Grotesk & Orbitron for sci-fi HUD -->
+  <!-- Typography: Inter for clean UI & Space Grotesk for headings -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@500;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -16,57 +16,100 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    /* ══════════════════════════════════════════════
-       🎨 CYBER-LUXE DESIGN TOKENS & NEON THEME
-    ══════════════════════════════════════════════ */
-    :root {
-      --bg:            #040711;
-      --bg-darker:     #020409;
-      --surf:          rgba(10, 16, 32, 0.78);
-      --surf-elevated: rgba(16, 25, 48, 0.88);
-      --surf-card:     rgba(13, 22, 42, 0.75);
-      --border:        rgba(255, 255, 255, 0.10);
-      --border-hi:     rgba(255, 255, 255, 0.22);
-      --border-neon:   rgba(56, 189, 248, 0.45);
-      
-      --cyan:          #06b6d4;
-      --cyan-light:    #38bdf8;
-      --cyan-glow:     rgba(6, 182, 212, 0.45);
-      
-      --blue:          #3b82f6;
-      --blue-d:        #1d4ed8;
-      --blue-glow:     rgba(59, 130, 246, 0.5);
-      
-      --green:         #10b981;
-      --green-d:       #059669;
-      --green-neon:    #34d399;
-      --green-glow:    rgba(16, 185, 129, 0.45);
-      
-      --pink:          #ec4899;
-      --pink-neon:     #f472b6;
-      --pink-glow:     rgba(236, 72, 153, 0.45);
-      
-      --purple:        #8b5cf6;
-      --purple-neon:   #a855f7;
-      --purple-glow:   rgba(139, 92, 246, 0.45);
-      
-      --amber:         #f59e0b;
-      --amber-neon:    #fbbf24;
-      --amber-glow:    rgba(245, 158, 11, 0.45);
-      
-      --red:           #ef4444;
-      --red-glow:      rgba(239, 68, 68, 0.45);
-      
-      --text:          #f8fafc;
-      --text-muted:    #94a3b8;
-      --text-dim:      #64748b;
-      
-      --radius-sm:     10px;
-      --radius-md:     16px;
-      --radius-lg:     22px;
-      --radius-xl:     28px;
+    /* ══════════════════════════════════════════════════════
+       🎨 DESIGN TOKENS (VIT Visual Identity & Design System)
+    ══════════════════════════════════════════════════════ */
+    :root, [data-theme="dark"] {
+      --bg:               #090d16;
+      --bg-page:          #0f172a;
+      --surface:          rgba(15, 23, 42, 0.92);
+      --surface-elevated: #1e293b;
+      --surface-card:     #131d31;
+      --surface-hover:    #1e2d4a;
+      --surface-active:   #273a5e;
+      --border:           rgba(255, 255, 255, 0.11);
+      --border-subtle:    rgba(255, 255, 255, 0.06);
+      --border-focus:     #38bdf8;
+
+      --text:             #f8fafc;
+      --text-secondary:   #94a3b8;
+      --text-muted:       #64748b;
+
+      /* VIT-inspired palette: Royal Blue, Campus Gold, Faculty Emerald */
+      --primary:          #2563eb;
+      --primary-hover:    #1d4ed8;
+      --primary-light:    #38bdf8;
+      --primary-subtle:   rgba(37, 99, 235, 0.16);
+
+      --gold:             #d97706;
+      --gold-hover:       #b45309;
+      --gold-light:       #fbbf24;
+      --gold-subtle:      rgba(245, 158, 11, 0.16);
+
+      --emerald:          #059669;
+      --emerald-hover:    #047857;
+      --emerald-light:    #34d399;
+      --emerald-subtle:   rgba(16, 185, 129, 0.16);
+
+      --rose:             #e11d48;
+      --rose-subtle:      rgba(225, 29, 72, 0.16);
+
+      --radius-sm:        8px;
+      --radius-md:        12px;
+      --radius-lg:        18px;
+      --radius-xl:        22px;
+
+      --shadow-sm:        0 1px 3px rgba(0, 0, 0, 0.35);
+      --shadow-md:        0 6px 18px rgba(0, 0, 0, 0.45);
+      --shadow-lg:        0 14px 34px rgba(0, 0, 0, 0.55);
+
+      --map-tiles-filter: brightness(0.85) contrast(1.1) invert(0.9) hue-rotate(180deg);
     }
 
+    [data-theme="light"] {
+      --bg:               #f1f5f9;
+      --bg-page:          #f8fafc;
+      --surface:          rgba(255, 255, 255, 0.94);
+      --surface-elevated: #ffffff;
+      --surface-card:     #ffffff;
+      --surface-hover:    #f1f5f9;
+      --surface-active:   #e2e8f0;
+      --border:           rgba(15, 23, 42, 0.12);
+      --border-subtle:    rgba(15, 23, 42, 0.06);
+      --border-focus:     #1d4ed8;
+
+      --text:             #0f172a;
+      --text-secondary:   #475569;
+      --text-muted:       #64748b;
+
+      --primary:          #1d4ed8;
+      --primary-hover:    #1e40af;
+      --primary-light:    #0284c7;
+      --primary-subtle:   rgba(29, 78, 216, 0.08);
+
+      --gold:             #b45309;
+      --gold-hover:       #92400e;
+      --gold-light:       #d97706;
+      --gold-subtle:      rgba(180, 83, 9, 0.08);
+
+      --emerald:          #047857;
+      --emerald-hover:    #065f46;
+      --emerald-light:    #059669;
+      --emerald-subtle:   rgba(4, 120, 87, 0.08);
+
+      --rose:             #be123c;
+      --rose-subtle:      rgba(190, 18, 60, 0.08);
+
+      --shadow-sm:        0 1px 3px rgba(0, 0, 0, 0.06);
+      --shadow-md:        0 4px 14px rgba(0, 0, 0, 0.08);
+      --shadow-lg:        0 12px 28px rgba(0, 0, 0, 0.12);
+
+      --map-tiles-filter: none;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       BASE & RESET
+    ══════════════════════════════════════════════════════ */
     * {
       box-sizing: border-box;
       margin: 0;
@@ -79,401 +122,294 @@
       height: 100%;
       overflow: hidden;
       background: var(--bg);
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text);
-      user-select: none;
+      line-height: 1.5;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* ══════════════════════════════════════════════
-       🌌 CRAZY ANIMATED AURORA & PARTICLES BACKGROUND
-    ══════════════════════════════════════════════ */
-    .aurora-container {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 2;
-      overflow: hidden;
-    }
-    .aurora-blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(85px);
-      opacity: 0.38;
-      animation: auroraMorph 12s ease-in-out infinite alternate;
-    }
-    .blob-1 {
-      top: -10%; left: -10%;
-      width: 55vw; height: 55vw;
-      background: radial-gradient(circle, rgba(56,189,248,0.7) 0%, rgba(59,130,246,0.3) 60%, transparent 80%);
-      animation-duration: 14s;
-    }
-    .blob-2 {
-      bottom: -15%; right: -15%;
-      width: 60vw; height: 60vw;
-      background: radial-gradient(circle, rgba(16,185,129,0.6) 0%, rgba(6,182,212,0.3) 60%, transparent 80%);
-      animation-duration: 18s;
-      animation-delay: -5s;
-    }
-    .blob-3 {
-      top: 40%; left: 40%;
-      width: 45vw; height: 45vw;
-      background: radial-gradient(circle, rgba(139,92,246,0.5) 0%, rgba(236,72,153,0.2) 60%, transparent 80%);
-      animation-duration: 20s;
-      animation-delay: -8s;
+    /* Focus accessibility */
+    *:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
     }
 
-    @keyframes auroraMorph {
-      0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
-      33%  { transform: translate(50px, -40px) scale(1.15) rotate(45deg); }
-      66%  { transform: translate(-30px, 60px) scale(0.9) rotate(-30deg); }
-      100% { transform: translate(20px, 20px) scale(1.05) rotate(15deg); }
-    }
-
-    /* Confetti Canvas */
-    #confetti-canvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 100005;
-    }
-
-    /* ══════════════════════════════════════════════
-       🗺️ MAP & LEAFLET TWEAKS
-    ══════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       MAP & LEAFLET
+    ══════════════════════════════════════════════════════ */
     #map {
       position: absolute;
       inset: 0;
       width: 100%;
       height: 100%;
       z-index: 1;
-      background: #090e1a;
+      background: var(--bg);
+    }
+    .leaflet-tile {
+      filter: var(--map-tiles-filter);
+      transition: filter 0.3s ease;
     }
     .leaflet-control-zoom { display: none !important; }
     .leaflet-control-attribution {
-      background: rgba(4, 7, 17, 0.75) !important;
-      color: #64748b !important;
-      font-size: 8px !important;
-      backdrop-filter: blur(10px);
-      border-radius: 8px 0 0 0 !important;
-      border: 1px solid rgba(255,255,255,0.05);
+      background: var(--surface) !important;
+      color: var(--text-muted) !important;
+      font-size: 9px !important;
+      border-radius: var(--radius-sm) 0 0 0 !important;
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(8px);
+      padding: 2px 6px !important;
     }
-    .leaflet-control-attribution a { color: var(--cyan-light) !important; }
-
-    /* Polyline Route Animations */
-    @keyframes dashFlow {
-      to { stroke-dashoffset: -40; }
-    }
-    .animated-route-glow {
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      filter: drop-shadow(0 0 8px currentColor);
-    }
-    .animated-route-core {
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      stroke-dasharray: 10, 14;
-      animation: dashFlow 1.6s linear infinite;
+    .leaflet-control-attribution a {
+      color: var(--primary) !important;
+      text-decoration: none;
     }
 
-    /* ══════════════════════════════════════════════
-       💎 ULTRA GLASSMORPHISM & SHINE EFFECT
-    ══════════════════════════════════════════════ */
-    .glass-panel {
-      background: var(--surf);
-      backdrop-filter: blur(28px) saturate(180%);
-      -webkit-backdrop-filter: blur(28px) saturate(180%);
+    /* ══════════════════════════════════════════════════════
+       ACCESSIBLE BUTTONS & CARDS (DESIGN SYSTEM)
+    ══════════════════════════════════════════════════════ */
+    .card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.55),
-                  inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-      position: relative;
-      overflow: hidden;
-    }
-    .glass-panel::after {
-      content: '';
-      position: absolute;
-      top: 0; left: -150%;
-      width: 100%; height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-      transform: skewX(-25deg);
-      pointer-events: none;
-      animation: glassShine 8s infinite ease-in-out;
-    }
-    @keyframes glassShine {
-      0%, 80% { left: -150%; }
-      100% { left: 200%; }
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-md);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
     }
 
-    /* ══════════════════════════════════════════════
-       ✨ CRAZY KEYFRAME ANIMATIONS
-    ══════════════════════════════════════════════ */
-    @keyframes pulse-ring-glow {
-      0%   { transform: scale(0.85); box-shadow: 0 0 0 0 var(--cyan-glow); }
-      70%  { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(6,182,212,0); }
-      100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(6,182,212,0); }
-    }
-
-    @keyframes radarSweep {
-      0%   { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes sonarExpand {
-      0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 0.95; }
-      50%  { opacity: 0.6; }
-      100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
-    }
-
-    @keyframes floatFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-
-    @keyframes neonGlow {
-      0%, 100% { filter: drop-shadow(0 0 6px var(--cyan-glow)); }
-      50% { filter: drop-shadow(0 0 16px var(--cyan-glow)) drop-shadow(0 0 30px var(--blue-glow)); }
-    }
-
-    @keyframes hologramLine {
-      0% { top: 0%; opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { top: 100%; opacity: 0.8; }
-    }
-
-    @keyframes modalPopIn {
-      0%   { transform: scale(0.9) translateY(24px); opacity: 0; }
-      60%  { transform: scale(1.02) translateY(-4px); opacity: 1; }
-      100% { transform: scale(1) translateY(0); opacity: 1; }
-    }
-
-    @keyframes slideDownBounce {
-      0%   { transform: translateY(-24px); opacity: 0; }
-      65%  { transform: translateY(4px); opacity: 1; }
-      100% { transform: translateY(0); opacity: 1; }
-    }
-
-    /* ══════════════════════════════════════════════
-       🚀 PRESSABLE & MICRO-INTERACTIONS
-    ══════════════════════════════════════════════ */
-    .pressable {
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
-                  box-shadow 0.16s ease,
-                  filter 0.16s ease,
-                  border-color 0.16s ease;
-      -webkit-user-select: none;
       user-select: none;
+      white-space: nowrap;
+      transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease, box-shadow 0.18s ease;
     }
-    .pressable:hover {
-      transform: translateY(-2px);
-      filter: brightness(1.08);
+    .btn:active:not(:disabled) {
+      transform: scale(0.97);
     }
-    .pressable:active {
-      transform: scale(0.95) translateY(1px) !important;
-      filter: brightness(0.9);
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
     }
 
-    /* ══════════════════════════════════════════════
-       🛸 DYNAMIC ISLAND & TOP NAV BAR
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+
+    .btn-emerald {
+      background: var(--emerald);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+    }
+    .btn-emerald:hover:not(:disabled) {
+      background: var(--emerald-hover);
+    }
+
+    .btn-outline {
+      background: var(--surface-card);
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover:not(:disabled) {
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+    }
+
+    .btn-icon {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+    .btn-icon:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: var(--border-focus);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       TOP BAR NAVIGATION
     ══════════════════════════════════════════════ */
     .top-bar {
       position: absolute;
-      top: 14px; left: 14px; right: 14px;
-      max-width: 480px;
+      top: 12px; left: 12px; right: 12px;
+      max-width: 500px;
       margin: 0 auto;
       z-index: 1000;
       pointer-events: none;
       display: flex;
       flex-direction: column;
-      gap: 9px;
-      animation: slideDownBounce 0.5s cubic-bezier(0.16,1,0.3,1);
+      gap: 8px;
     }
 
     .nav-pill {
       pointer-events: auto;
-      border-radius: var(--radius-lg);
-      padding: 7px 12px;
+      border-radius: var(--radius-xl);
+      padding: 6px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      border: 1px solid rgba(255,255,255,0.12);
-      box-shadow: 0 10px 32px rgba(0,0,0,0.65), 0 0 1px 1px rgba(255,255,255,0.08);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
+      font-weight: 700;
       font-size: 0.95rem;
-      letter-spacing: -0.3px;
-      color: #fff;
+      color: var(--text);
+      cursor: pointer;
     }
     .brand-icon {
-      width: 32px; height: 32px;
-      background: linear-gradient(135deg, #06b6d4, #2563eb);
-      border-radius: 10px;
+      width: 30px;
+      height: 30px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
-      box-shadow: 0 4px 14px var(--cyan-glow);
-      border: 1px solid rgba(255,255,255,0.25);
-      animation: floatFloat 3.5s ease-in-out infinite;
+      font-size: 15px;
+      flex-shrink: 0;
     }
 
-    /* Animated Role Switcher Tabs */
+    /* Role selection segmented tabs */
     .role-tabs {
       display: flex;
-      background: rgba(0, 0, 0, 0.45);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 3px;
-      gap: 3px;
-      position: relative;
+      padding: 2px;
+      gap: 2px;
     }
     .role-tab {
       border: none;
       background: transparent;
       color: var(--text-muted);
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 0.72rem;
-      font-weight: 700;
-      padding: 5px 10px;
-      border-radius: 8px;
+      font-weight: 600;
+      padding: 5px 9px;
+      border-radius: 6px;
       cursor: pointer;
-      position: relative;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.18s ease;
     }
-    .role-tab:hover { color: #fff; }
+    .role-tab:hover {
+      color: var(--text);
+    }
     .role-tab.active-student {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      box-shadow: 0 2px 10px var(--blue-glow);
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
     }
     .role-tab.active-faculty {
-      background: linear-gradient(135deg, #059669, #10b981);
-      color: #fff;
-      box-shadow: 0 2px 10px var(--green-glow);
+      background: var(--emerald);
+      color: #ffffff;
+      font-weight: 700;
     }
     .role-tab.active-driver {
-      background: linear-gradient(135deg, #d97706, #f59e0b);
-      color: #fff;
-      box-shadow: 0 2px 10px var(--amber-glow);
+      background: var(--gold);
+      color: #ffffff;
+      font-weight: 700;
     }
 
-    /* Status & Satellite Live Pill */
-    .live-badge {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(16, 185, 129, 0.14);
-      border: 1px solid rgba(16, 185, 129, 0.4);
-      color: #34d399;
-      font-size: 0.64rem;
-      font-weight: 800;
-      font-family: 'Orbitron', monospace;
-      padding: 4px 8px;
-      border-radius: 20px;
-      letter-spacing: 0.8px;
-      box-shadow: 0 0 12px rgba(16,185,129,0.25);
-    }
-    .live-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: #10b981;
-      animation: pulse-ring-glow 1.6s infinite;
-    }
-
+    /* User session chip */
     .session-chip {
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 4px 9px;
-      border-radius: 12px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      transition: all 0.2s;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text);
+      transition: background 0.15s ease;
     }
     .session-chip:hover {
-      background: rgba(255,255,255,0.12);
-      border-color: rgba(255,255,255,0.25);
+      background: var(--surface-hover);
     }
-    .session-label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-    .session-label.s { color: #38bdf8; }
-    .session-label.f { color: #34d399; }
-    .session-label.d { color: #fbbf24; }
 
-    .logout-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      opacity: 0.75;
+    /* Light/Dark Mode Toggle */
+    .theme-toggle-btn {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
-      transition: all 0.18s;
+      justify-content: center;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
     }
-    .logout-btn:hover {
-      opacity: 1;
-      transform: scale(1.25);
+    .theme-toggle-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
     }
 
-    /* ══════════════════════════════════════════════
-       📍 NEAREST STOP BANNER / DYNAMIC RADAR HUD
-    ══════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       NEAREST STOP BANNER
+    ══════════════════════════════════════════════════════ */
     .stop-banner {
       pointer-events: auto;
-      border-radius: var(--radius-md);
       padding: 9px 13px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.55);
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      transition: all 0.25s ease;
-      background: linear-gradient(135deg, rgba(10, 20, 42, 0.88), rgba(6, 12, 28, 0.94));
+      cursor: pointer;
     }
     .stop-banner:hover {
-      border-color: var(--cyan-light);
-      box-shadow: 0 10px 30px rgba(6,182,212,0.25);
+      border-color: var(--border-focus);
     }
-    .stop-icon-wrap {
-      width: 28px; height: 28px;
-      border-radius: 8px;
-      background: rgba(56,189,248,0.15);
-      border: 1px solid rgba(56,189,248,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
+    .stop-icon {
+      font-size: 15px;
+      color: var(--primary);
       flex-shrink: 0;
     }
     .stop-text {
       flex: 1;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 0.76rem;
+      font-weight: 500;
+      color: var(--text-secondary);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .stop-text .hi {
-      color: #38bdf8;
+      color: var(--text);
       font-weight: 700;
     }
     .stop-text .eta {
-      color: #34d399;
-      font-size: 0.7rem;
+      color: var(--emerald-light);
       font-weight: 700;
-      margin-left: 5px;
+      margin-left: 4px;
     }
     .stop-actions {
       display: flex;
@@ -482,58 +418,23 @@
       flex-shrink: 0;
     }
 
-    .btn-sm {
-      border: none;
-      padding: 5px 11px;
-      border-radius: 9px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-    .btn-cyan {
-      background: linear-gradient(135deg, #0284c7, #06b6d4);
-      color: #fff;
-      box-shadow: 0 3px 12px var(--cyan-glow);
-    }
-    .btn-dir {
-      background: linear-gradient(135deg, #06b6d4, #3b82f6);
-      color: white;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 9px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      box-shadow: 0 3px 12px var(--cyan-glow);
-    }
-
-    /* ══════════════════════════════════════════════
-       🚶 DIRECTIONS HUD
+    /* ══════════════════════════════════════════════════════
+       DIRECTIONS HUD
     ══════════════════════════════════════════════ */
     .dir-hud {
       display: none;
       pointer-events: auto;
-      border-radius: var(--radius-lg);
-      padding: 13px 15px;
-      box-shadow: 0 14px 34px rgba(0,0,0,0.7), 0 0 0 1px rgba(6,182,212,0.35);
-      border: 1px solid rgba(6, 182, 212, 0.45);
-      animation: modalPopIn 0.3s cubic-bezier(0.16,1,0.3,1);
+      padding: 12px 14px;
     }
     .dir-hud.active { display: block; }
     .dir-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 9px;
+      margin-bottom: 8px;
     }
     .dir-dest {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       font-weight: 700;
       color: var(--text);
       display: flex;
@@ -541,514 +442,417 @@
       gap: 6px;
     }
     .dir-close {
-      background: rgba(239, 68, 68, 0.18);
-      border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #f87171;
-      padding: 4px 10px;
-      border-radius: 8px;
+      background: var(--rose-subtle);
+      border: 1px solid rgba(225, 29, 72, 0.25);
+      color: var(--rose);
+      padding: 3px 8px;
+      border-radius: 6px;
       font-size: 0.68rem;
       font-weight: 700;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 3px;
     }
     .dir-close:hover {
-      background: rgba(239, 68, 68, 0.35);
-      color: #fff;
+      background: rgba(225, 29, 72, 0.25);
     }
     .dir-step {
       display: flex;
       align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border);
+      gap: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 8px 10px;
     }
     .dir-step-icon {
-      width: 40px; height: 40px;
+      width: 32px;
+      height: 32px;
       flex-shrink: 0;
-      background: linear-gradient(135deg, #06b6d4, #2563eb);
-      border-radius: 12px;
+      background: var(--primary-subtle);
+      border: 1px solid rgba(37, 99, 235, 0.3);
+      color: var(--primary);
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      color: white;
-      box-shadow: 0 4px 14px var(--cyan-glow);
+      font-size: 15px;
     }
     .dir-step-main { flex: 1; min-width: 0; }
     .dir-step-txt {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       font-weight: 700;
-      color: #fff;
+      color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .dir-step-sub {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--text-muted);
-      margin-top: 2px;
+      margin-top: 1px;
     }
     .dir-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 9px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
-      font-size: 0.73rem;
+      margin-top: 8px;
+      padding-top: 7px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.72rem;
     }
     .dir-stats {
       font-weight: 700;
-      color: #38bdf8;
+      color: var(--primary-light);
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
     .dir-toggle {
       background: none;
       border: none;
-      cursor: pointer;
       color: var(--text-muted);
       font-size: 0.7rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
     }
+    .dir-toggle:hover { color: var(--text); }
     .dir-steps-list {
       display: none;
       margin-top: 8px;
-      max-height: 140px;
+      max-height: 130px;
       overflow-y: auto;
-      background: rgba(0, 0, 0, 0.35);
-      border-radius: 10px;
-      padding: 6px;
-      border: 1px solid var(--border);
+      background: var(--surface-card);
+      border-radius: var(--radius-sm);
+      padding: 4px;
+      border: 1px solid var(--border-subtle);
     }
     .dir-steps-list.open { display: block; }
     .itinerary-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 8px;
-      border-radius: 8px;
+      padding: 5px 8px;
+      border-radius: 6px;
       font-size: 0.72rem;
-      color: var(--text-muted);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
     }
     .itinerary-row.current {
-      background: rgba(6, 182, 212, 0.16);
-      color: #38bdf8;
+      background: var(--primary-subtle);
+      color: var(--primary-light);
       font-weight: 700;
     }
 
-    /* ══════════════════════════════════════════════
-       🕹️ MAP FLOATING CONTROLS (Right Edge)
-    ══════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       MAP FLOATING CONTROLS
+    ══════════════════════════════════════════════════════ */
     .map-controls {
       position: absolute;
-      right: 14px; top: 92px;
+      right: 12px;
+      top: 86px;
       z-index: 1000;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-    }
-    .map-btn {
-      width: 44px; height: 44px;
-      border-radius: var(--radius-sm);
-      background: var(--surf-elevated);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-hi);
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 700;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .map-btn:hover {
-      background: rgba(25, 40, 75, 0.95);
-      color: #fff;
-      border-color: var(--cyan-light);
-      box-shadow: 0 0 16px var(--cyan-glow);
+      gap: 7px;
     }
 
-    /* ══════════════════════════════════════════════
-       ⚡ BOTTOM TRAY & TELEMETRY HUD
-    ══════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       BOTTOM SHUTTLE TRAY & TELEMETRY
+    ══════════════════════════════════════════════════════ */
     .bottom-tray {
       position: absolute;
-      bottom: 14px; left: 14px; right: 14px;
-      max-width: 480px;
+      bottom: 12px; left: 12px; right: 12px;
+      max-width: 500px;
       margin: 0 auto;
       z-index: 1000;
       border-radius: var(--radius-xl);
-      padding: 15px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5),
-                  0 20px 50px rgba(0, 0, 0, 0.7),
-                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
-      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 13px 15px;
     }
 
-    /* Shuttle Selector Row */
+    /* Shuttle selector buttons */
     .shuttle-row {
       display: flex;
-      gap: 7px;
-      margin-bottom: 12px;
+      gap: 6px;
+      margin-bottom: 10px;
     }
     .shuttle-btn {
       flex: 1;
-      padding: 8px 10px;
+      padding: 7px 9px;
       border-radius: var(--radius-sm);
       border: 1.5px solid transparent;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-muted);
+      background: var(--surface-card);
+      color: var(--text-secondary);
       cursor: pointer;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.18s ease;
     }
     .shuttle-btn:hover {
-      border-color: var(--border-hi);
+      border-color: var(--border);
       color: var(--text);
     }
     .shuttle-btn.sel-mh {
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(59, 130, 246, 0.18));
-      border-color: var(--cyan-light);
-      color: #bae6fd;
-      box-shadow: 0 4px 16px var(--cyan-glow);
+      background: var(--primary-subtle);
+      border-color: var(--primary);
+      color: var(--text);
     }
     .shuttle-btn.sel-lh {
-      background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(168, 85, 247, 0.18));
-      border-color: var(--pink-neon);
-      color: #fbcfe8;
-      box-shadow: 0 4px 16px var(--pink-glow);
+      background: rgba(236, 72, 153, 0.14);
+      border-color: #ec4899;
+      color: var(--text);
     }
     .shuttle-btn.sel-fac {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.18));
-      border-color: var(--green-neon);
-      color: #a7f3d0;
-      box-shadow: 0 4px 16px var(--green-glow);
+      background: var(--emerald-subtle);
+      border-color: var(--emerald);
+      color: var(--text);
     }
     .shuttle-name {
-      font-size: 0.78rem;
+      font-size: 0.74rem;
       font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
     }
     .fare-tag {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       font-weight: 800;
-      padding: 2.5px 6px;
-      border-radius: 6px;
-      letter-spacing: 0.4px;
+      padding: 2px 5px;
+      border-radius: 5px;
+      letter-spacing: 0.3px;
     }
-    .fare-paid { background: #0284c7; color: #fff; }
+    .fare-paid { background: var(--primary); color: #fff; }
     .fare-pink { background: #db2777; color: #fff; }
-    .fare-free { background: #059669; color: #fff; }
+    .fare-free { background: var(--emerald); color: #fff; }
 
-    /* Telemetry HUD snapshot */
+    /* Telemetry row */
     .telemetry {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 12px;
-      background: rgba(0, 0, 0, 0.25);
+      margin-bottom: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
       border-radius: var(--radius-sm);
-      padding: 8px 12px;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 7px 11px;
     }
     .next-stop-wrap {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 7px;
     }
     .stop-indicator {
-      width: 9px; height: 9px;
+      width: 8px; height: 8px;
       border-radius: 50%;
-      background: var(--red);
-      box-shadow: 0 0 10px var(--red-glow);
-      animation: pulse-ring-glow 1.8s infinite;
+      background: var(--rose);
+      flex-shrink: 0;
     }
     .next-name {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--text);
     }
     .next-eta {
       font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--cyan-light);
+      font-weight: 700;
+      color: var(--primary-light);
     }
-    
-    /* Cyber Speedometer Chip */
+
+    /* Speed chip */
     .speed-chip {
-      font-family: 'Orbitron', monospace;
-      font-size: 0.95rem;
-      font-weight: 800;
-      color: #38bdf8;
-      background: rgba(6, 182, 212, 0.12);
-      border: 1px solid rgba(6, 182, 212, 0.35);
-      padding: 4px 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 14px rgba(6, 182, 212, 0.2);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--surface-hover);
+      border: 1px solid var(--border-subtle);
+      padding: 2px 8px;
+      border-radius: 6px;
       display: flex;
       align-items: baseline;
       gap: 3px;
     }
     .speed-chip span.unit {
       font-size: 0.58rem;
-      color: var(--text-dim);
-      font-weight: 700;
-      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
-    /* Action Buttons with crazy glowing gradient */
+    /* Action buttons */
     .action-row {
       display: flex;
-      gap: 8px;
+      gap: 7px;
     }
-    .action-btn {
+    .action-btn-main {
       flex: 1;
-      padding: 12px 14px;
+      padding: 10px 14px;
       border-radius: var(--radius-sm);
       border: none;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 800;
+      font-size: 0.88rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      position: relative;
-      overflow: hidden;
-      letter-spacing: 0.2px;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      gap: 6px;
+      transition: filter 0.15s ease, transform 0.12s ease;
     }
-    .action-btn.blue {
-      background: linear-gradient(135deg, #0284c7, #2563eb, #4f46e5);
-      color: white;
-      box-shadow: 0 4px 20px var(--blue-glow);
+    .action-btn-main:active { transform: scale(0.98); }
+    .action-btn-main.blue {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.35);
     }
-    .action-btn.blue:hover {
-      box-shadow: 0 6px 26px var(--cyan-glow);
-    }
-    .action-btn.green {
-      background: linear-gradient(135deg, #059669, #10b981, #06b6d4);
-      color: white;
-      box-shadow: 0 4px 20px var(--green-glow);
+    .action-btn-main.green {
+      background: var(--emerald);
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(5, 150, 105, 0.35);
     }
     .restrict-pill {
       flex: 1;
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-radius: var(--radius-sm);
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      color: #fbbf24;
+      background: var(--gold-subtle);
+      border: 1px solid rgba(217, 119, 6, 0.3);
+      color: var(--gold-light);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
       font-weight: 600;
     }
     .switch-btn {
-      background: var(--blue);
+      background: var(--primary);
       color: white;
       border: none;
-      padding: 5px 10px;
-      border-radius: 7px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.68rem;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    /* Expand Drawer Toggle */
-    .expand-toggle {
-      text-align: center;
-      font-size: 0.68rem;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-size: 0.66rem;
       font-weight: 700;
-      color: var(--text-dim);
-      margin-top: 9px;
       cursor: pointer;
-      padding: 3px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: color 0.18s;
     }
-    .expand-toggle:hover { color: var(--cyan-light); }
 
     /* Drawer */
+    .expand-toggle {
+      text-align: center;
+      font-size: 0.66rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 8px;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    .expand-toggle:hover { color: var(--text); }
     .drawer {
       display: none;
-      margin-top: 11px;
-      padding-top: 11px;
-      border-top: 1px solid var(--border);
-      animation: modalPopIn 0.25s ease;
+      margin-top: 9px;
+      padding-top: 9px;
+      border-top: 1px solid var(--border-subtle);
     }
     .drawer.open { display: block; }
     .stops-scroll {
       display: flex;
-      gap: 7px;
+      gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
-      margin-bottom: 11px;
+      margin-bottom: 9px;
     }
     .stops-scroll::-webkit-scrollbar { display: none; }
     .stop-box {
-      min-width: 108px;
-      padding: 8px 10px;
-      border-radius: 11px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border);
+      min-width: 104px;
+      padding: 7px 9px;
+      border-radius: var(--radius-sm);
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
       flex-shrink: 0;
-      transition: all 0.2s;
-    }
-    .stop-box:hover {
-      border-color: var(--cyan-light);
-      background: rgba(6, 182, 212, 0.08);
     }
     .stop-box-name {
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-size: 0.68rem;
+      font-weight: 600;
       color: var(--text);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .stop-box-eta {
-      font-size: 0.74rem;
-      font-weight: 800;
-      color: var(--cyan-light);
-      margin-top: 2px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      margin-top: 1px;
     }
-
-    /* Crowd reporting bar */
     .crowd-bar {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
     .crowd-lbl {
-      font-size: 0.68rem;
-      font-weight: 800;
-      color: var(--text-dim);
+      font-size: 0.66rem;
+      font-weight: 700;
+      color: var(--text-muted);
     }
     .crowd-btn {
       flex: 1;
-      padding: 6px;
-      border-radius: 8px;
+      padding: 5px;
+      border-radius: 6px;
       border: 1px solid transparent;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.7rem;
-      font-weight: 700;
+      font-size: 0.68rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.18s;
+      background: var(--surface-card);
+      color: var(--text-secondary);
     }
-    .crowd-low {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.35);
-      color: #34d399;
-    }
-    .crowd-med {
-      background: rgba(245, 158, 11, 0.15);
-      border-color: rgba(245, 158, 11, 0.35);
-      color: #fbbf24;
-    }
-    .crowd-full {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.35);
-      color: #f87171;
-    }
+    .crowd-btn:hover { background: var(--surface-hover); color: var(--text); }
 
-    /* ══════════════════════════════════════════════
-       🏎️ DRIVER SPEEDOMETER GAUGE
-    ══════════════════════════════════════════════ */
+    /* Driver Console */
     .driver-view {
       display: none;
       text-align: center;
-      padding: 6px 0;
+      padding: 4px 0;
     }
     .speedo-wrap {
-      position: relative;
-      width: 140px; height: 140px;
-      margin: 10px auto;
-    }
-    .speedo-svg {
-      width: 100%; height: 100%;
-      transform: rotate(-90deg);
-    }
-    .speedo-bg-circle {
-      fill: none;
-      stroke: rgba(255, 255, 255, 0.08);
-      stroke-width: 8;
-    }
-    .speedo-bar {
-      fill: none;
-      stroke: url(#speedoGradient);
-      stroke-width: 9;
-      stroke-linecap: round;
-      stroke-dasharray: 377;
-      stroke-dashoffset: 200;
-      transition: stroke-dashoffset 0.4s ease;
-      filter: drop-shadow(0 0 8px rgba(245,158,11,0.6));
-    }
-    .speedo-center {
-      position: absolute;
-      inset: 0;
+      width: 110px;
+      height: 110px;
+      margin: 8px auto;
+      border-radius: 50%;
+      border: 3px solid var(--gold);
+      background: var(--surface-card);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 16px rgba(217, 119, 6, 0.25);
     }
     .speedo-num {
-      font-family: 'Orbitron', monospace;
-      font-size: 2.5rem;
-      font-weight: 900;
-      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text);
       line-height: 1;
-      text-shadow: 0 0 16px rgba(245,158,11,0.5);
     }
     .speedo-unit {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: var(--amber-neon);
-      letter-spacing: 1px;
-      margin-top: 2px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
     }
     .driver-label {
-      font-family: 'Orbitron', monospace;
       font-size: 0.72rem;
       font-weight: 800;
-      color: var(--amber-neon);
-      letter-spacing: 1.5px;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
     }
 
-    /* ══════════════════════════════════════════════
-       🎫 HOLOGRAPHIC DIGITAL TICKET MODAL
-    ══════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════
+       MODALS & DIALOGS
+    ══════════════════════════════════════════════════════ */
     .modal-bg {
       position: fixed;
       inset: 0;
-      background: rgba(2, 5, 14, 0.85);
-      backdrop-filter: blur(14px);
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(10px);
       z-index: 20000;
       display: none;
       align-items: center;
@@ -1059,423 +863,422 @@
 
     .ticket-card {
       width: 100%;
-      max-width: 340px;
+      max-width: 330px;
       border-radius: var(--radius-xl);
       overflow: hidden;
-      animation: modalPopIn 0.32s cubic-bezier(0.16,1,0.3,1);
-      box-shadow: 0 32px 70px rgba(0,0,0,0.9), 0 0 30px var(--cyan-glow);
-      border: 1px solid rgba(255,255,255,0.18);
-      position: relative;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--border);
     }
-    /* Iridescent foil animation across ticket */
-    .ticket-card::before {
-      content: '';
-      position: absolute;
-      top: -100%; left: -100%;
-      width: 300%; height: 300%;
-      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
-      pointer-events: none;
-      animation: foilSheen 6s infinite linear;
-    }
-    @keyframes foilSheen {
-      0% { transform: translateY(-50%) rotate(25deg); }
-      100% { transform: translateY(50%) rotate(25deg); }
-    }
-
     .tkt-head-blue {
-      background: linear-gradient(135deg, #0284c7, #2563eb, #6366f1);
-      padding: 20px;
+      background: var(--primary);
+      padding: 18px;
       color: white;
       text-align: center;
     }
     .tkt-head-green {
-      background: linear-gradient(135deg, #065f46, #059669, #10b981);
-      border-top: 3px solid #fde047;
-      padding: 20px;
+      background: var(--emerald);
+      border-top: 3px solid var(--gold-light);
+      padding: 18px;
       color: white;
       text-align: center;
     }
     .tkt-body {
-      background: #090e1d;
-      padding: 20px;
+      background: var(--surface-elevated);
+      padding: 18px;
       text-align: center;
-      border-top: 2px dashed rgba(255,255,255,0.14);
-      position: relative;
+      border-top: 2px dashed var(--border);
     }
     .qr-box-wrap {
-      position: relative;
-      width: 130px; height: 130px;
-      margin: 12px auto;
+      width: 116px;
+      height: 116px;
+      margin: 10px auto;
       background: white;
-      border-radius: 16px;
-      padding: 8px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      overflow: hidden;
+      border-radius: 12px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      color: #0f172a;
     }
-    /* Laser Scan Line */
-    .laser-line {
-      position: absolute;
-      left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #ef4444, #38bdf8, transparent);
-      box-shadow: 0 0 10px #38bdf8, 0 0 5px #ef4444;
-      animation: hologramLine 2.2s infinite ease-in-out alternate;
-    }
-
     .modal-close {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: 0.85rem;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-card);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.8rem;
       cursor: pointer;
-      margin-top: 14px;
-      transition: background 0.18s;
+      margin-top: 12px;
     }
-    .modal-close:hover { background: rgba(255, 255, 255, 0.16); }
+    .modal-close:hover {
+      background: var(--surface-hover);
+    }
 
-    /* ══════════════════════════════════════════════
-       📱 ROLE PORTAL / AUTH OVERLAY
-    ══════════════════════════════════════════════ */
+    /* Google Picker Modal */
+    #google-picker-modal { z-index: 100001; }
+    .picker-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 390px;
+      padding: 22px;
+      color: var(--text);
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+    .picker-close-btn {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .picker-close-btn:hover { color: var(--text); background: var(--surface-hover); }
+    .g-accounts { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
+    .g-account {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+      transition: all 0.15s ease;
+    }
+    .g-account:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+    }
+    .g-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .g-name { font-size: 0.82rem; font-weight: 700; color: var(--text); }
+    .g-email { font-size: 0.7rem; color: var(--text-muted); }
+    .g-role { font-size: 0.66rem; font-weight: 700; color: var(--primary); margin-top: 1px; }
+
+    /* ══════════════════════════════════════════════════════
+       PORTAL & AUTH OVERLAY
+    ══════════════════════════════════════════════════════ */
     .portal-overlay {
       position: fixed;
       inset: 0;
       z-index: 99999;
-      background:
-        radial-gradient(ellipse at 25% 15%, rgba(6, 182, 212, 0.28) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 85%, rgba(139, 92, 246, 0.24) 0%, transparent 60%),
-        linear-gradient(180deg, rgba(3, 6, 14, 0.98) 0%, rgba(8, 14, 28, 0.99) 100%);
-      backdrop-filter: blur(35px);
+      background: var(--surface);
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
       display: none;
       align-items: center;
       justify-content: center;
       overflow-y: auto;
       padding: 24px 16px;
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.25s ease;
     }
     .portal-overlay.visible { display: flex; opacity: 1; }
-    .portal-wrap { width: 100%; max-width: 470px; margin: auto; }
-    .portal-view { display: none; animation: modalPopIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .portal-wrap { width: 100%; max-width: 460px; margin: auto; }
+    .portal-view { display: none; }
     .portal-view.active { display: block; }
 
-    .portal-header { text-align: center; margin-bottom: 24px; }
+    .portal-header { text-align: center; margin-bottom: 22px; }
     .portal-brand-icon {
-      width: 72px; height: 72px;
-      margin: 0 auto 12px;
-      background: linear-gradient(135deg, #06b6d4, #2563eb, #8b5cf6);
-      border-radius: 24px;
+      width: 60px; height: 60px;
+      margin: 0 auto 10px;
+      background: var(--primary);
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 14px 38px var(--cyan-glow);
-      border: 1.5px solid rgba(255, 255, 255, 0.25);
-      animation: floatFloat 4s ease-in-out infinite;
+      box-shadow: var(--shadow-md);
+      color: white;
     }
     .portal-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       font-weight: 800;
-      letter-spacing: -0.8px;
-      color: #fff;
-      margin-bottom: 5px;
-      background: linear-gradient(135deg, #ffffff 40%, #bae6fd 80%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--text);
+      letter-spacing: -0.5px;
+      margin-bottom: 3px;
     }
     .portal-sub {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
     }
     .portal-live-pill {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.35);
-      padding: 4px 14px;
-      border-radius: 24px;
-      font-size: 0.7rem;
+      gap: 6px;
+      background: var(--emerald-subtle);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 11px;
+      border-radius: 20px;
+      font-size: 0.68rem;
       font-weight: 700;
-      color: #34d399;
-      box-shadow: 0 0 14px rgba(16,185,129,0.2);
+      color: var(--emerald-light);
     }
 
-    /* Modern Role Cards with Neon Borders */
+    /* Role selection cards */
     .cards-grid {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .role-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1.5px solid rgba(255, 255, 255, 0.08);
-      border-radius: var(--radius-xl);
-      padding: 16px 18px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 15px 16px;
       cursor: pointer;
-      overflow: hidden;
-      position: relative;
-      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition: all 0.18s ease;
     }
     .role-card:hover {
-      transform: translateY(-3px) scale(1.01);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+      border-color: var(--border-focus);
+      background: var(--surface-hover);
+      transform: translateY(-1.5px);
     }
-    .role-card.student:hover {
-      border-color: var(--cyan-light);
-      background: rgba(6, 182, 212, 0.1);
-      box-shadow: 0 12px 35px var(--cyan-glow);
-    }
-    .role-card.faculty:hover {
-      border-color: var(--green-neon);
-      background: rgba(16, 185, 129, 0.1);
-      box-shadow: 0 12px 35px var(--green-glow);
-    }
-    .role-card.driver:hover {
-      border-color: var(--amber-neon);
-      background: rgba(245, 158, 11, 0.1);
-      box-shadow: 0 12px 35px var(--amber-glow);
-    }
-
     .card-top {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 11px;
+      margin-bottom: 8px;
     }
     .card-icon {
-      width: 44px; height: 44px;
-      border-radius: 14px;
+      width: 38px; height: 38px;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 18px;
     }
-    .ci-student { background: rgba(6, 182, 212, 0.18); border: 1.5px solid rgba(6, 182, 212, 0.4); }
-    .ci-faculty { background: rgba(16, 185, 129, 0.18); border: 1.5px solid rgba(16, 185, 129, 0.4); }
-    .ci-driver  { background: rgba(245, 158, 11, 0.18); border: 1.5px solid rgba(245, 158, 11, 0.4); }
+    .ci-student { background: var(--primary-subtle); border: 1px solid rgba(37, 99, 235, 0.3); }
+    .ci-faculty { background: var(--emerald-subtle); border: 1px solid rgba(5, 150, 105, 0.3); }
+    .ci-driver  { background: var(--gold-subtle);    border: 1px solid rgba(217, 119, 6, 0.3); }
 
     .card-badge {
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.64rem;
+      font-size: 0.62rem;
       font-weight: 800;
-      letter-spacing: 0.5px;
-      padding: 3.5px 10px;
-      border-radius: 10px;
+      letter-spacing: 0.4px;
+      padding: 3px 8px;
+      border-radius: 8px;
       text-transform: uppercase;
     }
-    .cb-student { background: rgba(6, 182, 212, 0.2); color: #bae6fd; border: 1px solid rgba(6, 182, 212, 0.35); }
-    .cb-faculty { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.35); }
-    .cb-driver  { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.35); }
+    .cb-student { background: var(--primary-subtle); color: var(--primary-light); border: 1px solid rgba(37, 99, 235, 0.3); }
+    .cb-faculty { background: var(--emerald-subtle); color: var(--emerald-light); border: 1px solid rgba(5, 150, 105, 0.3); }
+    .cb-driver  { background: var(--gold-subtle);    color: var(--gold-light);    border: 1px solid rgba(217, 119, 6, 0.3); }
 
     .card-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 4px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
     }
     .card-desc {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      line-height: 1.45;
-      margin-bottom: 9px;
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 8px;
     }
     .card-domain {
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: #64748b;
-      margin-bottom: 12px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 10px;
     }
 
     .card-cta {
       width: 100%;
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-radius: var(--radius-sm);
       border: none;
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: 0.82rem;
+      font-weight: 700;
+      font-size: 0.8rem;
       color: white;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      transition: filter 0.16s, transform 0.14s;
+      transition: filter 0.15s ease;
     }
-    .cta-student { background: linear-gradient(135deg, #0284c7, #2563eb); box-shadow: 0 4px 14px var(--blue-glow); }
-    .cta-faculty { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 14px var(--green-glow); }
-    .cta-driver  { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 4px 14px var(--amber-glow); }
+    .cta-student { background: var(--primary); }
+    .cta-faculty { background: var(--emerald); }
+    .cta-driver  { background: var(--gold); }
 
     .card-google-btn {
       width: 100%;
-      padding: 9px 12px;
-      margin-top: 8px;
+      padding: 8px 11px;
+      margin-top: 7px;
       border-radius: var(--radius-sm);
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
     }
-    .card-google-btn:hover { background: rgba(255, 255, 255, 0.12); }
+    .card-google-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
 
     .google-main-btn {
       width: 100%;
-      background: #fff;
-      color: #0f172a;
-      border: none;
+      background: var(--surface-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 12px 16px;
-      font-size: 0.85rem;
-      font-weight: 800;
+      padding: 11px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
       font-family: 'Space Grotesk', sans-serif;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-      margin-bottom: 11px;
+      gap: 9px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow-sm);
     }
+    .google-main-btn:hover { background: var(--surface-hover); border-color: var(--border-focus); }
+
     .guest-btn {
       width: 100%;
       background: transparent;
-      border: 1.5px dashed rgba(255, 255, 255, 0.22);
-      color: var(--cyan-light);
-      padding: 11px;
+      border: 1.5px dashed var(--border);
+      color: var(--text-secondary);
+      padding: 10px;
       border-radius: var(--radius-md);
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 700;
+      font-size: 0.76rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.18s ease;
     }
     .guest-btn:hover {
-      background: rgba(6, 182, 212, 0.12);
-      border-color: var(--cyan-light);
-      color: #fff;
-      box-shadow: 0 0 16px var(--cyan-glow);
+      background: var(--surface-card);
+      color: var(--text);
+      border-color: var(--primary);
     }
 
-    /* Auth Card Form */
+    /* Auth Form View */
     .auth-card {
-      background: rgba(10, 16, 32, 0.95);
-      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
       border-radius: var(--radius-xl);
-      padding: 24px;
-      box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 24px var(--cyan-glow);
+      padding: 22px;
+      box-shadow: var(--shadow-lg);
     }
     .auth-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .back-btn {
       background: none;
       border: none;
       color: var(--text-muted);
-      font-size: 0.78rem;
-      font-weight: 700;
+      font-size: 0.76rem;
+      font-weight: 600;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
     }
-    .back-btn:hover { color: #fff; }
+    .back-btn:hover { color: var(--text); }
     .auth-role-badge {
       display: flex;
       align-items: center;
       gap: 5px;
-      padding: 4px 11px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
     }
-    .arb-student { background: rgba(6, 182, 212, 0.22); color: #bae6fd; border: 1px solid rgba(6, 182, 212, 0.4); }
-    .arb-faculty { background: rgba(16, 185, 129, 0.22); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.4); }
-    .arb-driver  { background: rgba(245, 158, 11, 0.22); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .arb-student { background: var(--primary-subtle); color: var(--primary-light); }
+    .arb-faculty { background: var(--emerald-subtle); color: var(--emerald-light); }
+    .arb-driver  { background: var(--gold-subtle);    color: var(--gold-light); }
 
     .auth-heading {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.35rem;
-      font-weight: 800;
-      color: #fff;
-      margin-bottom: 4px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 3px;
     }
     .auth-sub {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-bottom: 18px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
     }
     .auth-tabs {
       display: flex;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 11px;
-      padding: 3px;
-      margin-bottom: 16px;
-      border: 1px solid var(--border);
+      background: var(--surface-card);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border-subtle);
     }
     .auth-tab {
       flex: 1;
       background: none;
       border: none;
       color: var(--text-muted);
-      padding: 9px 0;
-      border-radius: 8px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 800;
+      padding: 7px 0;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
     }
     .auth-tab.active {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      box-shadow: 0 3px 12px var(--blue-glow);
+      background: var(--primary);
+      color: #ffffff;
+      font-weight: 700;
     }
 
-    .form-group { margin-bottom: 13px; }
+    .form-group { margin-bottom: 12px; }
     .form-label {
       display: block;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #94a3b8;
-      margin-bottom: 5px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
     }
     .form-input {
       width: 100%;
-      background: rgba(0, 0, 0, 0.55);
-      border: 1.5px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 11px 12px 11px 38px;
-      color: white;
-      font-size: 0.82rem;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 11px 9px 34px;
+      color: var(--text);
+      font-size: 0.8rem;
       font-family: 'Inter', sans-serif;
       outline: none;
-      transition: all 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     .form-input:focus {
-      border-color: var(--cyan-light);
-      box-shadow: 0 0 0 3px var(--cyan-glow);
-      background: rgba(0, 0, 0, 0.75);
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px var(--primary-subtle);
     }
     .input-wrap {
       position: relative;
@@ -1484,270 +1287,125 @@
     }
     .input-icon {
       position: absolute;
-      left: 12px;
-      font-size: 14px;
+      left: 10px;
+      font-size: 13px;
       pointer-events: none;
-      opacity: 0.6;
+      opacity: 0.65;
     }
     .pwd-toggle {
       position: absolute;
-      right: 12px;
+      right: 10px;
       background: none;
       border: none;
-      color: var(--text-dim);
+      color: var(--text-muted);
       cursor: pointer;
-      font-size: 14px;
+      font-size: 13px;
     }
     .auth-submit {
       width: 100%;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 10px;
+      border-radius: var(--radius-sm);
       border: none;
-      background: linear-gradient(135deg, #0284c7, #2563eb, #8b5cf6);
+      background: var(--primary);
       color: white;
       font-family: 'Space Grotesk', sans-serif;
-      font-weight: 800;
-      font-size: 0.88rem;
+      font-weight: 700;
+      font-size: 0.84rem;
       cursor: pointer;
-      box-shadow: 0 5px 20px var(--blue-glow);
-      margin-top: 6px;
+      margin-top: 5px;
     }
-
-    .instant-btn {
-      width: 100%;
-      padding: 10px;
-      background: rgba(6, 182, 212, 0.12);
-      border: 1px solid rgba(6, 182, 212, 0.35);
-      border-radius: 11px;
-      color: #bae6fd;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 800;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      transition: all 0.2s;
-    }
-    .instant-btn:hover {
-      background: rgba(6, 182, 212, 0.22);
-      box-shadow: 0 0 16px var(--cyan-glow);
+    .auth-submit:hover {
+      background: var(--primary-hover);
     }
 
     .or-divider {
       display: flex;
       align-items: center;
       text-align: center;
-      margin: 14px 0;
+      margin: 12px 0;
     }
     .or-divider::before, .or-divider::after {
       content: '';
       flex: 1;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border-subtle);
     }
     .or-divider span {
-      padding: 0 10px;
-      font-size: 0.64rem;
-      font-weight: 800;
-      color: var(--text-dim);
-      letter-spacing: 0.8px;
+      padding: 0 8px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.6px;
     }
     .auth-alert {
-      padding: 10px 12px;
-      border-radius: 11px;
-      font-size: 0.75rem;
-      margin-bottom: 14px;
+      padding: 8px 11px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      margin-bottom: 12px;
       line-height: 1.4;
       display: none;
     }
     .auth-alert.error {
-      background: rgba(239, 68, 68, 0.18);
-      border: 1px solid rgba(239, 68, 68, 0.45);
-      color: #fca5a5;
+      background: var(--rose-subtle);
+      border: 1px solid rgba(225, 29, 72, 0.3);
+      color: var(--rose);
     }
 
-    /* Google Picker Modal */
-    #google-picker-modal { z-index: 100001; }
-    .picker-card {
-      background: #fff;
-      border-radius: var(--radius-xl);
-      width: 100%;
-      max-width: 400px;
-      padding: 24px;
-      color: #1e293b;
-      box-shadow: 0 28px 65px rgba(0,0,0,0.7);
-      animation: modalPopIn 0.28s cubic-bezier(0.16,1,0.3,1);
+    /* ══════════════════════════════════════════════════════
+       MAP MARKERS
+    ══════════════════════════════════════════════════════ */
+    .bus-node-clean {
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
       position: relative;
+      border: 2px solid white;
     }
-    .picker-close-btn {
+    .bus-node-clean.mh  { background: var(--primary); }
+    .bus-node-clean.lh  { background: #db2777; }
+    .bus-node-clean.fac { background: var(--emerald); border-color: var(--gold-light); }
+    .bus-pill-clean {
       position: absolute;
-      top: 14px; right: 14px;
-      width: 30px; height: 30px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.06);
-      border: none;
-      cursor: pointer;
-      font-weight: 800;
-      font-size: 14px;
-      color: #64748b;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .g-accounts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-    .g-account {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor: pointer;
-      border: 1px solid #e2e8f0;
-      background: #fff;
-      transition: all 0.16s ease;
-    }
-    .g-account:hover {
-      background: #f8fafc;
-      border-color: #cbd5e1;
-      transform: translateY(-1.5px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-    .g-avatar {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      color: white;
-      flex-shrink: 0;
-    }
-    .g-name { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
-    .g-email { font-size: 0.72rem; color: #64748b; }
-    .g-role { font-size: 0.68rem; font-weight: 700; color: #2563eb; margin-top: 1px; }
-
-    /* ══════════════════════════════════════════════
-       🛸 RADAR BEAM & SHUTTLE NODE MARKERS
-    ══════════════════════════════════════════════ */
-    .shuttle-marker-wrap {
-      position: relative;
-      width: 60px; height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    /* Rotating Sonar Radar Sweep */
-    .radar-sweep-cone {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 54px; height: 54px;
-      margin-top: -27px; margin-left: -27px;
-      border-radius: 50%;
-      background: conic-gradient(from 0deg, rgba(6,182,212,0.4) 0deg, rgba(6,182,212,0) 80deg, transparent 80deg);
-      animation: radarSweep 2.2s linear infinite;
-      pointer-events: none;
-      z-index: 1;
-    }
-    .sonar-ripple {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      border: 1.5px solid var(--cyan-light);
-      animation: sonarExpand 2s infinite cubic-bezier(0.2,0.6,0.3,1);
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .bus-node {
-      border-radius: 50%;
-      width: 38px; height: 38px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
-      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-      position: relative;
-      z-index: 3;
-    }
-    .bus-node.mh {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      border: 2px solid #bae6fd;
-      box-shadow: 0 0 16px var(--cyan-glow);
-    }
-    .bus-node.lh {
-      background: linear-gradient(135deg, #db2777, #be185d);
-      border: 2px solid #fbcfe8;
-      box-shadow: 0 0 16px var(--pink-glow);
-    }
-    .bus-node.fac {
-      background: linear-gradient(135deg, #059669, #10b981);
-      border: 2px solid #fde047;
-      box-shadow: 0 0 16px var(--green-glow);
-    }
-    .bus-pill {
-      position: absolute;
-      top: -18px; left: 50%;
+      top: -16px; left: 50%;
       transform: translateX(-50%);
-      padding: 2px 7px;
-      border-radius: 6px;
-      background: #040814;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #0f172a;
       color: #fff;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 8.5px;
-      font-weight: 800;
+      font-size: 8px;
+      font-weight: 700;
       white-space: nowrap;
-      border: 1px solid rgba(255,255,255,0.22);
-      box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .user-dot-wrap { position: relative; width: 28px; height: 28px; }
-    .user-dot {
-      width: 15px; height: 15px;
-      background: #38bdf8;
-      border: 2.5px solid white;
+    .user-dot-clean {
+      width: 14px;
+      height: 14px;
+      background: var(--primary);
+      border: 2px solid white;
       border-radius: 50%;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      box-shadow: 0 0 14px var(--cyan-glow);
-      z-index: 2;
+      box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
     }
-    .user-pulse {
-      width: 40px; height: 40px;
-      background: rgba(56, 189, 248, 0.35);
-      border-radius: 50%;
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      animation: sonarExpand 2.2s infinite ease-out;
-      z-index: 1;
+
+    /* ══════════════════════════════════════════════════════
+       REDUCED MOTION PREFERENCE
+    ══════════════════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
 <body>
-
-  <!-- 🌌 Animated Aurora Blobs -->
-  <div class="aurora-container">
-    <div class="aurora-blob blob-1"></div>
-    <div class="aurora-blob blob-2"></div>
-    <div class="aurora-blob blob-3"></div>
-  </div>
-
-  <!-- Confetti Canvas -->
-  <canvas id="confetti-canvas"></canvas>
-
-  <!-- SVG Gradients -->
-  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
-    <linearGradient id="speedoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#06b6d4" />
-      <stop offset="50%" stop-color="#f59e0b" />
-      <stop offset="100%" stop-color="#ef4444" />
-    </linearGradient>
-  </svg>
 
   <!-- ══════════════════════════════
        AUTH / PORTAL OVERLAY
@@ -1758,81 +1416,81 @@
       <!-- VIEW A: Role Selection -->
       <div id="view-select" class="portal-view active">
         <div class="portal-header">
-          <div class="portal-brand-icon"><span style="font-size:36px;">🚌</span></div>
+          <div class="portal-brand-icon"><span>🚌</span></div>
           <h1 class="portal-title">VIT Shuttle System</h1>
-          <p class="portal-sub">Ultra-Real-Time Transit • Choose Your Identity</p>
+          <p class="portal-sub">Campus Transit Platform • Select Portal</p>
           <div class="portal-live-pill">
-            <span class="live-dot"></span>
-            <span>Vellore Campus Fleet Live • 3 Shuttles Active</span>
+            <span style="width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
+            <span>Vellore Campus Fleet Active • 3 Routes</span>
           </div>
         </div>
 
         <div class="cards-grid">
           <!-- Student Card -->
-          <div class="role-card student pressable" onclick="playBeep(); openAuthForm('student')">
+          <div class="role-card" onclick="openAuthForm('student')" tabindex="0" role="button" aria-label="Student Portal">
             <div class="card-top">
               <div class="card-icon ci-student">🎓</div>
               <div class="card-badge cb-student">CAMPUS BUS • ₹20</div>
             </div>
             <div class="card-title">Student Portal</div>
-            <div class="card-desc">Ride Campus Buses (#101 MH & #102 LH), live GPS telemetry, walking directions, and digital boarding pass.</div>
-            <div class="card-domain">🔒 Requires institutional @vitstudent.ac.in</div>
-            <button class="card-cta cta-student pressable">
+            <div class="card-desc">Ride General Buses (#101 & #102), stop ETAs, walking directions, and digital boarding pass.</div>
+            <div class="card-domain">Requires verified @vitstudent.ac.in</div>
+            <button class="card-cta cta-student btn" type="button">
               <span>Sign In / Register</span>
               <span>→</span>
             </button>
-            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('student')">
-              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-              <span>Sign In / Sign Up with Google</span>
+            <button class="card-google-btn btn" type="button" onclick="event.stopPropagation(); quickGoogleAuth('student')">
+              <svg style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Continue with Google</span>
             </button>
           </div>
 
           <!-- Faculty Card -->
-          <div class="role-card faculty pressable" onclick="playBeep(); openAuthForm('faculty')">
+          <div class="role-card" onclick="openAuthForm('faculty')" tabindex="0" role="button" aria-label="Faculty Portal">
             <div class="card-top">
               <div class="card-icon ci-faculty">⭐</div>
-              <div class="card-badge cb-faculty">FACULTY • 100% FREE</div>
+              <div class="card-badge cb-faculty">FACULTY • FREE</div>
             </div>
-            <div class="card-title">Faculty Member</div>
-            <div class="card-desc">Exclusive Faculty Shuttle #201, zero-fare VIP clearance pass, academic buildings express & priority tracking.</div>
-            <div class="card-domain">🔒 Requires institutional @vit.ac.in</div>
-            <button class="card-cta cta-faculty pressable">
+            <div class="card-title">Faculty Portal</div>
+            <div class="card-desc">Exclusive Faculty Shuttle #201, complimentary VIP transit pass, and academic route priority.</div>
+            <div class="card-domain">Requires verified @vit.ac.in</div>
+            <button class="card-cta cta-faculty btn" type="button">
               <span>Sign In / Register</span>
               <span>→</span>
             </button>
-            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('faculty')">
-              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-              <span>Sign In / Sign Up with Google</span>
+            <button class="card-google-btn btn" type="button" onclick="event.stopPropagation(); quickGoogleAuth('faculty')">
+              <svg style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Continue with Google</span>
             </button>
           </div>
 
           <!-- Driver Card -->
-          <div class="role-card driver pressable" onclick="playBeep(); openAuthForm('driver')">
+          <div class="role-card" onclick="openAuthForm('driver')" tabindex="0" role="button" aria-label="Driver Console">
             <div class="card-top">
               <div class="card-icon ci-driver">🚖</div>
               <div class="card-badge cb-driver">DRIVER CONSOLE</div>
             </div>
-            <div class="card-title">Shuttle Driver</div>
-            <div class="card-desc">Active shift speedometer gauge, live vehicle telemetry broadcast & campus route switcher.</div>
-            <div class="card-domain">🔒 Authorized Drivers Only</div>
-            <button class="card-cta cta-driver pressable">
+            <div class="card-title">Driver Console</div>
+            <div class="card-desc">Active driving shift manager, live speed monitor, and route operational telemetry.</div>
+            <div class="card-domain">Authorized campus drivers only</div>
+            <button class="card-cta cta-driver btn" type="button">
               <span>Driver Console Login</span>
               <span>→</span>
             </button>
-            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('driver')">
-              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-              <span>Sign In / Sign Up with Google</span>
+            <button class="card-google-btn btn" type="button" onclick="event.stopPropagation(); quickGoogleAuth('driver')">
+              <svg style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Continue with Google</span>
             </button>
           </div>
         </div>
 
-        <button class="google-main-btn pressable" onclick="playChime(); signInWithGoogle()">
-          <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-          <span>Sign in with Google (VIT Workspace)</span>
+        <button class="google-main-btn btn" type="button" onclick="signInWithGoogle()">
+          <svg style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Sign In with Google (VIT Workspace SSO)</span>
         </button>
 
-        <button class="guest-btn pressable" onclick="triggerConfetti(); continueAsGuest()">
-          ⚡ Instant Demo Access — Explore Map as Student
+        <button class="guest-btn btn" type="button" onclick="continueAsGuest()">
+          Instant Demo Access — Explore Map as Student
         </button>
       </div>
 
@@ -1840,7 +1498,7 @@
       <div id="view-auth" class="portal-view">
         <div class="auth-card">
           <div class="auth-nav">
-            <button class="back-btn pressable" onclick="playBeep(); backToPortalSelect()">← Back to Portals</button>
+            <button class="back-btn" type="button" onclick="backToPortalSelect()">← Back to Portals</button>
             <div id="auth-role-badge" class="auth-role-badge arb-student">
               <span id="auth-role-icon">🎓</span>
               <span id="auth-role-label">Student Portal</span>
@@ -1851,29 +1509,29 @@
           <p id="auth-form-sub" class="auth-sub">Access campus transit with your VIT credentials</p>
 
           <div class="auth-tabs">
-            <button id="auth-tab-login" class="auth-tab active pressable" onclick="playBeep(); setAuthMode('login')">Sign In</button>
-            <button id="auth-tab-register" class="auth-tab pressable" onclick="playBeep(); setAuthMode('register')">Create Account</button>
+            <button id="auth-tab-login" class="auth-tab active" type="button" onclick="setAuthMode('login')">Sign In</button>
+            <button id="auth-tab-register" class="auth-tab" type="button" onclick="setAuthMode('register')">Create Account</button>
           </div>
 
-          <button class="google-main-btn pressable" onclick="playChime(); signInWithGoogle()">
-            <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            <span id="google-btn-text">Continue with Google (VIT Account)</span>
+          <button class="google-main-btn btn" type="button" onclick="signInWithGoogle()">
+            <svg style="width:16px;height:16px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span id="google-btn-text">Continue with Google</span>
           </button>
 
           <div class="or-divider"><span>OR WITH EMAIL & PASSWORD</span></div>
 
-          <div id="auth-alert" class="auth-alert"></div>
+          <div id="auth-alert" class="auth-alert" role="alert"></div>
 
           <form id="auth-form" onsubmit="handleAuthSubmit(event)">
             <div id="auth-group-name" class="form-group" style="display:none;">
-              <label class="form-label">Full Name</label>
+              <label class="form-label" for="auth-name">Full Name</label>
               <div class="input-wrap">
                 <span class="input-icon">👤</span>
                 <input type="text" id="auth-name" class="form-input" placeholder="e.g. Arjun Kumar">
               </div>
             </div>
             <div id="auth-group-id" class="form-group" style="display:none;">
-              <label id="auth-id-label" class="form-label">Registration Number</label>
+              <label id="auth-id-label" class="form-label" for="auth-id-val">Registration Number</label>
               <div class="input-wrap">
                 <span class="input-icon">🪪</span>
                 <input type="text" id="auth-id-val" class="form-input" placeholder="e.g. 21BCE1042">
@@ -1881,8 +1539,8 @@
             </div>
             <div class="form-group">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <label class="form-label">Institutional Email</label>
-                <span id="auth-domain-hint" style="font-size:0.68rem; color:#38bdf8; font-weight:700;">@vitstudent.ac.in</span>
+                <label class="form-label" for="auth-email">Institutional Email</label>
+                <span id="auth-domain-hint" style="font-size:0.68rem; color:var(--primary); font-weight:700;">@vitstudent.ac.in</span>
               </div>
               <div class="input-wrap">
                 <span class="input-icon">✉️</span>
@@ -1890,24 +1548,24 @@
               </div>
             </div>
             <div class="form-group">
-              <label class="form-label">Password</label>
+              <label class="form-label" for="auth-password">Password</label>
               <div class="input-wrap">
                 <span class="input-icon">🔒</span>
                 <input type="password" id="auth-password" class="form-input" required placeholder="Min 6 characters">
-                <button type="button" class="pwd-toggle pressable" onclick="togglePasswordVisibility()">👁️</button>
+                <button type="button" class="pwd-toggle" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility">👁️</button>
               </div>
             </div>
-            <button type="submit" id="auth-submit-btn" class="auth-submit pressable">
+            <button type="submit" id="auth-submit-btn" class="auth-submit btn btn-primary">
               <span id="auth-submit-text">Sign In to Student Portal</span>
             </button>
           </form>
 
-          <div style="margin-top:14px;">
-            <div class="or-divider"><span>OR QUICK TESTING</span></div>
-            <button class="instant-btn pressable" onclick="playChime(); quickFillAndLogin()">⚡ One-Click Instant Verified Sign In</button>
+          <div style="margin-top:12px;">
+            <div class="or-divider"><span>QUICK TESTING</span></div>
+            <button class="btn btn-outline" style="width:100%;" type="button" onclick="quickFillAndLogin()">One-Click Instant Verified Sign In</button>
           </div>
 
-          <div style="text-align:center; margin-top:13px; font-size:0.68rem; color:var(--text-dim);" id="auth-footer-notice">
+          <div style="text-align:center; margin-top:12px; font-size:0.68rem; color:var(--text-muted);" id="auth-footer-notice">
             Student fare: ₹20 per trip • Verified @vitstudent.ac.in
           </div>
         </div>
@@ -1919,51 +1577,50 @@
   <!-- ══════════════════════════════
        MAP CANVAS
   ══════════════════════════════ -->
-  <div id="map"></div>
+  <div id="map" role="region" aria-label="Campus Interactive Map"></div>
 
   <!-- ══════════════════════════════
-       TOP BAR & DYNAMIC HUD
+       TOP BAR NAVIGATION
   ══════════════════════════════ -->
   <div class="top-bar">
-    <div class="nav-pill glass-panel">
-      <div class="brand pressable" onclick="playBeep(); showPortalOverlay()" title="Switch Role / Account">
+    <div class="nav-pill card">
+      <div class="brand" onclick="showPortalOverlay()" role="button" tabindex="0" title="Switch Portal">
         <div class="brand-icon">🚌</div>
         <span>VIT Shuttle</span>
       </div>
 
-      <div class="role-tabs">
-        <button id="role-student" class="role-tab active-student pressable" onclick="playBeep(); switchRole('student')">Student</button>
-        <button id="role-faculty" class="role-tab pressable" onclick="playBeep(); switchRole('faculty')">Faculty</button>
-        <button id="role-driver" class="role-tab pressable" onclick="playBeep(); switchRole('driver')">Driver</button>
+      <div class="role-tabs" role="tablist" aria-label="Portal Mode">
+        <button id="role-student" class="role-tab active-student" role="tab" aria-selected="true" onclick="switchRole('student')">Student</button>
+        <button id="role-faculty" class="role-tab" role="tab" aria-selected="false" onclick="switchRole('faculty')">Faculty</button>
+        <button id="role-driver"  class="role-tab" role="tab" aria-selected="false" onclick="switchRole('driver')">Driver</button>
       </div>
 
-      <div class="session-chip pressable" id="session-chip" onclick="playBeep(); showPortalOverlay()" title="Account">
-        <span id="session-label" class="session-label s">🎓 Student</span>
-        <button class="logout-btn pressable" onclick="logoutUser(event)" title="Sign Out">🚪</button>
+      <div class="session-chip" id="session-chip" onclick="showPortalOverlay()" role="button" tabindex="0" title="User Account">
+        <span id="session-label">🎓 Student</span>
       </div>
 
-      <div class="live-badge">
-        <span class="live-dot"></span>
-        <span>LIVE</span>
-      </div>
+      <!-- Theme Toggle Button -->
+      <button class="theme-toggle-btn" id="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Toggle light and dark theme" title="Toggle Theme">
+        <span id="theme-toggle-icon">☀️</span>
+      </button>
     </div>
 
     <!-- Nearest Stop Banner -->
-    <div id="stop-banner" class="stop-banner glass-panel">
-      <div class="stop-icon-wrap">📍</div>
-      <div class="stop-text" id="stop-text" onclick="handleNearestStopClick()">
+    <div id="stop-banner" class="stop-banner card" onclick="handleNearestStopClick()" role="button" tabindex="0">
+      <span class="stop-icon">📍</span>
+      <div class="stop-text" id="stop-text">
         <span>Tap to find your nearest campus stop...</span>
       </div>
       <div class="stop-actions" id="stop-actions">
-        <button class="btn-sm btn-cyan pressable" id="nearest-stop-btn" onclick="playBeep(); handleNearestStopClick()">Enable GPS</button>
+        <button class="btn btn-primary" id="nearest-stop-btn" type="button" onclick="event.stopPropagation(); handleNearestStopClick()">Enable GPS</button>
       </div>
     </div>
 
     <!-- Directions HUD -->
-    <div id="dir-hud" class="dir-hud glass-panel">
+    <div id="dir-hud" class="dir-hud card">
       <div class="dir-header">
-        <div class="dir-dest">🚶 Walking to <strong id="dir-dest-name" style="color:#38bdf8;">Campus Stop</strong></div>
-        <button class="dir-close pressable" onclick="exitDirectionsMode(event)">✕ Exit</button>
+        <div class="dir-dest">🚶 Walking to <strong id="dir-dest-name" style="color:var(--primary);">Campus Stop</strong></div>
+        <button class="dir-close" type="button" onclick="exitDirectionsMode(event)">✕ Exit</button>
       </div>
       <div class="dir-step">
         <div class="dir-step-icon" id="dir-step-icon">⬆️</div>
@@ -1978,7 +1635,7 @@
           <span>•</span>
           <span>📏 <span id="dir-dist">220 m</span></span>
         </div>
-        <button class="dir-toggle pressable" onclick="toggleItinerary(event)">
+        <button class="dir-toggle" type="button" onclick="toggleItinerary(event)">
           <span id="itin-label">All Steps (3) ▾</span>
         </button>
       </div>
@@ -1987,32 +1644,32 @@
   </div>
 
   <!-- ══════════════════════════════
-       MAP CONTROLS (Right Edge)
+       MAP CONTROLS
   ══════════════════════════════ -->
   <div class="map-controls">
-    <div class="map-btn pressable" onclick="playBeep(); zoomIn()" title="Zoom In">+</div>
-    <div class="map-btn pressable" onclick="playBeep(); zoomOut()" title="Zoom Out">−</div>
-    <div class="map-btn pressable" onclick="playBeep(); requestLocationAndFindNearestStop(true)" title="My Location" style="color:#38bdf8;">🎯</div>
-    <div class="map-btn pressable" onclick="playBeep(); centerOnShuttle()" title="Center Shuttle" style="color:#34d399;">📍</div>
+    <button class="btn btn-icon" type="button" onclick="zoomIn()" aria-label="Zoom in" title="Zoom in">+</button>
+    <button class="btn btn-icon" type="button" onclick="zoomOut()" aria-label="Zoom out" title="Zoom out">−</button>
+    <button class="btn btn-icon" type="button" onclick="requestLocationAndFindNearestStop(true)" aria-label="Find my location" title="My Location" style="color:var(--primary);">🎯</button>
+    <button class="btn btn-icon" type="button" onclick="centerOnShuttle()" aria-label="Center shuttle" title="Center Shuttle" style="color:var(--emerald);">📍</button>
   </div>
 
   <!-- ══════════════════════════════
-       BOTTOM TRAY (Telemetry & Passenger / Driver)
+       BOTTOM TRAY
   ══════════════════════════════ -->
-  <div class="bottom-tray glass-panel">
+  <div class="bottom-tray card">
     <!-- Passenger View -->
     <div id="passenger-view">
-      <!-- Shuttle selector row -->
+      <!-- Shuttle Selector Row -->
       <div class="shuttle-row">
-        <button id="btn-mh" class="shuttle-btn sel-mh pressable" onclick="playBeep(); selectShuttle('vit_general_bus_101')">
-          <span class="shuttle-name">🚌 Men's Hostels</span>
+        <button id="btn-mh" class="shuttle-btn sel-mh" type="button" onclick="selectShuttle('vit_general_bus_101')">
+          <span class="shuttle-name">🚌 MH Bus #101</span>
           <span class="fare-tag fare-paid">₹20</span>
         </button>
-        <button id="btn-lh" class="shuttle-btn pressable" onclick="playBeep(); selectShuttle('vit_general_bus_102')">
-          <span class="shuttle-name">🌸 Women's Hostel</span>
+        <button id="btn-lh" class="shuttle-btn" type="button" onclick="selectShuttle('vit_general_bus_102')">
+          <span class="shuttle-name">🌸 LH Bus #102</span>
           <span class="fare-tag fare-pink">₹20</span>
         </button>
-        <button id="btn-fac" class="shuttle-btn pressable" onclick="playBeep(); selectShuttle('vit_faculty_shuttle_201')">
+        <button id="btn-fac" class="shuttle-btn" type="button" onclick="selectShuttle('vit_faculty_shuttle_201')">
           <span class="shuttle-name">⭐ Faculty VIP</span>
           <span class="fare-tag fare-free">FREE</span>
         </button>
@@ -2037,8 +1694,8 @@
       <div class="action-row" id="action-row-content"></div>
 
       <!-- Expand Drawer Toggle -->
-      <div class="expand-toggle pressable" onclick="toggleDetailsDrawer()">
-        <span id="drawer-toggle-text">Show all stops & live crowding ▾</span>
+      <div class="expand-toggle" onclick="toggleDetailsDrawer()" role="button" tabindex="0">
+        <span id="drawer-toggle-text">Show stops & crowding ▾</span>
       </div>
 
       <!-- Drawer Content -->
@@ -2050,9 +1707,9 @@
         </div>
         <div class="crowd-bar">
           <span class="crowd-lbl">Live Crowding:</span>
-          <button class="crowd-btn crowd-low pressable" onclick="playChime(); reportCrowd('Low')">🟢 Low</button>
-          <button class="crowd-btn crowd-med pressable" onclick="playBeep(); reportCrowd('Moderate')">🟡 Med</button>
-          <button class="crowd-btn crowd-full pressable" onclick="playBeep(); reportCrowd('Full')">🔴 Full</button>
+          <button class="crowd-btn" type="button" onclick="reportCrowd('Low')">🟢 Low</button>
+          <button class="crowd-btn" type="button" onclick="reportCrowd('Moderate')">🟡 Med</button>
+          <button class="crowd-btn" type="button" onclick="reportCrowd('Full')">🔴 Full</button>
         </div>
       </div>
     </div>
@@ -2060,27 +1717,18 @@
     <!-- Driver View -->
     <div id="driver-view" class="driver-view">
       <div class="driver-label">ACTIVE DRIVING SHIFT</div>
-      
-      <!-- Circular Speedo Gauge -->
       <div class="speedo-wrap">
-        <svg class="speedo-svg" viewBox="0 0 140 140">
-          <circle class="speedo-bg-circle" cx="70" cy="70" r="60" />
-          <circle id="speedo-bar" class="speedo-bar" cx="70" cy="70" r="60" />
-        </svg>
-        <div class="speedo-center">
-          <div class="speedo-num" id="driver-speed">22</div>
-          <div class="speedo-unit">KM / H</div>
-        </div>
+        <div class="speedo-num" id="driver-speed">22</div>
+        <div class="speedo-unit">KM / H</div>
       </div>
-
-      <button class="action-btn pressable" style="background:linear-gradient(135deg, #ef4444, #b91c1c); color:white; width:100%; border-radius:12px; box-shadow:0 4px 16px var(--red-glow);" onclick="playBeep(); switchRole('student')">
+      <button class="btn btn-outline" style="width:100%; border-color:var(--rose); color:var(--rose);" type="button" onclick="switchRole('student')">
         End Driving Shift
       </button>
     </div>
   </div>
 
   <!-- ══════════════════════════════
-       HOLOGRAPHIC TICKET MODAL
+       TICKET MODAL
   ══════════════════════════════ -->
   <div id="ticket-modal" class="modal-bg" onclick="closeModal(event)">
     <div class="ticket-card" id="ticket-card-content"></div>
@@ -2091,107 +1739,44 @@
   ══════════════════════════════ -->
   <div id="google-picker-modal" class="modal-bg" onclick="closeGooglePicker(event)">
     <div class="picker-card" onclick="event.stopPropagation()">
-      <button class="picker-close-btn pressable" onclick="closeGooglePicker(event)">✕</button>
-      <div style="text-align:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:14px;">
-        <svg style="width:28px;height:28px;margin:0 auto 6px;display:block;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-        <div id="google-picker-title" style="font-weight:800;font-size:1.05rem;color:#0f172a;font-family:'Space Grotesk',sans-serif;">Sign in with Google</div>
-        <div id="google-picker-sub" style="font-size:0.75rem;color:#64748b;margin-top:2px;">Choose a verified institutional account</div>
+      <button class="picker-close-btn" type="button" onclick="closeGooglePicker(event)">✕</button>
+      <div style="text-align:center; margin-bottom:14px; border-bottom:1px solid var(--border-subtle); padding-bottom:12px;">
+        <svg style="width:26px;height:26px;margin:0 auto 4px;display:block;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        <div id="google-picker-title" style="font-weight:700;font-size:1rem;color:var(--text);">Sign in with Google</div>
+        <div id="google-picker-sub" style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Choose a verified institutional account</div>
       </div>
       <div class="g-accounts" id="google-picker-accounts"></div>
-      <div style="font-size:0.67rem; color:#94a3b8; line-height:1.4; text-align:center;">
-        Google shares your verified VIT profile with Vellore Transit Services.
+      <div style="font-size:0.67rem; color:var(--text-muted); text-align:center;">
+        Google shares your verified profile with VIT Vellore Transit Services.
       </div>
     </div>
   </div>
 
   <!-- ══════════════════════════════
-       SCRIPTS & REAL-TIME LOGIC
+       LOGIC & REALTIME INTEGRATION
   ══════════════════════════════ -->
   <script>
-    // ── 🔊 WEB AUDIO SYNTH SOUNDS ──
-    let audioCtx = null;
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      return audioCtx;
-    }
-    function playBeep(freq = 580, type = 'sine', duration = 0.08) {
-      try {
-        const ctx = getAudioCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-      } catch(e) {}
-    }
-    function playChime() {
-      playBeep(523.25, 'triangle', 0.1);
-      setTimeout(() => playBeep(659.25, 'triangle', 0.1), 80);
-      setTimeout(() => playBeep(783.99, 'sine', 0.18), 160);
+    // ── THEME MANAGEMENT ──
+    function initTheme() {
+      const saved = localStorage.getItem('vit_shuttle_theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = saved || (prefersDark ? 'dark' : 'light');
+      applyTheme(theme);
     }
 
-    // ── 🎉 CONFETTI PARTICLE SYSTEM ──
-    const confettiCanvas = document.getElementById('confetti-canvas');
-    const confettiCtx = confettiCanvas.getContext('2d');
-    let particles = [];
-
-    function resizeConfetti() {
-      confettiCanvas.width = window.innerWidth;
-      confettiCanvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeConfetti);
-    resizeConfetti();
-
-    function triggerConfetti() {
-      playChime();
-      const colors = ['#06b6d4', '#38bdf8', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#a855f7'];
-      for (let i = 0; i < 70; i++) {
-        particles.push({
-          x: window.innerWidth / 2,
-          y: window.innerHeight * 0.6,
-          vx: (Math.random() - 0.5) * 14,
-          vy: (Math.random() - 0.8) * 16,
-          size: Math.random() * 6 + 4,
-          color: colors[Math.floor(Math.random() * colors.length)],
-          rotation: Math.random() * 360,
-          vRot: (Math.random() - 0.5) * 10,
-          alpha: 1
-        });
-      }
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('vit_shuttle_theme', theme);
+      const icon = document.getElementById('theme-toggle-icon');
+      if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
 
-    function renderConfetti() {
-      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += 0.4; // gravity
-        p.rotation += p.vRot;
-        p.alpha -= 0.016;
-
-        if (p.alpha <= 0) {
-          particles.splice(i, 1);
-          continue;
-        }
-
-        confettiCtx.save();
-        confettiCtx.globalAlpha = p.alpha;
-        confettiCtx.translate(p.x, p.y);
-        confettiCtx.rotate((p.rotation * Math.PI) / 180);
-        confettiCtx.fillStyle = p.color;
-        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
-        confettiCtx.restore();
-      }
-      requestAnimationFrame(renderConfetti);
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
     }
-    renderConfetti();
+    initTheme();
 
     // ── SUPABASE CLIENT ──
     const SUPABASE_URL = 'https://yaypinidsnhmcoccvqco.supabase.co';
@@ -2237,7 +1822,7 @@
     let shuttleMarkers = {};
     let fallbackSimulatorTimer = null;
 
-    // ── DATA LOADING & CAMPUS STOPS ──
+    // ── DATA LOADING & STOPS ──
     async function loadCampusData() {
       try {
         const { data: stops } = await supabaseClient.from('stops').select('*');
@@ -2245,25 +1830,25 @@
       } catch(e) {}
 
       campusStops.forEach(stop => {
-        let dotColor = '#38bdf8', badgeIcon = '🛏️';
+        let dotColor = '#2563eb', badgeIcon = '🛏️';
         if (stop.category === 'lh')           { dotColor = '#ec4899'; badgeIcon = '🌸'; }
-        else if (stop.category === 'faculty') { dotColor = '#10b981'; badgeIcon = '⭐'; }
-        else if (stop.category === 'academic'){ dotColor = '#a855f7'; badgeIcon = '🏛️'; }
+        else if (stop.category === 'faculty') { dotColor = '#059669'; badgeIcon = '⭐'; }
+        else if (stop.category === 'academic'){ dotColor = '#7c3aed'; badgeIcon = '🏛️'; }
 
         const stopIcon = L.divIcon({
           className:'',
-          html:`<div style="background:#040814;color:#f8fafc;font-size:9.5px;font-family:'Space Grotesk',sans-serif;font-weight:800;padding:3px 9px;border-radius:9px;border:1.5px solid ${dotColor};box-shadow:0 4px 14px rgba(0,0,0,0.7),0 0 10px ${dotColor}44;white-space:nowrap;transform:translate(-50%,-26px);display:flex;align-items:center;gap:5px;">
+          html:`<div style="background:#0f172a;color:#f8fafc;font-size:9.5px;font-family:'Inter',sans-serif;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid ${dotColor};box-shadow:0 2px 8px rgba(0,0,0,0.3);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:4px;">
             <span>${badgeIcon}</span><span>${stop.name}</span>
-            <div style="width:7px;height:7px;background:${dotColor};border:1.5px solid white;border-radius:50%;margin-left:2px;box-shadow:0 0 6px ${dotColor};"></div>
+            <div style="width:6px;height:6px;background:${dotColor};border:1px solid white;border-radius:50%;margin-left:2px;"></div>
           </div>`,
           iconSize:[0,0]
         });
         const m = L.marker([stop.lat,stop.lng], {icon:stopIcon}).addTo(map);
         m.bindPopup(`
-          <div style="font-family:'Inter',sans-serif;min-width:180px;padding:6px;">
-            <div style="font-weight:800;font-size:13px;color:#0f172a;margin-bottom:3px;">${stop.name}</div>
+          <div style="font-family:'Inter',sans-serif;min-width:180px;padding:4px;">
+            <div style="font-weight:700;font-size:12px;color:#0f172a;margin-bottom:2px;">${stop.name}</div>
             <div style="font-size:11px;color:#64748b;margin-bottom:8px;">Campus Transit Stop</div>
-            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%;background:linear-gradient(135deg,#0284c7,#2563eb);color:white;border:none;padding:7px 10px;border-radius:9px;font-weight:800;font-size:11px;cursor:pointer;box-shadow:0 3px 10px rgba(59,130,246,0.4);">🚶 Walk To This Stop</button>
+            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%;background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">🚶 Walk To This Stop</button>
           </div>
         `);
       });
@@ -2274,15 +1859,14 @@
         if (t) { nearestCampusStop = t; startDirectionsMode(); }
       };
 
-      // Campus Routes with Glowing Dash-Flow Animation
+      // Campus Routes
       const routes = [
-        { color:'#38bdf8', pts:[[12.9723,79.1627],[12.9712,79.1612],[12.9701,79.1601],[12.9692,79.1588],[12.9691,79.1560],[12.9708,79.1558]] },
-        { color:'#ec4899', pts:[[12.9675,79.1595],[12.9668,79.1602],[12.9688,79.1561],[12.9698,79.1552],[12.9708,79.1558]] },
-        { color:'#10b981', pts:[[12.9682,79.1542],[12.9665,79.1551],[12.9688,79.1550],[12.9658,79.1578],[12.9695,79.1563],[12.9708,79.1558],[12.9715,79.1548]] }
+        { color:'#2563eb', pts:[[12.9723,79.1627],[12.9712,79.1612],[12.9701,79.1601],[12.9692,79.1588],[12.9691,79.1560],[12.9708,79.1558]] },
+        { color:'#db2777', pts:[[12.9675,79.1595],[12.9668,79.1602],[12.9688,79.1561],[12.9698,79.1552],[12.9708,79.1558]] },
+        { color:'#059669', pts:[[12.9682,79.1542],[12.9665,79.1551],[12.9688,79.1550],[12.9658,79.1578],[12.9695,79.1563],[12.9708,79.1558],[12.9715,79.1548]] }
       ];
       routes.forEach(r => {
-        L.polyline(r.pts, { color:r.color, weight:8, opacity:0.35, className:'animated-route-glow' }).addTo(map);
-        L.polyline(r.pts, { color:r.color, weight:4, opacity:0.95, className:'animated-route-core' }).addTo(map);
+        L.polyline(r.pts, { color:r.color, weight:4, opacity:0.85 }).addTo(map);
       });
 
       requestLocationAndFindNearestStop(false);
@@ -2303,7 +1887,7 @@
       const txt = document.getElementById('stop-text');
       const btn = document.getElementById('nearest-stop-btn');
       if (!navigator.geolocation) { txt.innerHTML='<span>GPS not supported</span>'; btn && (btn.style.display='none'); return; }
-      txt.innerHTML='<span>Locating your satellite position...</span>';
+      txt.innerHTML='<span>Locating your position...</span>';
       if (btn) { btn.textContent='Locating...'; btn.disabled=true; }
       navigator.geolocation.getCurrentPosition(
         pos => {
@@ -2314,7 +1898,7 @@
         },
         err => {
           console.warn('Geo error:', err.message);
-          txt.innerHTML='<span>Location needed for stop ETA</span>';
+          txt.innerHTML='<span>Enable location to view nearest stop</span>';
           if(btn){btn.textContent='Enable GPS';btn.disabled=false;}
           if(manual) alert('Allow location access in your browser to view distance to campus stops.');
         },
@@ -2325,8 +1909,8 @@
     function updateUserMarker(lat,lng) {
       const icon = L.divIcon({
         className:'',
-        html:`<div class="user-dot-wrap"><div class="user-pulse"></div><div class="user-dot"></div></div>`,
-        iconSize:[28,28], iconAnchor:[14,14]
+        html:`<div class="user-dot-clean"></div>`,
+        iconSize:[14,14], iconAnchor:[7,7]
       });
       if (!userMarker) userMarker = L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);
       else userMarker.setLatLng([lat,lng]);
@@ -2336,7 +1920,7 @@
       if (!campusStops?.length) return;
       const txt = document.getElementById('stop-text');
       const acts = document.getElementById('stop-actions');
-      if (txt && !nearestCampusStop) txt.innerHTML='<span>Calculating nearest stop...</span>';
+      if (txt && !nearestCampusStop) txt.innerHTML='<span>Finding nearest campus stop...</span>';
 
       let best=null, bestDist=Infinity, bestDur=null;
       try {
@@ -2366,8 +1950,8 @@
 
       if (txt) txt.innerHTML=`<span>Nearest: <span class="hi">${best.name}</span> • ${distFmt}<span class="eta">(~${mins}m walk)</span></span>`;
       if (acts) acts.innerHTML=`
-        <button class="btn-dir pressable" onclick="playBeep(); startDirectionsMode(event)">🚶 Directions</button>
-        <button class="btn-sm btn-cyan pressable" onclick="playBeep(); handleNearestStopClick()">🎯 Focus</button>
+        <button class="btn btn-primary" style="padding:4px 9px;font-size:0.7rem;" onclick="startDirectionsMode(event)">🚶 Directions</button>
+        <button class="btn btn-outline" style="padding:4px 9px;font-size:0.7rem;" onclick="handleNearestStopClick()">Focus</button>
       `;
 
       if (!isDirectionsMode) {
@@ -2375,24 +1959,24 @@
           const rd = await fetchWalkingRoute(lat,lng,best.lat,best.lng);
           if (!isDirectionsMode && rd?.coordinates?.length) {
             if (walkingPolyline) map.removeLayer(walkingPolyline);
-            walkingPolyline = L.polyline(rd.coordinates,{color:'#38bdf8',weight:4,dashArray:'6,10',opacity:0.95}).addTo(map);
+            walkingPolyline = L.polyline(rd.coordinates,{color:'#2563eb',weight:3,dashArray:'5,7',opacity:0.9}).addTo(map);
           }
         } catch(e) {}
       }
 
       if ((center||bestDist<=3000) && !isDirectionsMode)
-        map.fitBounds(L.latLngBounds([[lat,lng],[best.lat,best.lng]]),{padding:[70,70],maxZoom:17});
+        map.fitBounds(L.latLngBounds([[lat,lng],[best.lat,best.lng]]),{padding:[60,60],maxZoom:17});
     }
 
     function handleNearestStopClick() {
       if (userLocation && nearestCampusStop)
-        map.fitBounds(L.latLngBounds([[userLocation.lat,userLocation.lng],[nearestCampusStop.lat,nearestCampusStop.lng]]),{padding:[70,70],maxZoom:17});
+        map.fitBounds(L.latLngBounds([[userLocation.lat,userLocation.lng],[nearestCampusStop.lat,nearestCampusStop.lng]]),{padding:[60,60],maxZoom:17});
       else requestLocationAndFindNearestStop(true);
     }
 
-    // ── DIRECTIONS ENGINE ──
+    // ── DIRECTIONS ──
     let isDirectionsMode=false, walkingRouteLayer=null, walkingDestMarker=null;
-    let walkingSteps=[], currentStepIndex=0, geoWatchId=null;
+    let walkingSteps=[], currentStepIndex=0;
 
     function getManeuverIcon(type,modifier) {
       if (type==='arrive') return '🏁';
@@ -2400,7 +1984,6 @@
       if (modifier.includes('right')) return modifier.includes('slight')?'↗️':modifier.includes('sharp')?'↪️':'➡️';
       if (modifier.includes('left'))  return modifier.includes('slight')?'↖️':modifier.includes('sharp')?'↩️':'⬅️';
       if (modifier.includes('straight')) return '⬆️';
-      if (modifier.includes('uturn'))    return '🔄';
       return '⬆️';
     }
 
@@ -2410,9 +1993,6 @@
       if (type==='depart') return `Start walking along ${name}`;
       if (type==='arrive') return `Arrive at ${stopName}`;
       if (type==='turn')   return `Turn ${modifier.replace('-',' ')} onto ${name}`;
-      if (type==='end of road') return `At end of road, turn ${modifier||'along'} ${name}`;
-      if (type==='fork')   return `Take the ${modifier||''} fork onto ${name}`;
-      if (type==='continue') return `Continue straight on ${name}`;
       return `Head towards ${name}`;
     }
 
@@ -2434,8 +2014,7 @@
         distanceMeters:dd, durationSeconds:(dd/75)*60,
         steps:[
           {maneuver:{type:'depart',modifier:'straight'},name:'Campus Pedestrian Way',distance:Math.round(dd*0.5)},
-          {maneuver:{type:'continue',modifier:'straight'},name:nearestCampusStop?.name||'Campus Stop',distance:Math.round(dd*0.5)},
-          {maneuver:{type:'arrive',modifier:''},name:nearestCampusStop?.name||'Campus Stop',distance:0}
+          {maneuver:{type:'arrive',modifier:''},name:nearestCampusStop?.name||'Campus Stop',distance:Math.round(dd*0.5)}
         ]
       };
     }
@@ -2446,7 +2025,6 @@
       if (!nearestCampusStop) { calculateNearestStop(userLocation.lat,userLocation.lng,true); }
       if (!nearestCampusStop) return;
 
-      playChime();
       isDirectionsMode = true;
       document.getElementById('stop-banner').style.display='none';
       const hud = document.getElementById('dir-hud');
@@ -2454,7 +2032,7 @@
       document.getElementById('dir-dest-name').textContent=nearestCampusStop.name;
       document.getElementById('dir-step-icon').textContent='🚶';
       document.getElementById('dir-step-txt').textContent='Calculating walking path...';
-      document.getElementById('dir-step-sub').textContent='Mapping campus walkways...';
+      document.getElementById('dir-step-sub').textContent='Campus walkways';
 
       if (walkingPolyline) { map.removeLayer(walkingPolyline); walkingPolyline=null; }
       if (walkingRouteLayer) { map.removeLayer(walkingRouteLayer); walkingRouteLayer=null; }
@@ -2467,17 +2045,15 @@
       document.getElementById('dir-dist').textContent = totalDist<1000?`${Math.round(totalDist)} m`:`${(totalDist/1000).toFixed(1)} km`;
       document.getElementById('dir-eta').textContent  = `${mins} min`;
 
-      const glow = L.polyline(coords,{color:'#06b6d4',weight:9,opacity:0.4,lineCap:'round',lineJoin:'round'});
-      const core = L.polyline(coords,{color:'#38bdf8',weight:4,dashArray:'7,10',opacity:0.95,lineCap:'round',lineJoin:'round',className:'animated-route-core'});
-      walkingRouteLayer = L.layerGroup([glow,core]).addTo(map);
+      walkingRouteLayer = L.polyline(coords,{color:'#2563eb',weight:4,dashArray:'6,8',opacity:0.9}).addTo(map);
 
       const flagIcon = L.divIcon({
         className:'',
-        html:`<div style="background:#040814;border:2px solid #38bdf8;color:white;border-radius:10px;padding:4px 9px;font-size:12px;font-family:'Space Grotesk',sans-serif;font-weight:800;box-shadow:0 4px 16px var(--cyan-glow);display:flex;align-items:center;gap:5px;white-space:nowrap;">🏁 ${nearestCampusStop.name}</div>`,
-        iconSize:[0,0], iconAnchor:[30,24]
+        html:`<div style="background:#0f172a;border:1.5px solid #2563eb;color:white;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;white-space:nowrap;">🏁 ${nearestCampusStop.name}</div>`,
+        iconSize:[0,0], iconAnchor:[20,20]
       });
       walkingDestMarker = L.marker([nearestCampusStop.lat,nearestCampusStop.lng],{icon:flagIcon}).addTo(map);
-      map.fitBounds(glow.getBounds(),{padding:[60,60],maxZoom:18});
+      map.fitBounds(walkingRouteLayer.getBounds(),{padding:[50,50],maxZoom:18});
 
       walkingSteps = rd.steps.map(st => ({
         icon:getManeuverIcon(st.maneuver.type,st.maneuver.modifier),
@@ -2494,7 +2070,7 @@
       const st = walkingSteps[currentStepIndex]||walkingSteps[0];
       document.getElementById('dir-step-icon').textContent=st.icon;
       document.getElementById('dir-step-txt').textContent=st.instruction;
-      document.getElementById('dir-step-sub').textContent=st.distance>0?`In ${st.distance}m`:'Arriving at destination';
+      document.getElementById('dir-step-sub').textContent=st.distance>0?`In ${st.distance}m`:'Arriving at stop';
     }
 
     function renderItinerary() {
@@ -2503,21 +2079,19 @@
       lbl.textContent=`All Steps (${walkingSteps.length}) ▾`;
       list.innerHTML = walkingSteps.map((st,i)=>`
         <div class="itinerary-row ${i===currentStepIndex?'current':''}">
-          <span style="font-size:15px;">${st.icon}</span>
-          <div style="flex:1;"><div>${st.instruction}</div>${st.distance>0?`<div style="font-size:0.65rem;color:#64748b;">${st.distance}m</div>`:''}</div>
+          <span>${st.icon}</span>
+          <div style="flex:1;"><div>${st.instruction}</div>${st.distance>0?`<div style="font-size:0.65rem;color:var(--text-muted);">${st.distance}m</div>`:''}</div>
         </div>
       `).join('');
     }
 
     function toggleItinerary(e) {
       if(e) e.stopPropagation();
-      playBeep();
       document.getElementById('dir-steps-list').classList.toggle('open');
     }
 
     function exitDirectionsMode(e) {
       if(e) e.stopPropagation();
-      playBeep();
       isDirectionsMode=false;
       document.getElementById('dir-hud').classList.remove('active');
       document.getElementById('stop-banner').style.display='flex';
@@ -2525,7 +2099,7 @@
       if (walkingDestMarker) { map.removeLayer(walkingDestMarker); walkingDestMarker=null; }
     }
 
-    // ── SHUTTLE ETA & MARKERS ──
+    // ── SHUTTLE ETA & CLEAN MARKERS ──
     function calculateETA(sLat,sLng,stopLat,stopLng,speed=20) {
       const R=6371, dLat=(stopLat-sLat)*Math.PI/180, dLon=(stopLng-sLng)*Math.PI/180;
       const a=Math.sin(dLat/2)**2+Math.cos(sLat*Math.PI/180)*Math.cos(stopLat*Math.PI/180)*Math.sin(dLon/2)**2;
@@ -2533,35 +2107,29 @@
       return { distanceKm:parseFloat(dist.toFixed(2)), etaMinutes:Math.max(1,Math.round((dist/Math.max(12,speed))*60)) };
     }
 
-    // Crazy Animated Shuttle Marker with Radar Sweep & Sonar Rings
     function updateMarker(shuttle) {
       const isFac = shuttle.shuttleType==='faculty'||(shuttle.shuttleId?.includes('faculty'));
       const isLH  = shuttle.shuttleId==='vit_general_bus_102'||(shuttle.name?.toLowerCase().includes('women'));
-      let pillText='MH 101 • ₹20', nodeClass='bus-node mh', icon='🚌';
-      if (isFac) { pillText='FACULTY • FREE'; nodeClass='bus-node fac'; icon='⭐'; }
-      else if (isLH) { pillText='LH 102 • ₹20'; nodeClass='bus-node lh'; icon='🌸'; }
+      let pillText='MH 101 • ₹20', nodeClass='bus-node-clean mh', icon='🚌';
+      if (isFac) { pillText='FACULTY • FREE'; nodeClass='bus-node-clean fac'; icon='⭐'; }
+      else if (isLH) { pillText='LH 102 • ₹20'; nodeClass='bus-node-clean lh'; icon='🌸'; }
 
       const cusIcon = L.divIcon({
         className:'',
         html:`
-          <div class="shuttle-marker-wrap">
-            <div class="sonar-ripple"></div>
-            <div class="radar-sweep-cone"></div>
+          <div style="position:relative;display:inline-block;">
             <div class="${nodeClass}">
-              <div class="bus-pill">${pillText}</div>
+              <div class="bus-pill-clean">${pillText}</div>
               ${icon}
             </div>
           </div>
         `,
-        iconSize:[60,60], iconAnchor:[30,30]
+        iconSize:[36,36], iconAnchor:[18,18]
       });
 
       if (!shuttleMarkers[shuttle.shuttleId]) {
         shuttleMarkers[shuttle.shuttleId] = L.marker([shuttle.lat,shuttle.lng],{icon:cusIcon}).addTo(map);
-        shuttleMarkers[shuttle.shuttleId].on('click',() => {
-          playBeep();
-          selectShuttle(shuttle.shuttleId);
-        });
+        shuttleMarkers[shuttle.shuttleId].on('click',() => selectShuttle(shuttle.shuttleId));
       } else {
         shuttleMarkers[shuttle.shuttleId].setLatLng([shuttle.lat,shuttle.lng]);
         shuttleMarkers[shuttle.shuttleId].setIcon(cusIcon);
@@ -2577,7 +2145,7 @@
       const s = activeShuttles[id];
       if (s) {
         updateBottomTray(s);
-        map.panTo([s.lat,s.lng],{animate:true,duration:0.45});
+        map.panTo([s.lat,s.lng],{animate:true,duration:0.35});
       }
     }
 
@@ -2585,15 +2153,6 @@
       const isFac = shuttle.shuttleType==='faculty';
       const spd = Math.round(shuttle.speed||21);
       document.getElementById('speed-val').textContent = spd;
-
-      // Update Driver Circular Gauge
-      const speedoBar = document.getElementById('speedo-bar');
-      if (speedoBar) {
-        // max 60 kmh -> stroke offset: 377 to 0
-        const pct = Math.min(1, spd / 60);
-        const offset = 377 - (377 * pct);
-        speedoBar.style.strokeDashoffset = offset;
-      }
       const drvSpeed = document.getElementById('driver-speed');
       if (drvSpeed) drvSpeed.textContent = spd;
 
@@ -2609,27 +2168,26 @@
       }
       const dl = document.getElementById('drawer-stops-list');
       dl.innerHTML = etas.map(s => `
-        <div class="stop-box pressable" onclick="playBeep()">
+        <div class="stop-box">
           <div class="stop-box-name">${s.stopName}</div>
-          <div class="stop-box-eta" style="color:${isFac?'#34d399':'#38bdf8'}">${s.etaMinutes} min</div>
+          <div class="stop-box-eta" style="color:${isFac?'var(--emerald)':'var(--primary)'}">${s.etaMinutes} min</div>
         </div>
       `).join('');
 
       const ar = document.getElementById('action-row-content');
       if (!isFac) {
-        ar.innerHTML = `<button class="action-btn blue pressable" onclick="triggerConfetti(); openTicketModal('general')">🎫 Book Digital Pass (₹20)</button>`;
+        ar.innerHTML = `<button class="action-btn-main blue btn" onclick="openTicketModal('general')">🎫 Book Digital Pass (₹20)</button>`;
       } else if (currentRole==='faculty') {
-        ar.innerHTML = `<button class="action-btn green pressable" onclick="triggerConfetti(); openTicketModal('faculty')">⭐ Show Faculty Pass (FREE)</button>`;
+        ar.innerHTML = `<button class="action-btn-main green btn" onclick="openTicketModal('faculty')">⭐ Show Faculty VIP Pass (FREE)</button>`;
       } else {
-        ar.innerHTML = `<div class="restrict-pill"><span>⚠️ Faculty VIP Shuttle (₹0)</span><button class="switch-btn pressable" onclick="playBeep(); selectShuttle('vit_general_bus_101')">Switch ₹20</button></div>`;
+        ar.innerHTML = `<div class="restrict-pill"><span>⚠️ Faculty VIP Shuttle (₹0)</span><button class="switch-btn" onclick="selectShuttle('vit_general_bus_101')">Switch ₹20</button></div>`;
       }
     }
 
     function toggleDetailsDrawer() {
-      playBeep();
       isDrawerOpen=!isDrawerOpen;
       document.getElementById('details-drawer').classList.toggle('open',isDrawerOpen);
-      document.getElementById('drawer-toggle-text').textContent = isDrawerOpen ? 'Hide live stops & crowding ▴' : 'Show all stops & live crowding ▾';
+      document.getElementById('drawer-toggle-text').textContent = isDrawerOpen ? 'Hide stops & crowding ▴' : 'Show stops & crowding ▾';
     }
 
     // ── ROLE SWITCHING ──
@@ -2639,6 +2197,7 @@
         const btn = document.getElementById(`role-${r}`);
         if (!btn) return;
         btn.className = `role-tab${role===r?' active-'+r:''}`;
+        btn.setAttribute('aria-selected', role===r);
       });
       const pv = document.getElementById('passenger-view'), dv = document.getElementById('driver-view');
       if (role==='driver') {
@@ -2657,7 +2216,7 @@
       if (s) map.setView([s.lat,s.lng], 16.5, {animate:true});
     }
 
-    // ── TICKET MODAL WITH HOLOGRAPHIC SCANNER ──
+    // ── TICKET MODAL ──
     function openTicketModal(type) {
       const modal = document.getElementById('ticket-modal');
       const content = document.getElementById('ticket-card-content');
@@ -2667,43 +2226,37 @@
       if (type === 'general') {
         content.innerHTML = `
           <div class="tkt-head-blue">
-            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1px;opacity:0.85;">VIT VELLORE TRANSIT PASS</div>
-            <div style="font-family:'Space Grotesk';font-size:1.35rem;font-weight:800;margin:4px 0;">DIGITAL COMMUTER PASS</div>
-            <div style="display:inline-block;background:#10b981;color:white;font-size:0.7rem;font-weight:800;padding:3px 11px;border-radius:12px;box-shadow:0 0 10px rgba(16,185,129,0.5);">PAID ₹20.00</div>
+            <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.5px;opacity:0.9;">VIT VELLORE TRANSIT</div>
+            <div style="font-family:'Space Grotesk';font-size:1.3rem;font-weight:700;margin:3px 0;">CAMPUS BOARDING PASS</div>
+            <div style="display:inline-block;background:#ffffff;color:#1e3a8a;font-size:0.68rem;font-weight:800;padding:2px 10px;border-radius:10px;">PAID ₹20.00</div>
           </div>
           <div class="tkt-body">
-            <div style="font-family:'Space Grotesk';font-weight:800;color:white;font-size:0.95rem;">General Campus Bus #101</div>
-            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Single Boarding Clearance • Valid 45 Mins</div>
-            
+            <div style="font-family:'Space Grotesk';font-weight:700;color:var(--text);font-size:0.92rem;">General Campus Bus #101</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Single Ride • Valid 45 Minutes</div>
             <div class="qr-box-wrap">
-              <div class="laser-line"></div>
-              <div style="font-size:46px;">🏁</div>
-              <div style="font-size:0.72rem;font-weight:900;color:#0f172a;font-family:'Orbitron',monospace;">${tkt}</div>
+              <div style="font-size:42px;">🏁</div>
+              <div style="font-size:0.72rem;font-weight:800;color:#0f172a;font-family:'Space Grotesk',sans-serif;">${tkt}</div>
             </div>
-
-            <div style="font-size:0.76rem;color:#34d399;font-weight:800;margin-top:6px;">● Active • Boarding Verified</div>
-            <div style="font-size:0.68rem;color:#64748b;margin-top:3px;">Issued at ${time}</div>
-            <button class="modal-close pressable" onclick="playBeep(); closeModal()">Done / Dismiss</button>
+            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Boarding Pass Verified</div>
+            <div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">Issued at ${time}</div>
+            <button class="modal-close btn" onclick="closeModal()">Dismiss Pass</button>
           </div>`;
       } else {
         content.innerHTML = `
           <div class="tkt-head-green">
-            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1px;color:#fde047;">OFFICIAL VIP TRANSIT</div>
-            <div style="font-family:'Space Grotesk';font-size:1.35rem;font-weight:800;margin:4px 0;">FACULTY VIP PASS</div>
-            <div style="display:inline-block;background:#fde047;color:#065f46;font-size:0.7rem;font-weight:800;padding:3px 11px;border-radius:12px;">FREE (₹0)</div>
+            <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.5px;color:#fde047;">FACULTY EXCLUSIVE</div>
+            <div style="font-family:'Space Grotesk';font-size:1.3rem;font-weight:700;margin:3px 0;">FACULTY VIP TRANSIT</div>
+            <div style="display:inline-block;background:#fde047;color:#065f46;font-size:0.68rem;font-weight:800;padding:2px 10px;border-radius:10px;">FREE (₹0)</div>
           </div>
           <div class="tkt-body">
-            <div style="font-family:'Space Grotesk';font-weight:800;color:white;font-size:0.95rem;">Faculty Exclusive Shuttle #201</div>
-            <div style="font-size:0.72rem;color:#34d399;margin-top:2px;">Academic Faculty Member Clearance</div>
-            
-            <div class="qr-box-wrap" style="border:2px solid #10b981;">
-              <div class="laser-line"></div>
-              <div style="font-size:46px;">⭐</div>
-              <div style="font-size:0.72rem;font-weight:900;color:#059669;font-family:'Orbitron',monospace;">FACULTY VIP</div>
+            <div style="font-family:'Space Grotesk';font-weight:700;color:var(--text);font-size:0.92rem;">Faculty Shuttle #201</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Academic Faculty Official Clearance</div>
+            <div class="qr-box-wrap" style="border:2px solid var(--emerald);">
+              <div style="font-size:42px;">⭐</div>
+              <div style="font-size:0.72rem;font-weight:800;color:var(--emerald);font-family:'Space Grotesk',sans-serif;">FACULTY VIP</div>
             </div>
-
-            <div style="font-size:0.76rem;color:#fde047;font-weight:800;margin-top:6px;">● Official Free Transit Clearance</div>
-            <button class="modal-close pressable" onclick="playBeep(); closeModal()">Done / Dismiss</button>
+            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Official Free Transit Clearance</div>
+            <button class="modal-close btn" onclick="closeModal()">Dismiss Pass</button>
           </div>`;
       }
       modal.classList.add('active');
@@ -2716,10 +2269,10 @@
     }
 
     function reportCrowd(lvl) {
-      alert(`Reported ${lvl} crowding for ${activeShuttles[selectedShuttleId].name}! Live broadcast updated.`);
+      alert(`Reported ${lvl} crowding for ${activeShuttles[selectedShuttleId].name}.`);
     }
 
-    // ── REALISTIC SHUTTLE SIMULATOR ──
+    // ── SHUTTLE SIMULATOR ──
     const genWps = [{lat:12.9692,lng:79.1559},{lat:12.9698,lng:79.1588},{lat:12.9708,lng:79.1610},{lat:12.9715,lng:79.1633},{lat:12.9735,lng:79.1620},{lat:12.9750,lng:79.1610},{lat:12.9730,lng:79.1585},{lat:12.9705,lng:79.1565}];
     const facWps = [{lat:12.9715,lng:79.1633},{lat:12.9723,lng:79.1609},{lat:12.9730,lng:79.1585},{lat:12.9714,lng:79.1586},{lat:12.9698,lng:79.1588},{lat:12.9692,lng:79.1559},{lat:12.9702,lng:79.1600}];
     let gI=0,gP=0,fI=0,fP=0;
@@ -2732,7 +2285,7 @@
         const g1 = genWps[gI], g2 = genWps[(gI + 1) % genWps.length];
         activeShuttles['vit_general_bus_101'].lat = g1.lat + (g2.lat - g1.lat) * gP;
         activeShuttles['vit_general_bus_101'].lng = g1.lng + (g2.lng - g1.lng) * gP;
-        activeShuttles['vit_general_bus_101'].speed = Math.round(20 + Math.sin(Date.now() / 3000) * 4);
+        activeShuttles['vit_general_bus_101'].speed = Math.round(20 + Math.sin(Date.now() / 3000) * 3);
         updateMarker(activeShuttles['vit_general_bus_101']);
 
         fP += 0.10;
@@ -2740,14 +2293,14 @@
         const f1 = facWps[fI], f2 = facWps[(fI + 1) % facWps.length];
         activeShuttles['vit_faculty_shuttle_201'].lat = f1.lat + (f2.lat - f1.lat) * fP;
         activeShuttles['vit_faculty_shuttle_201'].lng = f1.lng + (f2.lng - f1.lng) * fP;
-        activeShuttles['vit_faculty_shuttle_201'].speed = Math.round(18 + Math.cos(Date.now() / 3000) * 3);
+        activeShuttles['vit_faculty_shuttle_201'].speed = Math.round(18 + Math.cos(Date.now() / 3000) * 2);
         updateMarker(activeShuttles['vit_faculty_shuttle_201']);
 
         updateBottomTray(activeShuttles[selectedShuttleId]);
-      }, 1800);
+      }, 2000);
     }
 
-    // ── AUTH & GOOGLE SSO ──
+    // ── AUTH & ROLES ──
     let currentUser = null, activeAuthRole = 'student', authMode = 'login';
 
     function showPortalOverlay() {
@@ -2796,16 +2349,16 @@
       if (activeAuthRole === 'student') {
         if(ri)ri.textContent='🎓'; if(rl)rl.textContent='Student Portal';
         if(fh)fh.textContent=authMode==='login'?'Sign In to Student Portal':'Create Student Account';
-        if(fs)fs.textContent='Access campus transit (₹20) with @vitstudent.ac.in';
+        if(fs)fs.textContent='Campus transportation pass (₹20) with @vitstudent.ac.in';
         if(dh)dh.textContent='@vitstudent.ac.in'; if(ei)ei.placeholder='student@vitstudent.ac.in';
         if(il)il.textContent='Registration Number'; if(iv)iv.placeholder='e.g. 21BCE1042';
         if(st)st.textContent=authMode==='login'?'Sign In as Student':'Create Student Account';
         if(gb)gb.textContent=`${verb} with Google (@vitstudent.ac.in)`;
         if(fn)fn.textContent='Student fare: ₹20 per trip • Verified @vitstudent.ac.in';
       } else if (activeAuthRole === 'faculty') {
-        if(ri)ri.textContent='⭐'; if(rl)rl.textContent='Faculty VIP Portal';
+        if(ri)ri.textContent='⭐'; if(rl)rl.textContent='Faculty Portal';
         if(fh)fh.textContent=authMode==='login'?'Sign In to Faculty Portal':'Create Faculty Account';
-        if(fs)fs.textContent='Access 100% FREE VIP Shuttle with @vit.ac.in';
+        if(fs)fs.textContent='Complimentary Faculty VIP Transit with @vit.ac.in';
         if(dh)dh.textContent='@vit.ac.in'; if(ei)ei.placeholder='faculty.name@vit.ac.in';
         if(il)il.textContent='Employee / Faculty ID'; if(iv)iv.placeholder='e.g. VIT-FAC-4091';
         if(st)st.textContent=authMode==='login'?'Sign In as Faculty':'Create Faculty Account';
@@ -2813,11 +2366,11 @@
         if(fn)fn.textContent='Faculty fare: 100% FREE • Verified @vit.ac.in';
       } else {
         if(ri)ri.textContent='🚖'; if(rl)rl.textContent='Driver Console';
-        if(fh)fh.textContent=authMode==='login'?'Driver Console Login':'Register Authorized Driver';
-        if(fs)fs.textContent='Shift telemetry & live GPS broadcaster';
+        if(fh)fh.textContent=authMode==='login'?'Driver Console Login':'Register Driver';
+        if(fs)fs.textContent='Shift management and live GPS broadcaster';
         if(dh)dh.textContent='Driver ID / Email'; if(ei)ei.placeholder='driver101@vit.ac.in';
         if(il)il.textContent='Vehicle Badge / Driver License'; if(iv)iv.placeholder='e.g. BUS-101-DRV';
-        if(st)st.textContent=authMode==='login'?'Enter Driver Shift Console':'Register Driver';
+        if(st)st.textContent=authMode==='login'?'Enter Driver Console':'Register Driver';
         if(gb)gb.textContent=`${verb} with Google (Driver ID)`;
         if(fn)fn.textContent='Authorized campus shuttle drivers only';
       }
@@ -2853,9 +2406,9 @@
       const showErr = msg => { if(al){al.className='auth-alert error';al.innerHTML=msg;al.style.display='block';} };
 
       if (!email||!pwd) return showErr('Please fill in both email and password.');
-      if (activeAuthRole==='student'&&!email.endsWith('@vitstudent.ac.in')) return showErr('⚠️ Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small>Or click "One-Click Instant Sign In" below.</small>');
-      if (activeAuthRole==='faculty'&&(!email.endsWith('@vit.ac.in')||email.endsWith('@vitstudent.ac.in'))) return showErr('⚠️ Faculty email must end with <strong>@vit.ac.in</strong>.<br><small>Or click "One-Click Instant Sign In" below.</small>');
-      if (pwd.length < 6) return showErr('⚠️ Password must be at least 6 characters.');
+      if (activeAuthRole==='student'&&!email.endsWith('@vitstudent.ac.in')) return showErr('Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small>Or click "One-Click Instant Verified Sign In" below.</small>');
+      if (activeAuthRole==='faculty'&&(!email.endsWith('@vit.ac.in')||email.endsWith('@vitstudent.ac.in'))) return showErr('Faculty email must end with <strong>@vit.ac.in</strong>.<br><small>Or click "One-Click Instant Verified Sign In" below.</small>');
+      if (pwd.length < 6) return showErr('Password must be at least 6 characters.');
 
       if (sb) { sb.disabled=true; sb.innerHTML='<span>Verifying...</span>'; }
       try {
@@ -2864,10 +2417,8 @@
         } else {
           await supabaseClient.auth.signInWithPassword({email,password:pwd}).catch(()=>{});
         }
-        triggerConfetti();
         loginSuccess({role:activeAuthRole,email,name,regId});
       } catch(err) {
-        triggerConfetti();
         loginSuccess({role:activeAuthRole,email,name,regId});
       } finally {
         if (sb) { sb.disabled=false; updateAuthUI(); }
@@ -2881,17 +2432,16 @@
       hidePortalOverlay();
       const txt = document.getElementById('stop-text');
       if (txt) {
-        txt.innerHTML=`<span>Welcome, <strong style="color:#38bdf8;">${user.name||user.email}</strong> • ${user.role.toUpperCase()} PORTAL ACTIVE</span>`;
+        txt.innerHTML=`<span>Welcome, <strong style="color:var(--primary);">${user.name||user.email}</strong> • ${user.role.toUpperCase()} PORTAL ACTIVE</span>`;
         setTimeout(() => {
           if (userLocation && nearestCampusStop) calculateNearestStop(userLocation.lat,userLocation.lng);
           else requestLocationAndFindNearestStop(false);
-        }, 2800);
+        }, 2500);
       }
     }
 
     function logoutUser(e) {
       if (e) e.stopPropagation();
-      playBeep();
       localStorage.removeItem('vit_shuttle_session');
       currentUser = null;
       try { supabaseClient.auth.signOut().catch(()=>{}); } catch(e) {}
@@ -2901,7 +2451,6 @@
     function updateNavChip(role) {
       const badge = document.getElementById('session-label');
       if (!badge) return;
-      badge.className = `session-label ${role[0]}`;
       const icon = role==='student'?'🎓':role==='faculty'?'⭐':'🚖';
       const name = currentUser?.name ? (' '+currentUser.name.split(' ')[0]) : '';
       badge.textContent = `${icon}${name} (${role.toUpperCase()})`;
@@ -2925,13 +2474,13 @@
       const verb = authMode === 'login' ? 'Sign In' : 'Sign Up';
       document.getElementById('google-picker-title').textContent = `${verb} with Google`;
       const sub = document.getElementById('google-picker-sub');
-      if (r==='student') sub.innerHTML = `Continuing as <strong>Student</strong> • Choose your <strong>@vitstudent.ac.in</strong> account`;
-      else if (r==='faculty') sub.innerHTML = `Continuing as <strong>Faculty</strong> • Choose your <strong>@vit.ac.in</strong> account`;
-      else sub.innerHTML = `Continuing as <strong>Shuttle Driver</strong> • Choose your authorized driver account`;
+      if (r==='student') sub.innerHTML = `Continuing as <strong>Student</strong> • Choose verified <strong>@vitstudent.ac.in</strong>`;
+      else if (r==='faculty') sub.innerHTML = `Continuing as <strong>Faculty</strong> • Choose verified <strong>@vit.ac.in</strong>`;
+      else sub.innerHTML = `Continuing as <strong>Driver</strong> • Choose authorized account`;
 
       const list = document.getElementById('google-picker-accounts');
       const mkAcc = (type,email,name,regId,avatarBg,avatarLetter,roleLabel) => `
-        <div class="g-account pressable" onclick="playChime(); triggerConfetti(); selectGoogleAccount('${type}','${email}','${name}','${regId}')">
+        <div class="g-account" onclick="selectGoogleAccount('${type}','${email}','${name}','${regId}')" role="button" tabindex="0">
           <div class="g-avatar" style="background:${avatarBg};">${avatarLetter}</div>
           <div>
             <div class="g-name">${name}</div>
@@ -2941,21 +2490,20 @@
         </div>`;
 
       if (r==='student') {
-        list.innerHTML = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#0284c7','R','🎓 Verified Student • 21BCE1042') +
-                         mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','🎓 Verified Student • 22BCE2410');
+        list.innerHTML = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#1d4ed8','R','Verified Student • 21BCE1042') +
+                         mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','Verified Student • 22BCE2410');
       } else if (r==='faculty') {
-        list.innerHTML = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','⭐ Verified Faculty • VIT-FAC-4091') +
-                         mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','⭐ Verified Faculty • VIT-FAC-1102');
+        list.innerHTML = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','Verified Faculty • VIT-FAC-4091') +
+                         mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','Verified Faculty • VIT-FAC-1102');
       } else {
-        list.innerHTML = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','🚖 Authorized Driver • Bus #101 (MH)') +
-                         mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','🚖 Authorized Driver • Bus #102 (LH)');
+        list.innerHTML = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','Authorized Driver • Bus #101 (MH)') +
+                         mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','Authorized Driver • Bus #102 (LH)');
       }
       document.getElementById('google-picker-modal').classList.add('active','open');
     }
 
     function closeGooglePicker(e) {
       if (e) e.stopPropagation();
-      playBeep();
       document.getElementById('google-picker-modal').classList.remove('active','open');
     }
 
@@ -2990,7 +2538,7 @@
       showPortalOverlay();
     }
 
-    // ── BOOTSTRAP & CACHE CLEAR ──
+    // ── BOOTSTRAP & CACHE INVALIDATION ──
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
         for (let registration of registrations) { registration.unregister(); }
