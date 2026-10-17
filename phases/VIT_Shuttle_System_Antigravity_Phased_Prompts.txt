@@ -1,0 +1,775 @@
+VIT SHUTTLE SYSTEM
+ANTIGRAVITY DEVELOPMENT PROMPTS
+Phased implementation guide
+
+PURPOSE
+Use these prompts one phase at a time in Google Antigravity while working on the existing VIT Shuttle System project. The project is at an early stage, so inspect the codebase before making changes and build incrementally.
+
+GENERAL WORKFLOW
+1. Open the existing local project folder in Antigravity.
+2. Before each phase, commit the current work to Git or create a checkpoint/branch.
+3. Paste only the prompt for the phase you are working on.
+4. Review the implementation in the browser and inspect errors.
+5. Run available linting, type checking, tests, and build commands.
+6. Fix regressions before moving to the next phase.
+7. If data, APIs, credentials, or backend services are missing, document what is missing. Do not invent integrations or present sample data as real.
+8. Keep a clear distinction between completed functionality, mock/sample data, and features that still require configuration.
+
+GLOBAL INSTRUCTION TO INCLUDE WITH EVERY PHASE
+Inspect the existing codebase first. Make the smallest coherent set of changes needed for this phase. Preserve completed work, reuse existing components, and do not rewrite unrelated parts of the application. After implementation, run the available checks and report what was actually completed versus what still requires configuration or additional development.
+
+Do not rebuild the entire application from scratch unless genuinely necessary. Do not remove existing functionality simply to make a new feature easier. Do not claim that a feature, test, integration, or security control works unless it has actually been implemented and verified.
+
+============================================================
+PHASE 1 — UI/UX REDESIGN
+============================================================
+
+You are a senior UI/UX designer and frontend engineer. Improve the existing VIT Shuttle System web application into a polished, modern, premium-quality campus transportation platform.
+
+Website: https://vit-shuttle-system-flax.vercel.app/
+
+IMPORTANT INSTRUCTIONS:
+1. First inspect the existing project structure, frontend framework, installed dependencies, routing, components, and styling.
+2. Examine the existing application before making changes.
+3. Preserve existing functionality, project configuration, and useful components.
+4. Do not rebuild the entire application from scratch unless absolutely necessary.
+5. Do not replace existing working features with static mockups.
+6. Do not invent real shuttle locations, schedules, or operational data.
+7. Make changes directly to the existing project and verify them in the browser.
+
+DESIGN DIRECTION:
+Create a modern, premium, student-friendly transportation application with a distinctive campus identity.
+
+Visual style:
+- Clean, modern, minimalist interface.
+- Consistent typography and spacing.
+- Carefully designed cards and navigation.
+- Subtle shadows and borders.
+- Smooth, restrained animations.
+- Consistent iconography.
+- Excellent mobile responsiveness.
+- Clear visual hierarchy.
+
+Use a consistent colour palette inspired by VIT's visual identity, without copying official branding assets without permission.
+
+TECHNICAL REQUIREMENTS:
+- Reuse the existing frontend framework and dependencies wherever practical.
+- Establish reusable design tokens for colours, typography, spacing, shadows, and border radii.
+- Create reusable buttons, cards, form controls, badges, dialogs, and navigation components.
+- Use a consistent icon library if one is already installed.
+- Ensure keyboard accessibility and visible focus states.
+- Add appropriate hover, active, disabled, loading, and error states.
+- Ensure text has sufficient contrast.
+- Prevent horizontal overflow on mobile devices.
+- Respect reduced-motion preferences.
+- Use responsive layouts rather than fixed desktop-only dimensions.
+
+PAGES TO REVIEW:
+- Landing page.
+- Student portal.
+- Faculty portal.
+- Driver portal.
+- Login and registration screens.
+- Navigation and menus.
+- Maps and shuttle information panels.
+- Empty states and error states.
+
+Add a consistent light theme and, if practical, a dark theme.
+
+Avoid excessive gradients, excessive glassmorphism, oversized headings, unnecessary animations, and generic AI-generated dashboard aesthetics.
+
+DELIVERABLES:
+1. Improve the visual design throughout the existing application.
+2. Establish a consistent design system.
+3. Improve responsive behaviour.
+4. Preserve existing routes and functionality.
+5. Run the project's available linting, type checking, and build commands.
+6. Fix errors introduced by your changes.
+7. Summarize the files changed and the improvements made.
+
+Complete this phase before implementing major new features.
+
+============================================================
+PHASE 2 — STUDENT DASHBOARD
+============================================================
+
+Improve the existing VIT Shuttle System student dashboard.
+
+First inspect the current project and reuse the design system established in Phase 1.
+
+OBJECTIVE:
+Create a modern, personalized student dashboard that makes campus transportation easy to understand and navigate.
+
+DASHBOARD LAYOUT:
+
+1. HEADER
+- Display the application logo and name.
+- Show a personalized greeting when an authenticated user's name is available.
+- Include notifications and profile access.
+- Provide a responsive mobile navigation menu.
+
+2. DESTINATION SEARCH
+- Place a prominent search bar near the top.
+- Use the placeholder: "Where do you want to go?"
+- Allow searching for campus buildings, hostels, shuttle stops, and other configured destinations.
+- Support autocomplete when destination data is available.
+- Display a useful empty state when no results match.
+
+3. QUICK DESTINATIONS
+Create shortcut cards for frequently visited campus destinations.
+Use actual configured campus locations if available. Otherwise, use clearly labelled sample data that can easily be replaced.
+
+4. SHUTTLE OVERVIEW
+Create reusable cards showing available shuttle information, including:
+- Shuttle identifier.
+- Route or destination.
+- Next stop.
+- Estimated arrival time, when available.
+- Occupancy status, when available.
+- Last updated timestamp.
+- Service status.
+
+Never present placeholder values as live operational data.
+
+5. MAP SHORTCUT
+Include a prominent button to open the interactive campus map.
+
+6. FAVOURITES
+Allow users to access saved destinations and routes.
+
+7. RECENT SEARCHES
+Display recently searched destinations when search history is available.
+
+8. SERVICE ANNOUNCEMENTS
+Provide a section for important transport announcements.
+
+9. EMPTY AND ERROR STATES
+Handle missing routes, unavailable shuttle information, network failures, and empty search results gracefully.
+
+10. MOBILE NAVIGATION
+Use a clear mobile navigation structure with appropriate access to Home, Map, Routes, and Profile. Add Boarding Pass only when that feature is implemented.
+
+IMPLEMENTATION REQUIREMENTS:
+- Integrate with the existing routing and authentication systems.
+- Use reusable components.
+- Keep data separate from presentation.
+- Reuse existing backend integrations.
+- Do not introduce fake real-time shuttle information.
+- Make sample data clearly identifiable.
+- Ensure the dashboard works on mobile, tablet, and desktop.
+- Do not break existing portal navigation.
+
+Before finishing, test the dashboard interactions, responsive layouts, and available build checks.
+
+============================================================
+PHASE 3 — INTERACTIVE CAMPUS MAP
+============================================================
+
+Implement an interactive campus transportation map in the existing VIT Shuttle System.
+
+First inspect the current application to determine whether a mapping library, campus coordinates, route data, and stop data already exist.
+
+Do not replace a working map unnecessarily.
+
+CORE FEATURES:
+
+1. INTERACTIVE MAP
+- Allow zooming and panning.
+- Provide a control to recenter the map.
+- Support mobile touch gestures.
+- Include loading and error states.
+
+2. CAMPUS LOCATIONS
+Display configured locations such as:
+- Academic buildings.
+- Hostels.
+- Important campus facilities.
+- Shuttle stops.
+
+Use verified coordinates wherever possible. Do not invent geographic coordinates and present them as accurate.
+
+3. SHUTTLE STOPS
+- Use clearly distinguishable stop markers.
+- Display stop names.
+- Allow users to select a stop.
+- Show relevant route and stop information in a detail panel.
+
+4. ROUTE VISUALIZATION
+- Display configured shuttle routes as coloured lines.
+- Distinguish different routes visually.
+- Show stop sequences when route data is available.
+- Provide a route legend.
+
+5. SHUTTLE MARKERS
+When shuttle location data is available:
+- Display shuttle markers.
+- Show the shuttle identifier and route.
+- Display the last update time.
+- Clearly distinguish live data from sample data.
+- Indicate when a vehicle is offline or its location is stale.
+
+Do not simulate moving buses in the production interface.
+
+6. MAP FILTERS
+Allow users to filter by route, stops, shuttle locations, and campus destinations.
+
+7. LOCATION SEARCH
+Allow users to search for configured buildings and stops.
+
+8. LOCATION PERMISSIONS
+Request the user's location only when needed. Provide a manual location selection option when permission is denied.
+
+9. MAP AND LIST MODES
+Provide a toggle between map view and a list of routes or stops.
+
+10. MOBILE EXPERIENCE
+Use a responsive map with a collapsible bottom sheet or side panel, depending on screen size.
+
+TECHNICAL REQUIREMENTS:
+- Reuse existing mapping dependencies where practical.
+- If no mapping library exists, evaluate an appropriate solution such as Leaflet with OpenStreetMap tiles, or the mapping provider already used by the project.
+- Respect the chosen provider's attribution, usage limits, and terms.
+- Keep map data separate from UI components.
+- Handle missing coordinates and unavailable location data gracefully.
+- Avoid exposing private API keys in client-side source code.
+
+DELIVERABLES:
+Integrate the map into the existing application, test the main interactions, and document any missing route or coordinate data that prevents full functionality.
+
+============================================================
+PHASE 4 — SMART JOURNEY PLANNER
+============================================================
+
+Build a journey planner for the existing VIT Shuttle System.
+
+Inspect the existing route, stop, destination, and mapping implementations before making changes.
+
+OBJECTIVE:
+Help users plan journeys between configured campus locations using shuttle routes and walking connections.
+
+USER FLOW:
+1. Select a starting point.
+2. Select a destination.
+3. Optionally choose travel preferences.
+4. Display suitable journey options.
+5. Allow the user to select a journey.
+6. Show the complete journey breakdown and route on the map.
+
+JOURNEY RESULTS:
+Each result should display:
+- Starting point.
+- Walking distance to the boarding stop.
+- Estimated walking time.
+- Boarding stop.
+- Shuttle route.
+- Waiting time, when available.
+- Shuttle travel time, when available.
+- Destination stop.
+- Walking distance to the final destination.
+- Total estimated journey duration.
+- Data freshness and relevant uncertainty.
+
+ROUTE PREFERENCES:
+Support the following options where the underlying data permits:
+- Fastest journey.
+- Least walking.
+- Fewest transfers.
+
+ROUTE CALCULATION:
+- Use configured stops, routes, route sequences, and travel information.
+- Use a graph-based routing algorithm when appropriate.
+- Account for walking connections between campus destinations and stops.
+- Calculate transfer options only when the necessary route data exists.
+- Use live arrival estimates only when reliable data is available.
+- Clearly distinguish estimated values from verified schedules.
+
+USER EXPERIENCE:
+- Display journey steps in chronological order.
+- Highlight the selected route on the map.
+- Allow users to switch between available journey options.
+- Include clear back navigation.
+- Support swapping the starting point and destination.
+- Allow saving frequently used journeys.
+- Provide useful messages when no suitable route is available.
+
+IMPORTANT:
+Do not invent routes, stops, schedules, or walking paths.
+If the required data is missing, create an appropriate data model and clearly identify the missing configuration rather than pretending that a complete route calculation is possible.
+Keep the implementation modular so that additional routing algorithms and data sources can be added later.
+
+Test journey selection, missing-data handling, and responsive layouts.
+
+============================================================
+PHASE 5 — STUDENT CONVENIENCE FEATURES
+============================================================
+
+Improve the existing VIT Shuttle System with student convenience features.
+
+Inspect the existing authentication, dashboard, routing, and persistence mechanisms before implementing anything.
+
+FEATURES:
+
+1. FAVOURITE DESTINATIONS
+Allow users to save, rename, and remove favourite destinations.
+
+2. FAVOURITE ROUTES
+Allow users to save frequently used journeys.
+
+3. RECENT SEARCHES
+Store a limited history of recent destination searches. Provide a way to clear the history.
+
+4. PERSONAL PREFERENCES
+Allow users to configure relevant preferences, such as their default starting location and preferred route-planning mode.
+
+5. NOTIFICATIONS CENTRE
+Create a notification interface for transport announcements, service disruptions, and relevant route updates.
+
+6. JOURNEY HISTORY
+If journey records are available, display previous journeys in a clear timeline.
+
+7. SERVICE ANNOUNCEMENTS
+Show active announcements and distinguish important disruptions from routine messages.
+
+8. ONBOARDING
+Provide a short first-use introduction to the application's main features.
+
+9. PROFILE PAGE
+Display basic account information and user preferences.
+
+10. PERSISTENCE
+Use the project's existing database or persistence mechanism where appropriate. Avoid storing sensitive information unnecessarily.
+
+DESIGN REQUIREMENTS:
+- Reuse the established design system.
+- Provide empty states for users who have not saved anything.
+- Include loading, success, and error feedback.
+- Support mobile devices.
+- Respect user privacy.
+- Ensure users can remove saved information.
+
+Do not fabricate journey history or claim that notifications have been delivered when no notification service exists.
+Implement the features in small, maintainable components and test the relevant user flows.
+
+============================================================
+PHASE 6 — DRIVER PORTAL
+============================================================
+
+Improve and extend the existing VIT Shuttle System driver portal.
+
+First inspect the existing driver interface, authentication, user roles, route models, and backend capabilities.
+
+DESIGN:
+Create a clean, mobile-friendly interface suitable for use by authorized drivers.
+
+CORE SECTIONS:
+
+1. DRIVER DASHBOARD
+Display the assigned vehicle, assigned route, shift information, and current trip status.
+
+2. TRIP MANAGEMENT
+Provide clear controls to start a trip, end a trip, view the assigned route, and review the stop sequence.
+
+3. LOCATION SHARING
+When GPS integration is available:
+- Request appropriate location permission.
+- Share vehicle coordinates through an authenticated backend.
+- Display the last successful location update.
+- Handle loss of GPS or network connectivity.
+- Stop trip-related location sharing when the trip ends, according to the application's defined rules.
+
+4. STOP INFORMATION
+Display the next stop and relevant route information.
+
+5. INCIDENT REPORTING
+Allow drivers to report delays, vehicle breakdowns, route obstructions, and other operational issues.
+
+6. SHIFT MANAGEMENT
+Display assigned shifts and trip history when supported by the backend.
+
+7. SERVICE MESSAGES
+Display relevant operational announcements.
+
+8. ERROR HANDLING
+Clearly communicate failed updates, unavailable GPS, and invalid assignments.
+
+SECURITY:
+- Require server-side verification of driver permissions.
+- Require an authorized driver-to-vehicle assignment.
+- Validate all trip state changes on the backend.
+- Prevent unauthorized users from accessing driver functions.
+- Do not trust role information supplied only by the client.
+- Keep credentials and private keys out of frontend code.
+
+SAFETY:
+Do not encourage drivers to interact with complicated controls while driving. Keep the interface simple and provide appropriate safeguards.
+
+Do not simulate actual GPS tracking in production.
+
+DELIVERABLES:
+Integrate the driver portal with existing components and document any backend or operational data that remains to be implemented.
+
+============================================================
+PHASE 7 — FACULTY PORTAL
+============================================================
+
+Improve the faculty portal in the existing VIT Shuttle System.
+
+First inspect the current faculty portal and reuse the established design system, route data, authentication, and map components.
+
+FEATURES:
+
+1. FACULTY DASHBOARD
+Provide a clean dashboard with destination search, route information, and campus navigation.
+
+2. QUICK DESTINATIONS
+Allow access to configured academic buildings and other frequently visited campus locations.
+
+3. JOURNEY PLANNER
+Allow faculty members to plan journeys using the same route-planning functionality as students.
+
+4. FAVOURITES
+Support saving frequently visited destinations and routes.
+
+5. SERVICE STATUS
+Display relevant shuttle service information and disruptions.
+
+6. NOTIFICATIONS
+Show transport announcements and relevant route updates.
+
+7. ACCESSIBILITY PREFERENCES
+Where suitable information is available, allow users to prefer shorter walking distances or verified accessible routes.
+
+8. PROFILE AND PREFERENCES
+Allow users to manage their own preferences.
+
+9. OPTIONAL VISITOR EXPERIENCE
+Consider a public campus transport information page that visitors can access without receiving faculty privileges.
+
+SECURITY:
+- Verify faculty permissions on the backend.
+- Do not grant faculty access based on an editable frontend role.
+- Do not expose student or driver information unnecessarily.
+- Reuse the same secure authentication infrastructure as the rest of the application.
+
+Keep the faculty experience consistent with the overall application while giving it an appropriate information hierarchy.
+Test the main navigation and journey-planning flows.
+
+============================================================
+PHASE 8 — ADMINISTRATOR DASHBOARD
+============================================================
+
+Design and implement an administrator dashboard for the VIT Shuttle System.
+
+First inspect the existing data models, authentication, backend APIs, and user-role implementation.
+
+Do not assume that an administrator dashboard already exists.
+
+DASHBOARD SECTIONS:
+
+1. OVERVIEW
+Display available operational information, such as configured vehicles, routes, stops, and active trips.
+
+2. VEHICLE MANAGEMENT
+Allow authorized administrators to add, edit, deactivate, and inspect vehicle records.
+
+3. ROUTE MANAGEMENT
+Allow administrators to create routes, edit route details, add and remove stops, reorder stops, configure route sequences, and activate or deactivate routes.
+
+4. DRIVER MANAGEMENT
+Allow authorized administrators to manage driver accounts and assignments.
+
+5. USER MANAGEMENT
+Provide appropriate account and role management capabilities.
+
+6. ANNOUNCEMENTS
+Allow administrators to publish, edit, and expire transport announcements.
+
+7. SERVICE DISRUPTIONS
+Allow authorized administrators to record and communicate service disruptions.
+
+8. ANALYTICS
+Prepare a section for route usage, passenger counts, delays, and other metrics supported by actual data.
+
+9. AUDIT HISTORY
+Record important administrative changes, including route modifications, role changes, and vehicle assignments.
+
+10. SEARCH AND FILTERING
+Provide useful search and filtering for large lists of routes, vehicles, and users.
+
+SECURITY REQUIREMENTS:
+- Restrict administrative functionality to authorized accounts.
+- Enforce permissions on the backend.
+- Validate inputs on the server.
+- Prevent unauthorized modifications.
+- Record important administrative actions.
+- Avoid exposing passwords, authentication secrets, or unnecessary personal data.
+
+DATA REQUIREMENTS:
+Use existing database records wherever available.
+If a required data model does not exist, design it and document the necessary backend changes.
+Do not present sample analytics as actual campus operational statistics.
+
+DESIGN:
+Use a clear administrative layout with a sidebar, page headings, summary cards, searchable tables, and appropriate confirmation dialogs.
+Ensure the dashboard works on desktop and remains usable on tablets and mobile devices.
+
+Test CRUD operations and authorization boundaries where the existing backend permits.
+
+============================================================
+PHASE 9 — AI-POWERED CAMPUS TRANSPORT ASSISTANT
+============================================================
+
+Add an AI-powered campus transportation assistant to the existing VIT Shuttle System.
+
+First inspect the current application architecture, route data, destination data, and available backend services.
+
+OBJECTIVE:
+Allow users to ask transportation questions in natural language and receive answers grounded in the application's actual data.
+
+EXAMPLE QUESTIONS:
+- How do I get from SJT to TT?
+- Which shuttle route serves my destination?
+- Which available route involves the least walking?
+- Where is the nearest configured shuttle stop?
+- Are there any published service disruptions?
+- How long might this journey take?
+
+INTERFACE:
+- Create a clean conversational interface.
+- Provide suggested questions.
+- Display a typing indicator while generating a response.
+- Support readable message formatting.
+- Provide a way to start a new conversation.
+- Integrate the assistant into the existing design system.
+- Ensure the interface works on mobile devices.
+
+INTELLIGENCE:
+- Retrieve relevant routes, stops, schedules, and announcements from the application's data sources.
+- Use an appropriate language model through a backend service.
+- Provide responses grounded in retrieved information.
+- Clearly communicate when information is missing or outdated.
+- Do not invent routes, shuttle locations, service schedules, or arrival times.
+- When possible, link responses to the relevant route or map view.
+- Distinguish confirmed information from estimates.
+
+TECHNICAL REQUIREMENTS:
+- Keep model API keys on the server.
+- Never expose secrets in frontend code.
+- Validate user input.
+- Apply sensible rate limits.
+- Handle model timeouts and provider errors.
+- Avoid sending unnecessary personal information to the model.
+- Design the assistant so the model can retrieve only the information it needs.
+- Provide a graceful fallback if the AI service is unavailable.
+
+If no backend or AI integration exists, first create a suitable integration plan and implement the necessary backend components.
+Do not create a fake chatbot that merely returns predetermined responses while claiming to use AI.
+
+Test typical questions, ambiguous questions, missing data, and service failures.
+
+============================================================
+PHASE 10 — SMART CROWD PREDICTION AND ANALYTICS
+============================================================
+
+Extend the VIT Shuttle System with a foundation for shuttle occupancy monitoring and transportation analytics.
+
+First inspect the existing database, trip records, passenger records, and available operational data.
+
+Do not assume historical passenger counts already exist.
+
+PART A: OCCUPANCY
+Create a suitable structure for recording:
+- Vehicle capacity.
+- Reported passenger count.
+- Occupancy status.
+- Timestamp.
+- Associated vehicle and trip.
+- Data source.
+
+Support manual occupancy reporting as an initial implementation if automatic passenger counting is unavailable.
+Clearly identify manually reported, estimated, and sensor-derived occupancy data.
+
+PART B: ANALYTICS DASHBOARD
+Where the underlying records exist, display:
+- Trips per day.
+- Route usage.
+- Passenger counts.
+- Average reported delays.
+- Route demand by time of day.
+- Vehicle utilization.
+- Data freshness and completeness.
+
+PART C: CROWD ESTIMATION
+Design a future-ready approach to estimating occupancy levels.
+Begin with transparent rules or statistical methods where appropriate.
+If sufficient historical data becomes available, evaluate whether a forecasting model would improve predictions.
+Do not claim that a predictive model is accurate without testing it against held-out historical data.
+
+PART D: VISUALIZATION
+Use clear charts and tables with descriptive titles, units and time ranges, empty states, loading states, accessible labels, and clear explanations of estimates.
+
+PART E: DATA QUALITY
+- Validate incoming passenger counts.
+- Prevent impossible negative counts.
+- Compare counts against configured vehicle capacity.
+- Track when measurements were collected.
+- Distinguish missing data from zero passengers.
+- Avoid double-counting repeated events.
+
+PART F: PRIVACY
+Prefer aggregated statistics over identifiable passenger histories.
+Do not collect personal information unless it is necessary for a clearly defined feature.
+
+DELIVERABLES:
+Implement the analytics components that can be supported by existing data, document missing data requirements, and keep the system ready for future forecasting.
+
+============================================================
+PHASE 11 — SECURITY, ACCESSIBILITY, AND ERROR HANDLING
+============================================================
+
+Perform a focused quality, security, accessibility, and error-handling improvement pass on the existing VIT Shuttle System.
+
+Inspect the actual implementation before making changes.
+Do not assume that a feature is secure simply because it appears correct in the interface.
+
+1. AUTHENTICATION
+Review login, logout, session handling, password recovery, and authentication errors.
+
+2. AUTHORIZATION
+Verify that student, faculty, driver, and administrator permissions are enforced by the backend.
+
+3. INPUT VALIDATION
+Validate user-controlled data on the server and client where appropriate.
+
+4. SECRET MANAGEMENT
+Check that API keys, database credentials, and private configuration values are not exposed in frontend code or committed configuration files.
+
+5. ERROR HANDLING
+Create understandable error messages for network failures, missing data, authentication failures, permission errors, unavailable maps, failed location updates, and unexpected server errors.
+
+6. ACCESSIBILITY
+Review keyboard navigation, focus indicators, form labels, colour contrast, screen-reader labels, modal behaviour, and reduced-motion preferences.
+
+7. RESPONSIVENESS
+Test mobile, tablet, and desktop layouts.
+
+8. PERFORMANCE
+Identify unnecessary re-renders, oversized assets, and avoidable network requests.
+
+9. DEPENDENCIES
+Review dependencies for relevant security or compatibility issues using available project tooling.
+
+10. PRIVACY
+Avoid exposing sensitive information in logs, URLs, error messages, and public interfaces.
+
+11. TESTING
+Add appropriate tests for authentication boundaries, forms, critical user flows, and error states.
+
+12. DOCUMENTATION
+Document any issues that cannot be fixed safely without backend configuration, credentials, or changes to external services.
+
+Do not claim that the application is secure or production-ready solely because a build succeeds.
+Fix confirmed issues, run available checks, and report remaining risks clearly.
+
+============================================================
+PHASE 12 — FINAL INTEGRATION AND TESTING
+============================================================
+
+Perform an integration and regression-testing pass on the existing VIT Shuttle System after the completed development phases.
+
+IMPORTANT:
+Do not rebuild the application from scratch.
+Do not remove existing functionality simply to make tests pass.
+Do not silently replace real integrations with mock data.
+
+TASKS:
+
+1. NAVIGATION
+Verify navigation between the landing page, student portal, faculty portal, driver portal, administrator dashboard, map, and journey planner.
+
+2. AUTHENTICATION
+Test sign-in, sign-out, protected pages, and unauthorized access scenarios.
+
+3. STUDENT EXPERIENCE
+Test destination search, map navigation, journey planning, favourites, and notifications where implemented.
+
+4. DRIVER EXPERIENCE
+Test assigned routes, trip management, and location updates where supported.
+
+5. ADMINISTRATION
+Test vehicle management, route management, driver assignments, and announcements where implemented.
+
+6. DATA CONSISTENCY
+Check that routes, stops, destinations, and vehicle assignments remain consistent across the application.
+
+7. RESPONSIVENESS
+Test the main screens on mobile, tablet, and desktop viewport sizes.
+
+8. ERROR STATES
+Test unavailable data, failed network requests, missing coordinates, expired sessions, and unauthorized requests.
+
+9. ACCESSIBILITY
+Check keyboard navigation, focus states, form labels, and contrast.
+
+10. AUTOMATED CHECKS
+Run the available linting, type checking, unit tests, integration tests, and production build.
+
+11. BROWSER TESTING
+Use the available browser tools to inspect important pages and test major interactions.
+
+12. PERFORMANCE
+Identify obvious rendering problems, unnecessary requests, and oversized assets.
+
+13. DOCUMENTATION
+Update the README with:
+- Project overview.
+- Technology stack.
+- Installation instructions.
+- Required environment variables.
+- Development commands.
+- Existing features.
+- Features that still require configuration.
+- Known limitations.
+
+14. FINAL REPORT
+Provide:
+- Changes made.
+- Files changed.
+- Tests performed.
+- Tests passed and failed.
+- Known bugs.
+- Required external configuration.
+- Remaining security concerns.
+- Recommended next steps.
+
+Do not claim a test passed unless it was actually executed.
+Do not describe simulated data as real operational data.
+Complete the integration pass without unnecessarily changing the established design system.
+
+============================================================
+RECOMMENDED IMPLEMENTATION ORDER
+============================================================
+
+MILESTONE 1 — CORE EXPERIENCE
+1. Phase 1: UI/UX redesign.
+2. Phase 2: Student dashboard.
+3. Phase 3: Interactive campus map.
+4. Phase 4: Smart journey planner.
+
+MILESTONE 2 — PORTALS AND CONVENIENCE
+5. Phase 5: Student convenience features.
+6. Phase 6: Driver portal.
+7. Phase 8: Administrator dashboard.
+8. Phase 7: Faculty portal.
+
+MILESTONE 3 — ADVANCED FEATURES AND RELEASE QUALITY
+9. Phase 11: Security, accessibility, and error handling.
+10. Phase 9: AI-powered transport assistant.
+11. Phase 10: Crowd prediction and analytics.
+12. Phase 12: Final integration and testing.
+
+SECURITY NOTE:
+Security must be addressed as soon as authentication, user accounts, GPS sharing, or sensitive data are introduced. Phase 11 is a comprehensive review, not a reason to postpone basic security controls.
+
+FINAL DEVELOPMENT ADVICE
+Get the UI, student dashboard, campus map, and journey planner right first. These will define the core experience of the VIT Shuttle System. Add advanced AI and analytics only after the application has reliable route, stop, and journey data.
