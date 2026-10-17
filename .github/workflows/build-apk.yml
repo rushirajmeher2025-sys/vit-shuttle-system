@@ -35,10 +35,13 @@ jobs:
       - name: Build Release APK
         run: |
           cd shuttle_flutter_app
-          flutter build apk --release
+          flutter build apk --release --verbose
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: vit-shuttle-app-release
-          path: shuttle_flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          path: |
+            shuttle_flutter_app/build/app/outputs/flutter-apk/*.apk
+            build/app/outputs/flutter-apk/*.apk
