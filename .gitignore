@@ -28,6 +28,3 @@ ios/.generated/
 # OS
 .DS_Store
 Thumbs.db
-
-# GitHub Workflows (requires workflow token scope to push)
-.github/
