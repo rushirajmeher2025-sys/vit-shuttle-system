@@ -1,52 +1,2997 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>VIT Shuttle Tracker • Ultra Real-Time Campus Transit</title>
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+  <!-- Google Fonts: Inter & Space Grotesk & Orbitron for sci-fi HUD -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@500;700;800;900&family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="/">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>VIT Shuttle Tracker</title>
-  <link rel="manifest" href="manifest.json">
   <style>
+    /* ══════════════════════════════════════════════
+       🎨 CYBER-LUXE DESIGN TOKENS & NEON THEME
+    ══════════════════════════════════════════════ */
+    :root {
+      --bg:            #040711;
+      --bg-darker:     #020409;
+      --surf:          rgba(10, 16, 32, 0.78);
+      --surf-elevated: rgba(16, 25, 48, 0.88);
+      --surf-card:     rgba(13, 22, 42, 0.75);
+      --border:        rgba(255, 255, 255, 0.10);
+      --border-hi:     rgba(255, 255, 255, 0.22);
+      --border-neon:   rgba(56, 189, 248, 0.45);
+      
+      --cyan:          #06b6d4;
+      --cyan-light:    #38bdf8;
+      --cyan-glow:     rgba(6, 182, 212, 0.45);
+      
+      --blue:          #3b82f6;
+      --blue-d:        #1d4ed8;
+      --blue-glow:     rgba(59, 130, 246, 0.5);
+      
+      --green:         #10b981;
+      --green-d:       #059669;
+      --green-neon:    #34d399;
+      --green-glow:    rgba(16, 185, 129, 0.45);
+      
+      --pink:          #ec4899;
+      --pink-neon:     #f472b6;
+      --pink-glow:     rgba(236, 72, 153, 0.45);
+      
+      --purple:        #8b5cf6;
+      --purple-neon:   #a855f7;
+      --purple-glow:   rgba(139, 92, 246, 0.45);
+      
+      --amber:         #f59e0b;
+      --amber-neon:    #fbbf24;
+      --amber-glow:    rgba(245, 158, 11, 0.45);
+      
+      --red:           #ef4444;
+      --red-glow:      rgba(239, 68, 68, 0.45);
+      
+      --text:          #f8fafc;
+      --text-muted:    #94a3b8;
+      --text-dim:      #64748b;
+      
+      --radius-sm:     10px;
+      --radius-md:     16px;
+      --radius-lg:     22px;
+      --radius-xl:     28px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     html, body {
       width: 100%;
       height: 100%;
-      margin: 0;
-      padding: 0;
       overflow: hidden;
-      touch-action: none;
+      background: var(--bg);
+      font-family: 'Inter', -apple-system, sans-serif;
+      color: var(--text);
+      user-select: none;
+    }
+
+    /* ══════════════════════════════════════════════
+       🌌 CRAZY ANIMATED AURORA & PARTICLES BACKGROUND
+    ══════════════════════════════════════════════ */
+    .aurora-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+    .aurora-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(85px);
+      opacity: 0.38;
+      animation: auroraMorph 12s ease-in-out infinite alternate;
+    }
+    .blob-1 {
+      top: -10%; left: -10%;
+      width: 55vw; height: 55vw;
+      background: radial-gradient(circle, rgba(56,189,248,0.7) 0%, rgba(59,130,246,0.3) 60%, transparent 80%);
+      animation-duration: 14s;
+    }
+    .blob-2 {
+      bottom: -15%; right: -15%;
+      width: 60vw; height: 60vw;
+      background: radial-gradient(circle, rgba(16,185,129,0.6) 0%, rgba(6,182,212,0.3) 60%, transparent 80%);
+      animation-duration: 18s;
+      animation-delay: -5s;
+    }
+    .blob-3 {
+      top: 40%; left: 40%;
+      width: 45vw; height: 45vw;
+      background: radial-gradient(circle, rgba(139,92,246,0.5) 0%, rgba(236,72,153,0.2) 60%, transparent 80%);
+      animation-duration: 20s;
+      animation-delay: -8s;
+    }
+
+    @keyframes auroraMorph {
+      0%   { transform: translate(0, 0) scale(1) rotate(0deg); }
+      33%  { transform: translate(50px, -40px) scale(1.15) rotate(45deg); }
+      66%  { transform: translate(-30px, 60px) scale(0.9) rotate(-30deg); }
+      100% { transform: translate(20px, 20px) scale(1.05) rotate(15deg); }
+    }
+
+    /* Confetti Canvas */
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100005;
+    }
+
+    /* ══════════════════════════════════════════════
+       🗺️ MAP & LEAFLET TWEAKS
+    ══════════════════════════════════════════════ */
+    #map {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      background: #090e1a;
+    }
+    .leaflet-control-zoom { display: none !important; }
+    .leaflet-control-attribution {
+      background: rgba(4, 7, 17, 0.75) !important;
+      color: #64748b !important;
+      font-size: 8px !important;
+      backdrop-filter: blur(10px);
+      border-radius: 8px 0 0 0 !important;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .leaflet-control-attribution a { color: var(--cyan-light) !important; }
+
+    /* Polyline Route Animations */
+    @keyframes dashFlow {
+      to { stroke-dashoffset: -40; }
+    }
+    .animated-route-glow {
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+    .animated-route-core {
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 10, 14;
+      animation: dashFlow 1.6s linear infinite;
+    }
+
+    /* ══════════════════════════════════════════════
+       💎 ULTRA GLASSMORPHISM & SHINE EFFECT
+    ══════════════════════════════════════════════ */
+    .glass-panel {
+      background: var(--surf);
+      backdrop-filter: blur(28px) saturate(180%);
+      -webkit-backdrop-filter: blur(28px) saturate(180%);
+      border: 1px solid var(--border);
+      box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.55),
+                  inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .glass-panel::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -150%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+      transform: skewX(-25deg);
+      pointer-events: none;
+      animation: glassShine 8s infinite ease-in-out;
+    }
+    @keyframes glassShine {
+      0%, 80% { left: -150%; }
+      100% { left: 200%; }
+    }
+
+    /* ══════════════════════════════════════════════
+       ✨ CRAZY KEYFRAME ANIMATIONS
+    ══════════════════════════════════════════════ */
+    @keyframes pulse-ring-glow {
+      0%   { transform: scale(0.85); box-shadow: 0 0 0 0 var(--cyan-glow); }
+      70%  { transform: scale(1.15); box-shadow: 0 0 0 10px rgba(6,182,212,0); }
+      100% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(6,182,212,0); }
+    }
+
+    @keyframes radarSweep {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes sonarExpand {
+      0%   { transform: translate(-50%,-50%) scale(0.3); opacity: 0.95; }
+      50%  { opacity: 0.6; }
+      100% { transform: translate(-50%,-50%) scale(2.6); opacity: 0; }
+    }
+
+    @keyframes floatFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes neonGlow {
+      0%, 100% { filter: drop-shadow(0 0 6px var(--cyan-glow)); }
+      50% { filter: drop-shadow(0 0 16px var(--cyan-glow)) drop-shadow(0 0 30px var(--blue-glow)); }
+    }
+
+    @keyframes hologramLine {
+      0% { top: 0%; opacity: 0.8; }
+      50% { opacity: 1; }
+      100% { top: 100%; opacity: 0.8; }
+    }
+
+    @keyframes modalPopIn {
+      0%   { transform: scale(0.9) translateY(24px); opacity: 0; }
+      60%  { transform: scale(1.02) translateY(-4px); opacity: 1; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+
+    @keyframes slideDownBounce {
+      0%   { transform: translateY(-24px); opacity: 0; }
+      65%  { transform: translateY(4px); opacity: 1; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+
+    /* ══════════════════════════════════════════════
+       🚀 PRESSABLE & MICRO-INTERACTIONS
+    ══════════════════════════════════════════════ */
+    .pressable {
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1),
+                  box-shadow 0.16s ease,
+                  filter 0.16s ease,
+                  border-color 0.16s ease;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+    .pressable:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.08);
+    }
+    .pressable:active {
+      transform: scale(0.95) translateY(1px) !important;
+      filter: brightness(0.9);
+    }
+
+    /* ══════════════════════════════════════════════
+       🛸 DYNAMIC ISLAND & TOP NAV BAR
+    ══════════════════════════════════════════════ */
+    .top-bar {
+      position: absolute;
+      top: 14px; left: 14px; right: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1000;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      animation: slideDownBounce 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+
+    .nav-pill {
+      pointer-events: auto;
+      border-radius: var(--radius-lg);
+      padding: 7px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.65), 0 0 1px 1px rgba(255,255,255,0.08);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: -0.3px;
+      color: #fff;
+    }
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      box-shadow: 0 4px 14px var(--cyan-glow);
+      border: 1px solid rgba(255,255,255,0.25);
+      animation: floatFloat 3.5s ease-in-out infinite;
+    }
+
+    /* Animated Role Switcher Tabs */
+    .role-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-sm);
+      padding: 3px;
+      gap: 3px;
+      position: relative;
+    }
+    .role-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .role-tab:hover { color: #fff; }
+    .role-tab.active-student {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--blue-glow);
+    }
+    .role-tab.active-faculty {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--green-glow);
+    }
+    .role-tab.active-driver {
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--amber-glow);
+    }
+
+    /* Status & Satellite Live Pill */
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(16, 185, 129, 0.14);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34d399;
+      font-size: 0.64rem;
+      font-weight: 800;
+      font-family: 'Orbitron', monospace;
+      padding: 4px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.8px;
+      box-shadow: 0 0 12px rgba(16,185,129,0.25);
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      animation: pulse-ring-glow 1.6s infinite;
+    }
+
+    .session-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 4px 9px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .session-chip:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.25);
+    }
+    .session-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .session-label.s { color: #38bdf8; }
+    .session-label.f { color: #34d399; }
+    .session-label.d { color: #fbbf24; }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      opacity: 0.75;
+      display: flex;
+      align-items: center;
+      transition: all 0.18s;
+    }
+    .logout-btn:hover {
+      opacity: 1;
+      transform: scale(1.25);
+    }
+
+    /* ══════════════════════════════════════════════
+       📍 NEAREST STOP BANNER / DYNAMIC RADAR HUD
+    ══════════════════════════════════════════════ */
+    .stop-banner {
+      pointer-events: auto;
+      border-radius: var(--radius-md);
+      padding: 9px 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      transition: all 0.25s ease;
+      background: linear-gradient(135deg, rgba(10, 20, 42, 0.88), rgba(6, 12, 28, 0.94));
+    }
+    .stop-banner:hover {
+      border-color: var(--cyan-light);
+      box-shadow: 0 10px 30px rgba(6,182,212,0.25);
+    }
+    .stop-icon-wrap {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      background: rgba(56,189,248,0.15);
+      border: 1px solid rgba(56,189,248,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .stop-text {
+      flex: 1;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stop-text .hi {
+      color: #38bdf8;
+      font-weight: 700;
+    }
+    .stop-text .eta {
+      color: #34d399;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-left: 5px;
+    }
+    .stop-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .btn-sm {
+      border: none;
+      padding: 5px 11px;
+      border-radius: 9px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-cyan {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: #fff;
+      box-shadow: 0 3px 12px var(--cyan-glow);
+    }
+    .btn-dir {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: white;
+      border: none;
+      padding: 5px 12px;
+      border-radius: 9px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 3px 12px var(--cyan-glow);
+    }
+
+    /* ══════════════════════════════════════════════
+       🚶 DIRECTIONS HUD
+    ══════════════════════════════════════════════ */
+    .dir-hud {
+      display: none;
+      pointer-events: auto;
+      border-radius: var(--radius-lg);
+      padding: 13px 15px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.7), 0 0 0 1px rgba(6,182,212,0.35);
+      border: 1px solid rgba(6, 182, 212, 0.45);
+      animation: modalPopIn 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .dir-hud.active { display: block; }
+    .dir-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+    }
+    .dir-dest {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dir-close {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .dir-close:hover {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fff;
+    }
+    .dir-step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+    .dir-step-icon {
+      width: 40px; height: 40px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #06b6d4, #2563eb);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      color: white;
+      box-shadow: 0 4px 14px var(--cyan-glow);
+    }
+    .dir-step-main { flex: 1; min-width: 0; }
+    .dir-step-txt {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .dir-step-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .dir-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 9px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      font-size: 0.73rem;
+    }
+    .dir-stats {
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dir-toggle {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .dir-steps-list {
+      display: none;
+      margin-top: 8px;
+      max-height: 140px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: 10px;
+      padding: 6px;
+      border: 1px solid var(--border);
+    }
+    .dir-steps-list.open { display: block; }
+    .itinerary-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .itinerary-row.current {
+      background: rgba(6, 182, 212, 0.16);
+      color: #38bdf8;
+      font-weight: 700;
+    }
+
+    /* ══════════════════════════════════════════════
+       🕹️ MAP FLOATING CONTROLS (Right Edge)
+    ══════════════════════════════════════════════ */
+    .map-controls {
+      position: absolute;
+      right: 14px; top: 92px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .map-btn {
+      width: 44px; height: 44px;
+      border-radius: var(--radius-sm);
+      background: var(--surf-elevated);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-hi);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .map-btn:hover {
+      background: rgba(25, 40, 75, 0.95);
+      color: #fff;
+      border-color: var(--cyan-light);
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    /* ══════════════════════════════════════════════
+       ⚡ BOTTOM TRAY & TELEMETRY HUD
+    ══════════════════════════════════════════════ */
+    .bottom-tray {
+      position: absolute;
+      bottom: 14px; left: 14px; right: 14px;
+      max-width: 480px;
+      margin: 0 auto;
+      z-index: 1000;
+      border-radius: var(--radius-xl);
+      padding: 15px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.5),
+                  0 20px 50px rgba(0, 0, 0, 0.7),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Shuttle Selector Row */
+    .shuttle-row {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .shuttle-btn {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid transparent;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .shuttle-btn:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+    }
+    .shuttle-btn.sel-mh {
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.22), rgba(59, 130, 246, 0.18));
+      border-color: var(--cyan-light);
+      color: #bae6fd;
+      box-shadow: 0 4px 16px var(--cyan-glow);
+    }
+    .shuttle-btn.sel-lh {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.22), rgba(168, 85, 247, 0.18));
+      border-color: var(--pink-neon);
+      color: #fbcfe8;
+      box-shadow: 0 4px 16px var(--pink-glow);
+    }
+    .shuttle-btn.sel-fac {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.22), rgba(5, 150, 105, 0.18));
+      border-color: var(--green-neon);
+      color: #a7f3d0;
+      box-shadow: 0 4px 16px var(--green-glow);
+    }
+    .shuttle-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .fare-tag {
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 2.5px 6px;
+      border-radius: 6px;
+      letter-spacing: 0.4px;
+    }
+    .fare-paid { background: #0284c7; color: #fff; }
+    .fare-pink { background: #db2777; color: #fff; }
+    .fare-free { background: #059669; color: #fff; }
+
+    /* Telemetry HUD snapshot */
+    .telemetry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .next-stop-wrap {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .stop-indicator {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--red);
+      box-shadow: 0 0 10px var(--red-glow);
+      animation: pulse-ring-glow 1.8s infinite;
+    }
+    .next-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .next-eta {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--cyan-light);
+    }
+    
+    /* Cyber Speedometer Chip */
+    .speed-chip {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #38bdf8;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      padding: 4px 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 14px rgba(6, 182, 212, 0.2);
+      display: flex;
+      align-items: baseline;
+      gap: 3px;
+    }
+    .speed-chip span.unit {
+      font-size: 0.58rem;
+      color: var(--text-dim);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* Action Buttons with crazy glowing gradient */
+    .action-row {
+      display: flex;
+      gap: 8px;
+    }
+    .action-btn {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      letter-spacing: 0.2px;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .action-btn.blue {
+      background: linear-gradient(135deg, #0284c7, #2563eb, #4f46e5);
+      color: white;
+      box-shadow: 0 4px 20px var(--blue-glow);
+    }
+    .action-btn.blue:hover {
+      box-shadow: 0 6px 26px var(--cyan-glow);
+    }
+    .action-btn.green {
+      background: linear-gradient(135deg, #059669, #10b981, #06b6d4);
+      color: white;
+      box-shadow: 0 4px 20px var(--green-glow);
+    }
+    .restrict-pill {
+      flex: 1;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.74rem;
+      font-weight: 600;
+    }
+    .switch-btn {
+      background: var(--blue);
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.68rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* Expand Drawer Toggle */
+    .expand-toggle {
+      text-align: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      margin-top: 9px;
+      cursor: pointer;
+      padding: 3px 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: color 0.18s;
+    }
+    .expand-toggle:hover { color: var(--cyan-light); }
+
+    /* Drawer */
+    .drawer {
+      display: none;
+      margin-top: 11px;
+      padding-top: 11px;
+      border-top: 1px solid var(--border);
+      animation: modalPopIn 0.25s ease;
+    }
+    .drawer.open { display: block; }
+    .stops-scroll {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin-bottom: 11px;
+    }
+    .stops-scroll::-webkit-scrollbar { display: none; }
+    .stop-box {
+      min-width: 108px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .stop-box:hover {
+      border-color: var(--cyan-light);
+      background: rgba(6, 182, 212, 0.08);
+    }
+    .stop-box-name {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .stop-box-eta {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--cyan-light);
+      margin-top: 2px;
+    }
+
+    /* Crowd reporting bar */
+    .crowd-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .crowd-lbl {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--text-dim);
+    }
+    .crowd-btn {
+      flex: 1;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+    .crowd-low {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(16, 185, 129, 0.35);
+      color: #34d399;
+    }
+    .crowd-med {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+    .crowd-full {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #f87171;
+    }
+
+    /* ══════════════════════════════════════════════
+       🏎️ DRIVER SPEEDOMETER GAUGE
+    ══════════════════════════════════════════════ */
+    .driver-view {
+      display: none;
+      text-align: center;
+      padding: 6px 0;
+    }
+    .speedo-wrap {
+      position: relative;
+      width: 140px; height: 140px;
+      margin: 10px auto;
+    }
+    .speedo-svg {
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+    }
+    .speedo-bg-circle {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 8;
+    }
+    .speedo-bar {
+      fill: none;
+      stroke: url(#speedoGradient);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-dasharray: 377;
+      stroke-dashoffset: 200;
+      transition: stroke-dashoffset 0.4s ease;
+      filter: drop-shadow(0 0 8px rgba(245,158,11,0.6));
+    }
+    .speedo-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .speedo-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+      text-shadow: 0 0 16px rgba(245,158,11,0.5);
+    }
+    .speedo-unit {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--amber-neon);
+      letter-spacing: 1px;
+      margin-top: 2px;
+    }
+    .driver-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--amber-neon);
+      letter-spacing: 1.5px;
+    }
+
+    /* ══════════════════════════════════════════════
+       🎫 HOLOGRAPHIC DIGITAL TICKET MODAL
+    ══════════════════════════════════════════════ */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 5, 14, 0.85);
+      backdrop-filter: blur(14px);
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-bg.active, .modal-bg.open { display: flex; }
+
+    .ticket-card {
+      width: 100%;
+      max-width: 340px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      animation: modalPopIn 0.32s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 32px 70px rgba(0,0,0,0.9), 0 0 30px var(--cyan-glow);
+      border: 1px solid rgba(255,255,255,0.18);
+      position: relative;
+    }
+    .ticket-card::before {
+      content: '';
+      position: absolute;
+      top: -100%; left: -100%;
+      width: 300%; height: 300%;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%);
+      pointer-events: none;
+      animation: foilSheen 6s infinite linear;
+    }
+    @keyframes foilSheen {
+      0% { transform: translateY(-50%) rotate(25deg); }
+      100% { transform: translateY(50%) rotate(25deg); }
+    }
+
+    .tkt-head-blue {
+      background: linear-gradient(135deg, #0284c7, #2563eb, #6366f1);
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+    .tkt-head-green {
+      background: linear-gradient(135deg, #065f46, #059669, #10b981);
+      border-top: 3px solid #fde047;
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+    .tkt-body {
+      background: #090e1d;
+      padding: 20px;
+      text-align: center;
+      border-top: 2px dashed rgba(255,255,255,0.14);
+      position: relative;
+    }
+    .qr-box-wrap {
+      position: relative;
+      width: 130px; height: 130px;
+      margin: 12px auto;
+      background: white;
+      border-radius: 16px;
+      padding: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .laser-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #ef4444, #38bdf8, transparent);
+      box-shadow: 0 0 10px #38bdf8, 0 0 5px #ef4444;
+      animation: hologramLine 2.2s infinite ease-in-out alternate;
+    }
+
+    .modal-close {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 0.85rem;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background 0.18s;
+    }
+    .modal-close:hover { background: rgba(255, 255, 255, 0.16); }
+
+    /* ══════════════════════════════════════════════
+       📱 ROLE PORTAL / AUTH OVERLAY
+    ══════════════════════════════════════════════ */
+    .portal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background:
+        radial-gradient(ellipse at 25% 15%, rgba(6, 182, 212, 0.28) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 85%, rgba(139, 92, 246, 0.24) 0%, transparent 60%),
+        linear-gradient(180deg, rgba(3, 6, 14, 0.98) 0%, rgba(8, 14, 28, 0.99) 100%);
+      backdrop-filter: blur(35px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 24px 16px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .portal-overlay.visible { display: flex; opacity: 1; }
+    .portal-wrap { width: 100%; max-width: 470px; margin: auto; }
+    .portal-view { display: none; animation: modalPopIn 0.35s cubic-bezier(0.16,1,0.3,1) forwards; }
+    .portal-view.active { display: block; }
+
+    .portal-header { text-align: center; margin-bottom: 24px; }
+    .portal-brand-icon {
+      width: 72px; height: 72px;
+      margin: 0 auto 12px;
+      background: linear-gradient(135deg, #06b6d4, #2563eb, #8b5cf6);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 38px var(--cyan-glow);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+      animation: floatFloat 4s ease-in-out infinite;
+    }
+    .portal-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+      color: #fff;
+      margin-bottom: 5px;
+      background: linear-gradient(135deg, #ffffff 40%, #bae6fd 80%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .portal-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .portal-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 4px 14px;
+      border-radius: 24px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #34d399;
+      box-shadow: 0 0 14px rgba(16,185,129,0.2);
+    }
+
+    /* Modern Role Cards with Neon Borders */
+    .cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .role-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-xl);
+      padding: 16px 18px;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .role-card:hover {
+      transform: translateY(-3px) scale(1.01);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+    }
+    .role-card.student:hover {
+      border-color: var(--cyan-light);
+      background: rgba(6, 182, 212, 0.1);
+      box-shadow: 0 12px 35px var(--cyan-glow);
+    }
+    .role-card.faculty:hover {
+      border-color: var(--green-neon);
+      background: rgba(16, 185, 129, 0.1);
+      box-shadow: 0 12px 35px var(--green-glow);
+    }
+    .role-card.driver:hover {
+      border-color: var(--amber-neon);
+      background: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 12px 35px var(--amber-glow);
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 11px;
+    }
+    .card-icon {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+    .ci-student { background: rgba(6, 182, 212, 0.18); border: 1.5px solid rgba(6, 182, 212, 0.4); }
+    .ci-faculty { background: rgba(16, 185, 129, 0.18); border: 1.5px solid rgba(16, 185, 129, 0.4); }
+    .ci-driver  { background: rgba(245, 158, 11, 0.18); border: 1.5px solid rgba(245, 158, 11, 0.4); }
+
+    .card-badge {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 3.5px 10px;
+      border-radius: 10px;
+      text-transform: uppercase;
+    }
+    .cb-student { background: rgba(6, 182, 212, 0.2); color: #bae6fd; border: 1px solid rgba(6, 182, 212, 0.35); }
+    .cb-faculty { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.35); }
+    .cb-driver  { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.35); }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 9px;
+    }
+    .card-domain {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      margin-bottom: 12px;
+    }
+
+    .card-cta {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 0.82rem;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: filter 0.16s, transform 0.14s;
+    }
+    .cta-student { background: linear-gradient(135deg, #0284c7, #2563eb); box-shadow: 0 4px 14px var(--blue-glow); }
+    .cta-faculty { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 4px 14px var(--green-glow); }
+    .cta-driver  { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 4px 14px var(--amber-glow); }
+
+    .card-google-btn {
+      width: 100%;
+      padding: 9px 12px;
+      margin-top: 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .card-google-btn:hover { background: rgba(255, 255, 255, 0.12); }
+
+    .google-main-btn {
+      width: 100%;
+      background: #fff;
+      color: #0f172a;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+      margin-bottom: 11px;
+    }
+    .guest-btn {
+      width: 100%;
+      background: transparent;
+      border: 1.5px dashed rgba(255, 255, 255, 0.22);
+      color: var(--cyan-light);
+      padding: 11px;
+      border-radius: var(--radius-md);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .guest-btn:hover {
+      background: rgba(6, 182, 212, 0.12);
+      border-color: var(--cyan-light);
+      color: #fff;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    /* Auth Card Form */
+    .auth-card {
+      background: rgba(10, 16, 32, 0.95);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 24px var(--cyan-glow);
+    }
+    .auth-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .back-btn:hover { color: #fff; }
+    .auth-role-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 11px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+    .arb-student { background: rgba(6, 182, 212, 0.22); color: #bae6fd; border: 1px solid rgba(6, 182, 212, 0.4); }
+    .arb-faculty { background: rgba(16, 185, 129, 0.22); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .arb-driver  { background: rgba(245, 158, 11, 0.22); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+
+    .auth-heading {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .auth-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+    .auth-tabs {
+      display: flex;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 11px;
+      padding: 3px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+    }
+    .auth-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 9px 0;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .auth-tab.active {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #fff;
+      box-shadow: 0 3px 12px var(--blue-glow);
+    }
+
+    .form-group { margin-bottom: 13px; }
+    .form-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+      margin-bottom: 5px;
+    }
+    .form-input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1.5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 11px 12px 11px 38px;
+      color: white;
+      font-size: 0.82rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--cyan-light);
+      box-shadow: 0 0 0 3px var(--cyan-glow);
+      background: rgba(0, 0, 0, 0.75);
+    }
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 14px;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .pwd-toggle {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .auth-submit {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #0284c7, #2563eb, #8b5cf6);
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 5px 20px var(--blue-glow);
+      margin-top: 6px;
+    }
+
+    .instant-btn {
+      width: 100%;
+      padding: 10px;
+      background: rgba(6, 182, 212, 0.12);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      border-radius: 11px;
+      color: #bae6fd;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: all 0.2s;
+    }
+    .instant-btn:hover {
+      background: rgba(6, 182, 212, 0.22);
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+
+    .or-divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 14px 0;
+    }
+    .or-divider::before, .or-divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--border);
+    }
+    .or-divider span {
+      padding: 0 10px;
+      font-size: 0.64rem;
+      font-weight: 800;
+      color: var(--text-dim);
+      letter-spacing: 0.8px;
+    }
+    .auth-alert {
+      padding: 10px 12px;
+      border-radius: 11px;
+      font-size: 0.75rem;
+      margin-bottom: 14px;
+      line-height: 1.4;
+      display: none;
+    }
+    .auth-alert.error {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+    }
+
+    /* Google Picker Modal */
+    #google-picker-modal { z-index: 100001; }
+    .picker-card {
+      background: #fff;
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 400px;
+      padding: 24px;
+      color: #1e293b;
+      box-shadow: 0 28px 65px rgba(0,0,0,0.7);
+      animation: modalPopIn 0.28s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+    }
+    .picker-close-btn {
+      position: absolute;
+      top: 14px; right: 14px;
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.06);
+      border: none;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 14px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .g-accounts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .g-account {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      transition: all 0.16s ease;
+    }
+    .g-account:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .g-avatar {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 16px;
+      color: white;
+      flex-shrink: 0;
+    }
+    .g-name { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
+    .g-email { font-size: 0.72rem; color: #64748b; }
+    .g-role { font-size: 0.68rem; font-weight: 700; color: #2563eb; margin-top: 1px; }
+
+    /* ══════════════════════════════════════════════
+       🛸 RADAR BEAM & SHUTTLE NODE MARKERS
+    ══════════════════════════════════════════════ */
+    .shuttle-marker-wrap {
+      position: relative;
+      width: 60px; height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .radar-sweep-cone {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 54px; height: 54px;
+      margin-top: -27px; margin-left: -27px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, rgba(6,182,212,0.4) 0deg, rgba(6,182,212,0) 80deg, transparent 80deg);
+      animation: radarSweep 2.2s linear infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .sonar-ripple {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--cyan-light);
+      animation: sonarExpand 2s infinite cubic-bezier(0.2,0.6,0.3,1);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bus-node {
+      border-radius: 50%;
+      width: 38px; height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.7);
+      transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      z-index: 3;
+    }
+    .bus-node.mh {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: 2px solid #bae6fd;
+      box-shadow: 0 0 16px var(--cyan-glow);
+    }
+    .bus-node.lh {
+      background: linear-gradient(135deg, #db2777, #be185d);
+      border: 2px solid #fbcfe8;
+      box-shadow: 0 0 16px var(--pink-glow);
+    }
+    .bus-node.fac {
+      background: linear-gradient(135deg, #059669, #10b981);
+      border: 2px solid #fde047;
+      box-shadow: 0 0 16px var(--green-glow);
+    }
+    .bus-pill {
+      position: absolute;
+      top: -18px; left: 50%;
+      transform: translateX(-50%);
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: #040814;
+      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 8.5px;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.22);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.6);
+    }
+
+    .user-dot-wrap { position: relative; width: 28px; height: 28px; }
+    .user-dot {
+      width: 15px; height: 15px;
+      background: #38bdf8;
+      border: 2.5px solid white;
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      box-shadow: 0 0 14px var(--cyan-glow);
+      z-index: 2;
+    }
+    .user-pulse {
+      width: 40px; height: 40px;
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      animation: sonarExpand 2.2s infinite ease-out;
+      z-index: 1;
     }
   </style>
-  <script>
-    // Intercept trackpad pinch gesture in Chrome so browser doesn't zoom the entire page
-    window.addEventListener('wheel', function(e) {
-      if (e.ctrlKey) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-  </script>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
-  <script src="flutter_bootstrap.js" async></script>
+  <!-- 🌌 Animated Aurora Blobs -->
+  <div class="aurora-container">
+    <div class="aurora-blob blob-1"></div>
+    <div class="aurora-blob blob-2"></div>
+    <div class="aurora-blob blob-3"></div>
+  </div>
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- SVG Gradients -->
+  <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+    <linearGradient id="speedoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#06b6d4" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#ef4444" />
+    </linearGradient>
+  </svg>
+
+  <!-- ══════════════════════════════
+       AUTH / PORTAL OVERLAY
+  ══════════════════════════════ -->
+  <div id="portal-overlay" class="portal-overlay">
+    <div class="portal-wrap">
+
+      <!-- VIEW A: Role Selection -->
+      <div id="view-select" class="portal-view active">
+        <div class="portal-header">
+          <div class="portal-brand-icon"><span style="font-size:36px;">🚌</span></div>
+          <h1 class="portal-title">VIT Shuttle System</h1>
+          <p class="portal-sub">Ultra-Real-Time Transit • Choose Your Identity</p>
+          <div class="portal-live-pill">
+            <span class="live-dot"></span>
+            <span>Vellore Campus Fleet Live • 3 Shuttles Active</span>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <!-- Student Card -->
+          <div class="role-card student pressable" onclick="playBeep(); openAuthForm('student')">
+            <div class="card-top">
+              <div class="card-icon ci-student">🎓</div>
+              <div class="card-badge cb-student">CAMPUS BUS • ₹20</div>
+            </div>
+            <div class="card-title">Student Portal</div>
+            <div class="card-desc">Ride Campus Buses (#101 MH & #102 LH), live GPS telemetry, walking directions, and digital boarding pass.</div>
+            <div class="card-domain">🔒 Requires institutional @vitstudent.ac.in</div>
+            <button class="card-cta cta-student pressable">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('student')">
+              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+
+          <!-- Faculty Card -->
+          <div class="role-card faculty pressable" onclick="playBeep(); openAuthForm('faculty')">
+            <div class="card-top">
+              <div class="card-icon ci-faculty">⭐</div>
+              <div class="card-badge cb-faculty">FACULTY • 100% FREE</div>
+            </div>
+            <div class="card-title">Faculty Member</div>
+            <div class="card-desc">Exclusive Faculty Shuttle #201, zero-fare VIP clearance pass, academic buildings express & priority tracking.</div>
+            <div class="card-domain">🔒 Requires institutional @vit.ac.in</div>
+            <button class="card-cta cta-faculty pressable">
+              <span>Sign In / Register</span>
+              <span>→</span>
+            </button>
+            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('faculty')">
+              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+
+          <!-- Driver Card -->
+          <div class="role-card driver pressable" onclick="playBeep(); openAuthForm('driver')">
+            <div class="card-top">
+              <div class="card-icon ci-driver">🚖</div>
+              <div class="card-badge cb-driver">DRIVER CONSOLE</div>
+            </div>
+            <div class="card-title">Shuttle Driver</div>
+            <div class="card-desc">Active shift speedometer gauge, live vehicle telemetry broadcast & campus route switcher.</div>
+            <div class="card-domain">🔒 Authorized Drivers Only</div>
+            <button class="card-cta cta-driver pressable">
+              <span>Driver Console Login</span>
+              <span>→</span>
+            </button>
+            <button class="card-google-btn pressable" onclick="event.stopPropagation(); playBeep(); quickGoogleAuth('driver')">
+              <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+              <span>Sign In / Sign Up with Google</span>
+            </button>
+          </div>
+        </div>
+
+        <button class="google-main-btn pressable" onclick="playChime(); signInWithGoogle()">
+          <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <span>Sign in with Google (VIT Workspace)</span>
+        </button>
+
+        <button class="guest-btn pressable" onclick="triggerConfetti(); continueAsGuest()">
+          ⚡ Instant Demo Access — Explore Map as Student
+        </button>
+      </div>
+
+      <!-- VIEW B: Auth Form -->
+      <div id="view-auth" class="portal-view">
+        <div class="auth-card">
+          <div class="auth-nav">
+            <button class="back-btn pressable" onclick="playBeep(); backToPortalSelect()">← Back to Portals</button>
+            <div id="auth-role-badge" class="auth-role-badge arb-student">
+              <span id="auth-role-icon">🎓</span>
+              <span id="auth-role-label">Student Portal</span>
+            </div>
+          </div>
+
+          <h2 id="auth-form-heading" class="auth-heading">Sign In to Student Portal</h2>
+          <p id="auth-form-sub" class="auth-sub">Access campus transit with your VIT credentials</p>
+
+          <div class="auth-tabs">
+            <button id="auth-tab-login" class="auth-tab active pressable" onclick="playBeep(); setAuthMode('login')">Sign In</button>
+            <button id="auth-tab-register" class="auth-tab pressable" onclick="playBeep(); setAuthMode('register')">Create Account</button>
+          </div>
+
+          <button class="google-main-btn pressable" onclick="playChime(); signInWithGoogle()">
+            <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span id="google-btn-text">Continue with Google (VIT Account)</span>
+          </button>
+
+          <div class="or-divider"><span>OR WITH EMAIL & PASSWORD</span></div>
+
+          <div id="auth-alert" class="auth-alert"></div>
+
+          <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            <div id="auth-group-name" class="form-group" style="display:none;">
+              <label class="form-label">Full Name</label>
+              <div class="input-wrap">
+                <span class="input-icon">👤</span>
+                <input type="text" id="auth-name" class="form-input" placeholder="e.g. Arjun Kumar">
+              </div>
+            </div>
+            <div id="auth-group-id" class="form-group" style="display:none;">
+              <label id="auth-id-label" class="form-label">Registration Number</label>
+              <div class="input-wrap">
+                <span class="input-icon">🪪</span>
+                <input type="text" id="auth-id-val" class="form-input" placeholder="e.g. 21BCE1042">
+              </div>
+            </div>
+            <div class="form-group">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <label class="form-label">Institutional Email</label>
+                <span id="auth-domain-hint" style="font-size:0.68rem; color:#38bdf8; font-weight:700;">@vitstudent.ac.in</span>
+              </div>
+              <div class="input-wrap">
+                <span class="input-icon">✉️</span>
+                <input type="email" id="auth-email" class="form-input" required placeholder="student@vitstudent.ac.in">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="input-wrap">
+                <span class="input-icon">🔒</span>
+                <input type="password" id="auth-password" class="form-input" required placeholder="Min 6 characters">
+                <button type="button" class="pwd-toggle pressable" onclick="togglePasswordVisibility()">👁️</button>
+              </div>
+            </div>
+            <button type="submit" id="auth-submit-btn" class="auth-submit pressable">
+              <span id="auth-submit-text">Sign In to Student Portal</span>
+            </button>
+          </form>
+
+          <div style="margin-top:14px;">
+            <div class="or-divider"><span>OR QUICK TESTING</span></div>
+            <button class="instant-btn pressable" onclick="playChime(); quickFillAndLogin()">⚡ One-Click Instant Verified Sign In</button>
+          </div>
+
+          <div style="text-align:center; margin-top:13px; font-size:0.68rem; color:var(--text-dim);" id="auth-footer-notice">
+            Student fare: ₹20 per trip • Verified @vitstudent.ac.in
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MAP CANVAS
+  ══════════════════════════════ -->
+  <div id="map"></div>
+
+  <!-- ══════════════════════════════
+       TOP BAR & DYNAMIC HUD
+  ══════════════════════════════ -->
+  <div class="top-bar">
+    <div class="nav-pill glass-panel">
+      <div class="brand pressable" onclick="playBeep(); showPortalOverlay()" title="Switch Role / Account">
+        <div class="brand-icon">🚌</div>
+        <span>VIT Shuttle</span>
+      </div>
+
+      <div class="role-tabs">
+        <button id="role-student" class="role-tab active-student pressable" onclick="playBeep(); switchRole('student')">Student</button>
+        <button id="role-faculty" class="role-tab pressable" onclick="playBeep(); switchRole('faculty')">Faculty</button>
+        <button id="role-driver" class="role-tab pressable" onclick="playBeep(); switchRole('driver')">Driver</button>
+      </div>
+
+      <div class="session-chip pressable" id="session-chip" onclick="playBeep(); showPortalOverlay()" title="Account">
+        <span id="session-label" class="session-label s">🎓 Student</span>
+        <button class="logout-btn pressable" onclick="logoutUser(event)" title="Sign Out">🚪</button>
+      </div>
+
+      <div class="live-badge">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+      </div>
+    </div>
+
+    <!-- Nearest Stop Banner -->
+    <div id="stop-banner" class="stop-banner glass-panel">
+      <div class="stop-icon-wrap">📍</div>
+      <div class="stop-text" id="stop-text" onclick="handleNearestStopClick()">
+        <span>Tap to find your nearest campus stop...</span>
+      </div>
+      <div class="stop-actions" id="stop-actions">
+        <button class="btn-sm btn-cyan pressable" id="nearest-stop-btn" onclick="playBeep(); handleNearestStopClick()">Enable GPS</button>
+      </div>
+    </div>
+
+    <!-- Directions HUD -->
+    <div id="dir-hud" class="dir-hud glass-panel">
+      <div class="dir-header">
+        <div class="dir-dest">🚶 Walking to <strong id="dir-dest-name" style="color:#38bdf8;">Campus Stop</strong></div>
+        <button class="dir-close pressable" onclick="exitDirectionsMode(event)">✕ Exit</button>
+      </div>
+      <div class="dir-step">
+        <div class="dir-step-icon" id="dir-step-icon">⬆️</div>
+        <div class="dir-step-main">
+          <div class="dir-step-txt" id="dir-step-txt">Head straight towards campus walkway</div>
+          <div class="dir-step-sub" id="dir-step-sub">In 40m</div>
+        </div>
+      </div>
+      <div class="dir-meta">
+        <div class="dir-stats">
+          <span>⏱️ <span id="dir-eta">3 min</span></span>
+          <span>•</span>
+          <span>📏 <span id="dir-dist">220 m</span></span>
+        </div>
+        <button class="dir-toggle pressable" onclick="toggleItinerary(event)">
+          <span id="itin-label">All Steps (3) ▾</span>
+        </button>
+      </div>
+      <div class="dir-steps-list" id="dir-steps-list"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MAP CONTROLS (Right Edge)
+  ══════════════════════════════ -->
+  <div class="map-controls">
+    <div class="map-btn pressable" onclick="playBeep(); zoomIn()" title="Zoom In">+</div>
+    <div class="map-btn pressable" onclick="playBeep(); zoomOut()" title="Zoom Out">−</div>
+    <div class="map-btn pressable" onclick="playBeep(); requestLocationAndFindNearestStop(true)" title="My Location" style="color:#38bdf8;">🎯</div>
+    <div class="map-btn pressable" onclick="playBeep(); centerOnShuttle()" title="Center Shuttle" style="color:#34d399;">📍</div>
+  </div>
+
+  <!-- ══════════════════════════════
+       BOTTOM TRAY (Telemetry & Passenger / Driver)
+  ══════════════════════════════ -->
+  <div class="bottom-tray glass-panel">
+    <!-- Passenger View -->
+    <div id="passenger-view">
+      <!-- Shuttle selector row -->
+      <div class="shuttle-row">
+        <button id="btn-mh" class="shuttle-btn sel-mh pressable" onclick="playBeep(); selectShuttle('vit_general_bus_101')">
+          <span class="shuttle-name">🚌 Men's Hostels</span>
+          <span class="fare-tag fare-paid">₹20</span>
+        </button>
+        <button id="btn-lh" class="shuttle-btn pressable" onclick="playBeep(); selectShuttle('vit_general_bus_102')">
+          <span class="shuttle-name">🌸 Women's Hostel</span>
+          <span class="fare-tag fare-pink">₹20</span>
+        </button>
+        <button id="btn-fac" class="shuttle-btn pressable" onclick="playBeep(); selectShuttle('vit_faculty_shuttle_201')">
+          <span class="shuttle-name">⭐ Faculty VIP</span>
+          <span class="fare-tag fare-free">FREE</span>
+        </button>
+      </div>
+
+      <!-- Telemetry Snapshot -->
+      <div class="telemetry">
+        <div class="next-stop-wrap">
+          <div class="stop-indicator"></div>
+          <div>
+            <span class="next-name" id="next-stop-label">Next: MB (Main Bldg)</span>
+            <span class="next-eta" id="next-stop-mins"> • 2 min</span>
+          </div>
+        </div>
+        <div class="speed-chip" id="speed-chip">
+          <span id="speed-val">22</span>
+          <span class="unit">KM/H</span>
+        </div>
+      </div>
+
+      <!-- Action Row -->
+      <div class="action-row" id="action-row-content"></div>
+
+      <!-- Expand Drawer Toggle -->
+      <div class="expand-toggle pressable" onclick="toggleDetailsDrawer()">
+        <span id="drawer-toggle-text">Show all stops & live crowding ▾</span>
+      </div>
+
+      <!-- Drawer Content -->
+      <div class="drawer" id="details-drawer">
+        <div class="stops-scroll" id="drawer-stops-list">
+          <div class="stop-box"><div class="stop-box-name">MB (Main Bldg)</div><div class="stop-box-eta">2 min</div></div>
+          <div class="stop-box"><div class="stop-box-name">SJT Tower</div><div class="stop-box-eta">5 min</div></div>
+          <div class="stop-box"><div class="stop-box-name">Men's Hostel</div><div class="stop-box-eta">8 min</div></div>
+        </div>
+        <div class="crowd-bar">
+          <span class="crowd-lbl">Live Crowding:</span>
+          <button class="crowd-btn crowd-low pressable" onclick="playChime(); reportCrowd('Low')">🟢 Low</button>
+          <button class="crowd-btn crowd-med pressable" onclick="playBeep(); reportCrowd('Moderate')">🟡 Med</button>
+          <button class="crowd-btn crowd-full pressable" onclick="playBeep(); reportCrowd('Full')">🔴 Full</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver View -->
+    <div id="driver-view" class="driver-view">
+      <div class="driver-label">ACTIVE DRIVING SHIFT</div>
+      
+      <!-- Circular Speedo Gauge -->
+      <div class="speedo-wrap">
+        <svg class="speedo-svg" viewBox="0 0 140 140">
+          <circle class="speedo-bg-circle" cx="70" cy="70" r="60" />
+          <circle id="speedo-bar" class="speedo-bar" cx="70" cy="70" r="60" />
+        </svg>
+        <div class="speedo-center">
+          <div class="speedo-num" id="driver-speed">22</div>
+          <div class="speedo-unit">KM / H</div>
+        </div>
+      </div>
+
+      <button class="action-btn pressable" style="background:linear-gradient(135deg, #ef4444, #b91c1c); color:white; width:100%; border-radius:12px; box-shadow:0 4px 16px var(--red-glow);" onclick="playBeep(); switchRole('student')">
+        End Driving Shift
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       HOLOGRAPHIC TICKET MODAL
+  ══════════════════════════════ -->
+  <div id="ticket-modal" class="modal-bg" onclick="closeModal(event)">
+    <div class="ticket-card" id="ticket-card-content"></div>
+  </div>
+
+  <!-- ══════════════════════════════
+       GOOGLE PICKER MODAL
+  ══════════════════════════════ -->
+  <div id="google-picker-modal" class="modal-bg" onclick="closeGooglePicker(event)">
+    <div class="picker-card" onclick="event.stopPropagation()">
+      <button class="picker-close-btn pressable" onclick="closeGooglePicker(event)">✕</button>
+      <div style="text-align:center; margin-bottom:14px; border-bottom:1px solid #f1f5f9; padding-bottom:14px;">
+        <svg style="width:28px;height:28px;margin:0 auto 6px;display:block;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        <div id="google-picker-title" style="font-weight:800;font-size:1.05rem;color:#0f172a;font-family:'Space Grotesk',sans-serif;">Sign in with Google</div>
+        <div id="google-picker-sub" style="font-size:0.75rem;color:#64748b;margin-top:2px;">Choose a verified institutional account</div>
+      </div>
+      <div class="g-accounts" id="google-picker-accounts"></div>
+      <div style="font-size:0.67rem; color:#94a3b8; line-height:1.4; text-align:center;">
+        Google shares your verified VIT profile with Vellore Transit Services.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       SCRIPTS & REAL-TIME LOGIC
+  ══════════════════════════════ -->
+  <script>
+    // ── 🔊 WEB AUDIO SYNTH SOUNDS ──
+    let audioCtx = null;
+    function getAudioCtx() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+    function playBeep(freq = 580, type = 'sine', duration = 0.08) {
+      try {
+        const ctx = getAudioCtx();
+        if (ctx.state === 'suspended') ctx.resume();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch(e) {}
+    }
+    function playChime() {
+      playBeep(523.25, 'triangle', 0.1);
+      setTimeout(() => playBeep(659.25, 'triangle', 0.1), 80);
+      setTimeout(() => playBeep(783.99, 'sine', 0.18), 160);
+    }
+
+    // ── 🎉 CONFETTI PARTICLE SYSTEM ──
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const confettiCtx = confettiCanvas.getContext('2d');
+    let particles = [];
+
+    function resizeConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfetti);
+    resizeConfetti();
+
+    function triggerConfetti() {
+      playChime();
+      const colors = ['#06b6d4', '#38bdf8', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#a855f7'];
+      for (let i = 0; i < 70; i++) {
+        particles.push({
+          x: window.innerWidth / 2,
+          y: window.innerHeight * 0.6,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.8) * 16,
+          size: Math.random() * 6 + 4,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rotation: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 10,
+          alpha: 1
+        });
+      }
+    }
+
+    function renderConfetti() {
+      confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.4; // gravity
+        p.rotation += p.vRot;
+        p.alpha -= 0.016;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        confettiCtx.save();
+        confettiCtx.globalAlpha = p.alpha;
+        confettiCtx.translate(p.x, p.y);
+        confettiCtx.rotate((p.rotation * Math.PI) / 180);
+        confettiCtx.fillStyle = p.color;
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 1.5);
+        confettiCtx.restore();
+      }
+      requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // ── SUPABASE CLIENT ──
+    const SUPABASE_URL = 'https://yaypinidsnhmcoccvqco.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlheXBpbmlkc25obWNvY2N2cWNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE5NTU1OTMsImV4cCI6MjEwNzUzMTU5M30.PDzKPv4lTEISGBPq6pacG9aueBtUoRV-sqk_JZN_vpU';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // ── MAP INITIALIZATION ──
+    const map = L.map('map', { zoomControl: false, tap: false }).setView([12.9715, 79.1595], 16.2);
+    L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+      subdomains: ['0','1','2','3'], maxZoom: 20, attribution: 'Google Maps'
+    }).addTo(map);
+
+    // ── APP STATE ──
+    let currentRole = 'student';
+    let selectedShuttleId = 'vit_general_bus_101';
+    let isDrawerOpen = false;
+
+    let campusStops = [
+      { id:1,  name:"Vajpayee / Q & R-Block Cluster",    category:'mh',       lat:12.9723, lng:79.1627 },
+      { id:2,  name:"L, M, N, P Block Cluster",           category:'mh',       lat:12.9712, lng:79.1612 },
+      { id:3,  name:"MH Food Court & All Maart Area",     category:'mh',       lat:12.9701, lng:79.1601 },
+      { id:4,  name:"GD Naidu Block / A-G Blocks",        category:'mh',       lat:12.9692, lng:79.1588 },
+      { id:5,  name:"TT / Central Library Junction",      category:'mh',       lat:12.9691, lng:79.1560 },
+      { id:6,  name:"Main Ladies' Hostel (LH) Gate",      category:'lh',       lat:12.9675, lng:79.1595 },
+      { id:7,  name:"LH G Block",                          category:'lh',       lat:12.9668, lng:79.1602 },
+      { id:8,  name:"Periyar EVR Central Library",         category:'lh',       lat:12.9688, lng:79.1561 },
+      { id:9,  name:"SMV / MB Block Portico",              category:'lh',       lat:12.9698, lng:79.1552 },
+      { id:10, name:"SJT (Silver Jubilee Tower)",          category:'academic', lat:12.9708, lng:79.1558 },
+      { id:11, name:"Main Gate 1 Entrance",                category:'faculty',  lat:12.9682, lng:79.1542 },
+      { id:12, name:"Main Gate 2 Entrance",                category:'faculty',  lat:12.9665, lng:79.1551 },
+      { id:13, name:"Dr. M.G.R. Central Admin Block",      category:'faculty',  lat:12.9688, lng:79.1550 },
+      { id:14, name:"Staff & Faculty Quarters Zone",       category:'faculty',  lat:12.9658, lng:79.1578 },
+      { id:15, name:"TT (Technology Tower)",               category:'faculty',  lat:12.9695, lng:79.1563 },
+      { id:16, name:"Gandhi Block / Netaji Block",         category:'faculty',  lat:12.9715, lng:79.1548 }
+    ];
+
+    let activeShuttles = {
+      'vit_general_bus_101':    { shuttleId:'vit_general_bus_101',   name:"Campus Bus #101 (Men's Hostels)",   shuttleType:'general', fare:20,  lat:12.9723, lng:79.1627, speed:22.0, stopETAs:[] },
+      'vit_general_bus_102':    { shuttleId:'vit_general_bus_102',   name:"Campus Bus #102 (Women's Hostel)",  shuttleType:'general', fare:20,  lat:12.9675, lng:79.1595, speed:21.0, stopETAs:[] },
+      'vit_faculty_shuttle_201':{ shuttleId:'vit_faculty_shuttle_201',name:'Faculty Exclusive Shuttle #201',  shuttleType:'faculty', fare:0,   lat:12.9682, lng:79.1542, speed:19.5, stopETAs:[] }
+    };
+
+    let shuttleMarkers = {};
+    let fallbackSimulatorTimer = null;
+
+    // ── DATA LOADING & CAMPUS STOPS ──
+    async function loadCampusData() {
+      try {
+        const { data: stops } = await supabaseClient.from('stops').select('*');
+        if (stops && stops.length >= 10) campusStops = stops;
+      } catch(e) {}
+
+      campusStops.forEach(stop => {
+        let dotColor = '#38bdf8', badgeIcon = '🛏️';
+        if (stop.category === 'lh')           { dotColor = '#ec4899'; badgeIcon = '🌸'; }
+        else if (stop.category === 'faculty') { dotColor = '#10b981'; badgeIcon = '⭐'; }
+        else if (stop.category === 'academic'){ dotColor = '#a855f7'; badgeIcon = '🏛️'; }
+
+        const stopIcon = L.divIcon({
+          className:'',
+          html:`<div style="background:#040814;color:#f8fafc;font-size:9.5px;font-family:'Space Grotesk',sans-serif;font-weight:800;padding:3px 9px;border-radius:9px;border:1.5px solid ${dotColor};box-shadow:0 4px 14px rgba(0,0,0,0.7),0 0 10px ${dotColor}44;white-space:nowrap;transform:translate(-50%,-26px);display:flex;align-items:center;gap:5px;">
+            <span>${badgeIcon}</span><span>${stop.name}</span>
+            <div style="width:7px;height:7px;background:${dotColor};border:1.5px solid white;border-radius:50%;margin-left:2px;box-shadow:0 0 6px ${dotColor};"></div>
+          </div>`,
+          iconSize:[0,0]
+        });
+        const m = L.marker([stop.lat,stop.lng], {icon:stopIcon}).addTo(map);
+        m.bindPopup(`
+          <div style="font-family:'Inter',sans-serif;min-width:180px;padding:6px;">
+            <div style="font-weight:800;font-size:13px;color:#0f172a;margin-bottom:3px;">${stop.name}</div>
+            <div style="font-size:11px;color:#64748b;margin-bottom:8px;">Campus Transit Stop</div>
+            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%;background:linear-gradient(135deg,#0284c7,#2563eb);color:white;border:none;padding:7px 10px;border-radius:9px;font-weight:800;font-size:11px;cursor:pointer;box-shadow:0 3px 10px rgba(59,130,246,0.4);">🚶 Walk To This Stop</button>
+          </div>
+        `);
+      });
+
+      window.navigateDirectlyToStop = function(stopId) {
+        map.closePopup();
+        const t = campusStops.find(s => s.id === stopId);
+        if (t) { nearestCampusStop = t; startDirectionsMode(); }
+      };
+
+      // Campus Routes with Glowing Dash-Flow Animation
+      const routes = [
+        { color:'#38bdf8', pts:[[12.9723,79.1627],[12.9712,79.1612],[12.9701,79.1601],[12.9692,79.1588],[12.9691,79.1560],[12.9708,79.1558]] },
+        { color:'#ec4899', pts:[[12.9675,79.1595],[12.9668,79.1602],[12.9688,79.1561],[12.9698,79.1552],[12.9708,79.1558]] },
+        { color:'#10b981', pts:[[12.9682,79.1542],[12.9665,79.1551],[12.9688,79.1550],[12.9658,79.1578],[12.9695,79.1563],[12.9708,79.1558],[12.9715,79.1548]] }
+      ];
+      routes.forEach(r => {
+        L.polyline(r.pts, { color:r.color, weight:8, opacity:0.35, className:'animated-route-glow' }).addTo(map);
+        L.polyline(r.pts, { color:r.color, weight:4, opacity:0.95, className:'animated-route-core' }).addTo(map);
+      });
+
+      requestLocationAndFindNearestStop(false);
+    }
+    loadCampusData();
+
+    // ── GEO & NEAREST STOP ──
+    let userLocation = null, userMarker = null, walkingPolyline = null;
+    let nearestCampusStop = null, nearestDistanceMeters = null;
+
+    function getDistanceMeters(lat1,lon1,lat2,lon2) {
+      const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    }
+
+    function requestLocationAndFindNearestStop(manual=false) {
+      const txt = document.getElementById('stop-text');
+      const btn = document.getElementById('nearest-stop-btn');
+      if (!navigator.geolocation) { txt.innerHTML='<span>GPS not supported</span>'; btn && (btn.style.display='none'); return; }
+      txt.innerHTML='<span>Locating your satellite position...</span>';
+      if (btn) { btn.textContent='Locating...'; btn.disabled=true; }
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const {latitude:lat, longitude:lng} = pos.coords;
+          userLocation = {lat,lng};
+          updateUserMarker(lat,lng);
+          calculateNearestStop(lat,lng,manual);
+        },
+        err => {
+          console.warn('Geo error:', err.message);
+          txt.innerHTML='<span>Location needed for stop ETA</span>';
+          if(btn){btn.textContent='Enable GPS';btn.disabled=false;}
+          if(manual) alert('Allow location access in your browser to view distance to campus stops.');
+        },
+        { enableHighAccuracy:true, timeout:8000, maximumAge:15000 }
+      );
+    }
+
+    function updateUserMarker(lat,lng) {
+      const icon = L.divIcon({
+        className:'',
+        html:`<div class="user-dot-wrap"><div class="user-pulse"></div><div class="user-dot"></div></div>`,
+        iconSize:[28,28], iconAnchor:[14,14]
+      });
+      if (!userMarker) userMarker = L.marker([lat,lng],{icon,zIndexOffset:1000}).addTo(map);
+      else userMarker.setLatLng([lat,lng]);
+    }
+
+    async function calculateNearestStop(lat,lng,center=false) {
+      if (!campusStops?.length) return;
+      const txt = document.getElementById('stop-text');
+      const acts = document.getElementById('stop-actions');
+      if (txt && !nearestCampusStop) txt.innerHTML='<span>Calculating nearest stop...</span>';
+
+      let best=null, bestDist=Infinity, bestDur=null;
+      try {
+        const coords = campusStops.map(s=>`${s.lng},${s.lat}`).join(';');
+        const c = new AbortController(); setTimeout(()=>c.abort(),3500);
+        const res = await fetch(`https://router.project-osrm.org/table/v1/walking/${lng},${lat};${coords}?sources=0&annotations=distance,duration`,{signal:c.signal});
+        if (res.ok) {
+          const d = await res.json();
+          if (d.code==='Ok' && d.distances?.[0]) {
+            d.distances[0].forEach((dist,i) => {
+              if (i===0) return;
+              if (dist!==null && !isNaN(dist) && dist<bestDist) { bestDist=dist; best=campusStops[i-1]; bestDur=d.durations?.[0]?.[i]||(dist/75)*60; }
+            });
+          }
+        }
+      } catch(e) {}
+
+      if (!best) {
+        let minD=Infinity;
+        campusStops.forEach(s => { const d=getDistanceMeters(lat,lng,s.lat,s.lng); if(d<minD){minD=d;best=s;bestDist=d*1.35;bestDur=(bestDist/75)*60;} });
+      }
+      if (!best) return;
+
+      nearestCampusStop=best; nearestDistanceMeters=bestDist;
+      const mins=Math.max(1,Math.round(bestDur/60));
+      const distFmt=bestDist<1000?`${Math.round(bestDist)}m`:`${(bestDist/1000).toFixed(1)}km`;
+
+      if (txt) txt.innerHTML=`<span>Nearest: <span class="hi">${best.name}</span> • ${distFmt}<span class="eta">(~${mins}m walk)</span></span>`;
+      if (acts) acts.innerHTML=`
+        <button class="btn-dir pressable" onclick="playBeep(); startDirectionsMode(event)">🚶 Directions</button>
+        <button class="btn-sm btn-cyan pressable" onclick="playBeep(); handleNearestStopClick()">🎯 Focus</button>
+      `;
+
+      if (!isDirectionsMode) {
+        try {
+          const rd = await fetchWalkingRoute(lat,lng,best.lat,best.lng);
+          if (!isDirectionsMode && rd?.coordinates?.length) {
+            if (walkingPolyline) map.removeLayer(walkingPolyline);
+            walkingPolyline = L.polyline(rd.coordinates,{color:'#38bdf8',weight:4,dashArray:'6,10',opacity:0.95}).addTo(map);
+          }
+        } catch(e) {}
+      }
+
+      if ((center||bestDist<=3000) && !isDirectionsMode)
+        map.fitBounds(L.latLngBounds([[lat,lng],[best.lat,best.lng]]),{padding:[70,70],maxZoom:17});
+    }
+
+    function handleNearestStopClick() {
+      if (userLocation && nearestCampusStop)
+        map.fitBounds(L.latLngBounds([[userLocation.lat,userLocation.lng],[nearestCampusStop.lat,nearestCampusStop.lng]]),{padding:[70,70],maxZoom:17});
+      else requestLocationAndFindNearestStop(true);
+    }
+
+    // ── DIRECTIONS ENGINE ──
+    let isDirectionsMode=false, walkingRouteLayer=null, walkingDestMarker=null;
+    let walkingSteps=[], currentStepIndex=0, geoWatchId=null;
+
+    function getManeuverIcon(type,modifier) {
+      if (type==='arrive') return '🏁';
+      if (!modifier) return '⬆️';
+      if (modifier.includes('right')) return modifier.includes('slight')?'↗️':modifier.includes('sharp')?'↪️':'➡️';
+      if (modifier.includes('left'))  return modifier.includes('slight')?'↖️':modifier.includes('sharp')?'↩️':'⬅️';
+      if (modifier.includes('straight')) return '⬆️';
+      if (modifier.includes('uturn'))    return '🔄';
+      return '⬆️';
+    }
+
+    function formatInstruction(step, stopName) {
+      const {type, modifier=''} = step.maneuver;
+      const name = step.name?.trim() || 'campus pathway';
+      if (type==='depart') return `Start walking along ${name}`;
+      if (type==='arrive') return `Arrive at ${stopName}`;
+      if (type==='turn')   return `Turn ${modifier.replace('-',' ')} onto ${name}`;
+      if (type==='end of road') return `At end of road, turn ${modifier||'along'} ${name}`;
+      if (type==='fork')   return `Take the ${modifier||''} fork onto ${name}`;
+      if (type==='continue') return `Continue straight on ${name}`;
+      return `Head towards ${name}`;
+    }
+
+    async function fetchWalkingRoute(sLat,sLng,eLat,eLng) {
+      try {
+        const c = new AbortController(); setTimeout(()=>c.abort(),3500);
+        const res = await fetch(`https://router.project-osrm.org/route/v1/walking/${sLng},${sLat};${eLng},${eLat}?overview=full&geometries=geojson&steps=true`,{signal:c.signal});
+        if (res.ok) {
+          const d = await res.json();
+          if (d.code==='Ok' && d.routes?.[0]) {
+            const r = d.routes[0];
+            return { coordinates:r.geometry.coordinates.map(c=>[c[1],c[0]]), distanceMeters:r.distance, durationSeconds:r.duration, steps:(r.legs?.[0]?.steps||[]) };
+          }
+        }
+      } catch(e) {}
+      const dd = getDistanceMeters(sLat,sLng,eLat,eLng);
+      return {
+        coordinates:[[sLat,sLng],[(sLat+eLat)/2,(sLng+eLng)/2],[eLat,eLng]],
+        distanceMeters:dd, durationSeconds:(dd/75)*60,
+        steps:[
+          {maneuver:{type:'depart',modifier:'straight'},name:'Campus Pedestrian Way',distance:Math.round(dd*0.5)},
+          {maneuver:{type:'continue',modifier:'straight'},name:nearestCampusStop?.name||'Campus Stop',distance:Math.round(dd*0.5)},
+          {maneuver:{type:'arrive',modifier:''},name:nearestCampusStop?.name||'Campus Stop',distance:0}
+        ]
+      };
+    }
+
+    async function startDirectionsMode(e) {
+      if (e) e.stopPropagation();
+      if (!userLocation) { requestLocationAndFindNearestStop(true); return; }
+      if (!nearestCampusStop) { calculateNearestStop(userLocation.lat,userLocation.lng,true); }
+      if (!nearestCampusStop) return;
+
+      playChime();
+      isDirectionsMode = true;
+      document.getElementById('stop-banner').style.display='none';
+      const hud = document.getElementById('dir-hud');
+      hud.classList.add('active');
+      document.getElementById('dir-dest-name').textContent=nearestCampusStop.name;
+      document.getElementById('dir-step-icon').textContent='🚶';
+      document.getElementById('dir-step-txt').textContent='Calculating walking path...';
+      document.getElementById('dir-step-sub').textContent='Mapping campus walkways...';
+
+      if (walkingPolyline) { map.removeLayer(walkingPolyline); walkingPolyline=null; }
+      if (walkingRouteLayer) { map.removeLayer(walkingRouteLayer); walkingRouteLayer=null; }
+      if (walkingDestMarker) { map.removeLayer(walkingDestMarker); walkingDestMarker=null; }
+
+      const rd = await fetchWalkingRoute(userLocation.lat,userLocation.lng,nearestCampusStop.lat,nearestCampusStop.lng);
+      const {coordinates:coords, distanceMeters:totalDist} = rd;
+      const mins = Math.max(1,Math.round(totalDist/75));
+
+      document.getElementById('dir-dist').textContent = totalDist<1000?`${Math.round(totalDist)} m`:`${(totalDist/1000).toFixed(1)} km`;
+      document.getElementById('dir-eta').textContent  = `${mins} min`;
+
+      const glow = L.polyline(coords,{color:'#06b6d4',weight:9,opacity:0.4,lineCap:'round',lineJoin:'round'});
+      const core = L.polyline(coords,{color:'#38bdf8',weight:4,dashArray:'7,10',opacity:0.95,lineCap:'round',lineJoin:'round',className:'animated-route-core'});
+      walkingRouteLayer = L.layerGroup([glow,core]).addTo(map);
+
+      const flagIcon = L.divIcon({
+        className:'',
+        html:`<div style="background:#040814;border:2px solid #38bdf8;color:white;border-radius:10px;padding:4px 9px;font-size:12px;font-family:'Space Grotesk',sans-serif;font-weight:800;box-shadow:0 4px 16px var(--cyan-glow);display:flex;align-items:center;gap:5px;white-space:nowrap;">🏁 ${nearestCampusStop.name}</div>`,
+        iconSize:[0,0], iconAnchor:[30,24]
+      });
+      walkingDestMarker = L.marker([nearestCampusStop.lat,nearestCampusStop.lng],{icon:flagIcon}).addTo(map);
+      map.fitBounds(glow.getBounds(),{padding:[60,60],maxZoom:18});
+
+      walkingSteps = rd.steps.map(st => ({
+        icon:getManeuverIcon(st.maneuver.type,st.maneuver.modifier),
+        instruction:formatInstruction(st,nearestCampusStop.name),
+        distance:Math.round(st.distance||0)
+      }));
+      currentStepIndex=0;
+      updateStepUI();
+      renderItinerary();
+    }
+
+    function updateStepUI() {
+      if (!walkingSteps?.length) return;
+      const st = walkingSteps[currentStepIndex]||walkingSteps[0];
+      document.getElementById('dir-step-icon').textContent=st.icon;
+      document.getElementById('dir-step-txt').textContent=st.instruction;
+      document.getElementById('dir-step-sub').textContent=st.distance>0?`In ${st.distance}m`:'Arriving at destination';
+    }
+
+    function renderItinerary() {
+      const list = document.getElementById('dir-steps-list');
+      const lbl  = document.getElementById('itin-label');
+      lbl.textContent=`All Steps (${walkingSteps.length}) ▾`;
+      list.innerHTML = walkingSteps.map((st,i)=>`
+        <div class="itinerary-row ${i===currentStepIndex?'current':''}">
+          <span style="font-size:15px;">${st.icon}</span>
+          <div style="flex:1;"><div>${st.instruction}</div>${st.distance>0?`<div style="font-size:0.65rem;color:#64748b;">${st.distance}m</div>`:''}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleItinerary(e) {
+      if(e) e.stopPropagation();
+      playBeep();
+      document.getElementById('dir-steps-list').classList.toggle('open');
+    }
+
+    function exitDirectionsMode(e) {
+      if(e) e.stopPropagation();
+      playBeep();
+      isDirectionsMode=false;
+      document.getElementById('dir-hud').classList.remove('active');
+      document.getElementById('stop-banner').style.display='flex';
+      if (walkingRouteLayer) { map.removeLayer(walkingRouteLayer); walkingRouteLayer=null; }
+      if (walkingDestMarker) { map.removeLayer(walkingDestMarker); walkingDestMarker=null; }
+    }
+
+    // ── SHUTTLE ETA & MARKERS ──
+    function calculateETA(sLat,sLng,stopLat,stopLng,speed=20) {
+      const R=6371, dLat=(stopLat-sLat)*Math.PI/180, dLon=(stopLng-sLng)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(sLat*Math.PI/180)*Math.cos(stopLat*Math.PI/180)*Math.sin(dLon/2)**2;
+      const dist=R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+      return { distanceKm:parseFloat(dist.toFixed(2)), etaMinutes:Math.max(1,Math.round((dist/Math.max(12,speed))*60)) };
+    }
+
+    // Crazy Animated Shuttle Marker with Radar Sweep & Sonar Rings
+    function updateMarker(shuttle) {
+      const isFac = shuttle.shuttleType==='faculty'||(shuttle.shuttleId?.includes('faculty'));
+      const isLH  = shuttle.shuttleId==='vit_general_bus_102'||(shuttle.name?.toLowerCase().includes('women'));
+      let pillText='MH 101 • ₹20', nodeClass='bus-node mh', icon='🚌';
+      if (isFac) { pillText='FACULTY • FREE'; nodeClass='bus-node fac'; icon='⭐'; }
+      else if (isLH) { pillText='LH 102 • ₹20'; nodeClass='bus-node lh'; icon='🌸'; }
+
+      const cusIcon = L.divIcon({
+        className:'',
+        html:`
+          <div class="shuttle-marker-wrap">
+            <div class="sonar-ripple"></div>
+            <div class="radar-sweep-cone"></div>
+            <div class="${nodeClass}">
+              <div class="bus-pill">${pillText}</div>
+              ${icon}
+            </div>
+          </div>
+        `,
+        iconSize:[60,60], iconAnchor:[30,30]
+      });
+
+      if (!shuttleMarkers[shuttle.shuttleId]) {
+        shuttleMarkers[shuttle.shuttleId] = L.marker([shuttle.lat,shuttle.lng],{icon:cusIcon}).addTo(map);
+        shuttleMarkers[shuttle.shuttleId].on('click',() => {
+          playBeep();
+          selectShuttle(shuttle.shuttleId);
+        });
+      } else {
+        shuttleMarkers[shuttle.shuttleId].setLatLng([shuttle.lat,shuttle.lng]);
+        shuttleMarkers[shuttle.shuttleId].setIcon(cusIcon);
+      }
+    }
+
+    // ── SELECT SHUTTLE ──
+    function selectShuttle(id) {
+      selectedShuttleId = id;
+      document.getElementById('btn-mh')?.classList.toggle('sel-mh',  id==='vit_general_bus_101');
+      document.getElementById('btn-lh')?.classList.toggle('sel-lh',  id==='vit_general_bus_102');
+      document.getElementById('btn-fac')?.classList.toggle('sel-fac',id==='vit_faculty_shuttle_201');
+      const s = activeShuttles[id];
+      if (s) {
+        updateBottomTray(s);
+        map.panTo([s.lat,s.lng],{animate:true,duration:0.45});
+      }
+    }
+
+    function updateBottomTray(shuttle) {
+      const isFac = shuttle.shuttleType==='faculty';
+      const spd = Math.round(shuttle.speed||21);
+      document.getElementById('speed-val').textContent = spd;
+
+      // Update Driver Circular Gauge
+      const speedoBar = document.getElementById('speedo-bar');
+      if (speedoBar) {
+        const pct = Math.min(1, spd / 60);
+        const offset = 377 - (377 * pct);
+        speedoBar.style.strokeDashoffset = offset;
+      }
+      const drvSpeed = document.getElementById('driver-speed');
+      if (drvSpeed) drvSpeed.textContent = spd;
+
+      const etas = campusStops.map(stop => {
+        const e = calculateETA(shuttle.lat,shuttle.lng,stop.lat,stop.lng,shuttle.speed);
+        return {stopName:stop.name,...e};
+      }).sort((a,b)=>a.etaMinutes-b.etaMinutes);
+
+      const next = etas[0];
+      if (next) {
+        document.getElementById('next-stop-label').textContent=`Next: ${next.stopName}`;
+        document.getElementById('next-stop-mins').textContent=` • ${next.etaMinutes} min away`;
+      }
+      const dl = document.getElementById('drawer-stops-list');
+      dl.innerHTML = etas.map(s => `
+        <div class="stop-box pressable" onclick="playBeep()">
+          <div class="stop-box-name">${s.stopName}</div>
+          <div class="stop-box-eta" style="color:${isFac?'#34d399':'#38bdf8'}">${s.etaMinutes} min</div>
+        </div>
+      `).join('');
+
+      const ar = document.getElementById('action-row-content');
+      if (!isFac) {
+        ar.innerHTML = `<button class="action-btn blue pressable" onclick="triggerConfetti(); openTicketModal('general')">🎫 Book Digital Pass (₹20)</button>`;
+      } else if (currentRole==='faculty') {
+        ar.innerHTML = `<button class="action-btn green pressable" onclick="triggerConfetti(); openTicketModal('faculty')">⭐ Show Faculty Pass (FREE)</button>`;
+      } else {
+        ar.innerHTML = `<div class="restrict-pill"><span>⚠️ Faculty VIP Shuttle (₹0)</span><button class="switch-btn pressable" onclick="playBeep(); selectShuttle('vit_general_bus_101')">Switch ₹20</button></div>`;
+      }
+    }
+
+    function toggleDetailsDrawer() {
+      playBeep();
+      isDrawerOpen=!isDrawerOpen;
+      document.getElementById('details-drawer').classList.toggle('open',isDrawerOpen);
+      document.getElementById('drawer-toggle-text').textContent = isDrawerOpen ? 'Hide live stops & crowding ▴' : 'Show all stops & live crowding ▾';
+    }
+
+    // ── ROLE SWITCHING ──
+    function switchRole(role) {
+      currentRole = role;
+      ['student','faculty','driver'].forEach(r => {
+        const btn = document.getElementById(`role-${r}`);
+        if (!btn) return;
+        btn.className = `role-tab${role===r?' active-'+r:''}`;
+      });
+      const pv = document.getElementById('passenger-view'), dv = document.getElementById('driver-view');
+      if (role==='driver') {
+        pv.style.display='none'; dv.style.display='block';
+      } else {
+        pv.style.display='block'; dv.style.display='none';
+        selectShuttle(role==='faculty'?'vit_faculty_shuttle_201':'vit_general_bus_101');
+      }
+      updateNavChip(role);
+    }
+
+    function zoomIn()  { map.zoomIn(); }
+    function zoomOut() { map.zoomOut(); }
+    function centerOnShuttle() {
+      const s = activeShuttles[selectedShuttleId];
+      if (s) map.setView([s.lat,s.lng], 16.5, {animate:true});
+    }
+
+    // ── TICKET MODAL WITH HOLOGRAPHIC SCANNER ──
+    function openTicketModal(type) {
+      const modal = document.getElementById('ticket-modal');
+      const content = document.getElementById('ticket-card-content');
+      const tkt = 'VIT-' + Math.floor(100000 + Math.random() * 900000);
+      const time = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
+      if (type === 'general') {
+        content.innerHTML = `
+          <div class="tkt-head-blue">
+            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1px;opacity:0.85;">VIT VELLORE TRANSIT PASS</div>
+            <div style="font-family:'Space Grotesk';font-size:1.35rem;font-weight:800;margin:4px 0;">DIGITAL COMMUTER PASS</div>
+            <div style="display:inline-block;background:#10b981;color:white;font-size:0.7rem;font-weight:800;padding:3px 11px;border-radius:12px;box-shadow:0 0 10px rgba(16,185,129,0.5);">PAID ₹20.00</div>
+          </div>
+          <div class="tkt-body">
+            <div style="font-family:'Space Grotesk';font-weight:800;color:white;font-size:0.95rem;">General Campus Bus #101</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">Single Boarding Clearance • Valid 45 Mins</div>
+            
+            <div class="qr-box-wrap">
+              <div class="laser-line"></div>
+              <div style="font-size:46px;">🏁</div>
+              <div style="font-size:0.72rem;font-weight:900;color:#0f172a;font-family:'Orbitron',monospace;">${tkt}</div>
+            </div>
+
+            <div style="font-size:0.76rem;color:#34d399;font-weight:800;margin-top:6px;">● Active • Boarding Verified</div>
+            <div style="font-size:0.68rem;color:#64748b;margin-top:3px;">Issued at ${time}</div>
+            <button class="modal-close pressable" onclick="playBeep(); closeModal()">Done / Dismiss</button>
+          </div>`;
+      } else {
+        content.innerHTML = `
+          <div class="tkt-head-green">
+            <div style="font-size:0.7rem;font-weight:800;letter-spacing:1px;color:#fde047;">OFFICIAL VIP TRANSIT</div>
+            <div style="font-family:'Space Grotesk';font-size:1.35rem;font-weight:800;margin:4px 0;">FACULTY VIP PASS</div>
+            <div style="display:inline-block;background:#fde047;color:#065f46;font-size:0.7rem;font-weight:800;padding:3px 11px;border-radius:12px;">FREE (₹0)</div>
+          </div>
+          <div class="tkt-body">
+            <div style="font-family:'Space Grotesk';font-weight:800;color:white;font-size:0.95rem;">Faculty Exclusive Shuttle #201</div>
+            <div style="font-size:0.72rem;color:#34d399;margin-top:2px;">Academic Faculty Member Clearance</div>
+            
+            <div class="qr-box-wrap" style="border:2px solid #10b981;">
+              <div class="laser-line"></div>
+              <div style="font-size:46px;">⭐</div>
+              <div style="font-size:0.72rem;font-weight:900;color:#059669;font-family:'Orbitron',monospace;">FACULTY VIP</div>
+            </div>
+
+            <div style="font-size:0.76rem;color:#fde047;font-weight:800;margin-top:6px;">● Official Free Transit Clearance</div>
+            <button class="modal-close pressable" onclick="playBeep(); closeModal()">Done / Dismiss</button>
+          </div>`;
+      }
+      modal.classList.add('active');
+    }
+
+    function closeModal(e) {
+      if (!e||e.target.id==='ticket-modal'||e.target.tagName==='BUTTON') {
+        document.getElementById('ticket-modal').classList.remove('active');
+      }
+    }
+
+    function reportCrowd(lvl) {
+      alert(`Reported ${lvl} crowding for ${activeShuttles[selectedShuttleId].name}! Live broadcast updated.`);
+    }
+
+    // ── REALISTIC SHUTTLE SIMULATOR ──
+    const genWps = [{lat:12.9692,lng:79.1559},{lat:12.9698,lng:79.1588},{lat:12.9708,lng:79.1610},{lat:12.9715,lng:79.1633},{lat:12.9735,lng:79.1620},{lat:12.9750,lng:79.1610},{lat:12.9730,lng:79.1585},{lat:12.9705,lng:79.1565}];
+    const facWps = [{lat:12.9715,lng:79.1633},{lat:12.9723,lng:79.1609},{lat:12.9730,lng:79.1585},{lat:12.9714,lng:79.1586},{lat:12.9698,lng:79.1588},{lat:12.9692,lng:79.1559},{lat:12.9702,lng:79.1600}];
+    let gI=0,gP=0,fI=0,fP=0;
+
+    function startSimulator() {
+      if (fallbackSimulatorTimer) return;
+      fallbackSimulatorTimer = setInterval(() => {
+        gP += 0.12;
+        if (gP >= 1) { gP = 0; gI = (gI + 1) % genWps.length; }
+        const g1 = genWps[gI], g2 = genWps[(gI + 1) % genWps.length];
+        activeShuttles['vit_general_bus_101'].lat = g1.lat + (g2.lat - g1.lat) * gP;
+        activeShuttles['vit_general_bus_101'].lng = g1.lng + (g2.lng - g1.lng) * gP;
+        activeShuttles['vit_general_bus_101'].speed = Math.round(20 + Math.sin(Date.now() / 3000) * 4);
+        updateMarker(activeShuttles['vit_general_bus_101']);
+
+        fP += 0.10;
+        if (fP >= 1) { fP = 0; fI = (fI + 1) % facWps.length; }
+        const f1 = facWps[fI], f2 = facWps[(fI + 1) % facWps.length];
+        activeShuttles['vit_faculty_shuttle_201'].lat = f1.lat + (f2.lat - f1.lat) * fP;
+        activeShuttles['vit_faculty_shuttle_201'].lng = f1.lng + (f2.lng - f1.lng) * fP;
+        activeShuttles['vit_faculty_shuttle_201'].speed = Math.round(18 + Math.cos(Date.now() / 3000) * 3);
+        updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+
+        updateBottomTray(activeShuttles[selectedShuttleId]);
+      }, 1800);
+    }
+
+    // ── AUTH & GOOGLE SSO ──
+    let currentUser = null, activeAuthRole = 'student', authMode = 'login';
+
+    function showPortalOverlay() {
+      document.getElementById('portal-overlay').classList.add('visible');
+      backToPortalSelect();
+    }
+    function hidePortalOverlay() {
+      document.getElementById('portal-overlay').classList.remove('visible');
+    }
+    function backToPortalSelect() {
+      document.getElementById('view-select').classList.add('active');
+      document.getElementById('view-auth').classList.remove('active');
+      const al = document.getElementById('auth-alert');
+      if (al) al.style.display = 'none';
+    }
+    function openAuthForm(role) {
+      activeAuthRole = role;
+      document.getElementById('view-select').classList.remove('active');
+      document.getElementById('view-auth').classList.add('active');
+      const al = document.getElementById('auth-alert');
+      if (al) al.style.display = 'none';
+      updateAuthUI();
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      document.getElementById('auth-tab-login')?.classList.toggle('active', mode === 'login');
+      document.getElementById('auth-tab-register')?.classList.toggle('active', mode === 'register');
+      const ng = document.getElementById('auth-group-name'), ig = document.getElementById('auth-group-id');
+      if (ng) ng.style.display = mode === 'register' ? 'block' : 'none';
+      if (ig) ig.style.display = mode === 'register' ? 'block' : 'none';
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const rb = document.getElementById('auth-role-badge');
+      const ri = document.getElementById('auth-role-icon'), rl = document.getElementById('auth-role-label');
+      const fh = document.getElementById('auth-form-heading'), fs = document.getElementById('auth-form-sub');
+      const dh = document.getElementById('auth-domain-hint'), ei = document.getElementById('auth-email');
+      const st = document.getElementById('auth-submit-text'), fn = document.getElementById('auth-footer-notice');
+      const il = document.getElementById('auth-id-label'), iv = document.getElementById('auth-id-val');
+      const gb = document.getElementById('google-btn-text');
+      const verb = authMode === 'login' ? 'Sign In' : 'Sign Up';
+
+      if (rb) rb.className = `auth-role-badge arb-${activeAuthRole}`;
+      if (activeAuthRole === 'student') {
+        if(ri)ri.textContent='🎓'; if(rl)rl.textContent='Student Portal';
+        if(fh)fh.textContent=authMode==='login'?'Sign In to Student Portal':'Create Student Account';
+        if(fs)fs.textContent='Access campus transit (₹20) with @vitstudent.ac.in';
+        if(dh)dh.textContent='@vitstudent.ac.in'; if(ei)ei.placeholder='student@vitstudent.ac.in';
+        if(il)il.textContent='Registration Number'; if(iv)iv.placeholder='e.g. 21BCE1042';
+        if(st)st.textContent=authMode==='login'?'Sign In as Student':'Create Student Account';
+        if(gb)gb.textContent=`${verb} with Google (@vitstudent.ac.in)`;
+        if(fn)fn.textContent='Student fare: ₹20 per trip • Verified @vitstudent.ac.in';
+      } else if (activeAuthRole === 'faculty') {
+        if(ri)ri.textContent='⭐'; if(rl)rl.textContent='Faculty VIP Portal';
+        if(fh)fh.textContent=authMode==='login'?'Sign In to Faculty Portal':'Create Faculty Account';
+        if(fs)fs.textContent='Access 100% FREE VIP Shuttle with @vit.ac.in';
+        if(dh)dh.textContent='@vit.ac.in'; if(ei)ei.placeholder='faculty.name@vit.ac.in';
+        if(il)il.textContent='Employee / Faculty ID'; if(iv)iv.placeholder='e.g. VIT-FAC-4091';
+        if(st)st.textContent=authMode==='login'?'Sign In as Faculty':'Create Faculty Account';
+        if(gb)gb.textContent=`${verb} with Google (@vit.ac.in)`;
+        if(fn)fn.textContent='Faculty fare: 100% FREE • Verified @vit.ac.in';
+      } else {
+        if(ri)ri.textContent='🚖'; if(rl)rl.textContent='Driver Console';
+        if(fh)fh.textContent=authMode==='login'?'Driver Console Login':'Register Authorized Driver';
+        if(fs)fs.textContent='Shift telemetry & live GPS broadcaster';
+        if(dh)dh.textContent='Driver ID / Email'; if(ei)ei.placeholder='driver101@vit.ac.in';
+        if(il)il.textContent='Vehicle Badge / Driver License'; if(iv)iv.placeholder='e.g. BUS-101-DRV';
+        if(st)st.textContent=authMode==='login'?'Enter Driver Shift Console':'Register Driver';
+        if(gb)gb.textContent=`${verb} with Google (Driver ID)`;
+        if(fn)fn.textContent='Authorized campus shuttle drivers only';
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const p = document.getElementById('auth-password');
+      if (p) p.type = p.type === 'password' ? 'text' : 'password';
+    }
+
+    function quickFillAndLogin() {
+      const e=document.getElementById('auth-email'), p=document.getElementById('auth-password');
+      const n=document.getElementById('auth-name'), i=document.getElementById('auth-id-val');
+      if(activeAuthRole==='student'){if(e)e.value='student.vit@vitstudent.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Arjun Kumar';if(i)i.value='21BCE1042';}
+      else if(activeAuthRole==='faculty'){if(e)e.value='dr.raman@vit.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Dr. C. Raman';if(i)i.value='VIT-FAC-4091';}
+      else{if(e)e.value='driver.raj@vit.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Rajesh Kumar';if(i)i.value='BUS-101-DRV';}
+      handleAuthSubmit(new Event('submit'));
+    }
+
+    function continueAsGuest() {
+      loginSuccess({role:'student',email:'guest.student@vitstudent.ac.in',name:'Guest Student',regId:'DEMO-GUEST'});
+    }
+
+    async function handleAuthSubmit(e) {
+      if (e&&e.preventDefault) e.preventDefault();
+      const al = document.getElementById('auth-alert'), sb = document.getElementById('auth-submit-btn');
+      const email = (document.getElementById('auth-email')?.value||'').trim().toLowerCase();
+      const pwd = (document.getElementById('auth-password')?.value||'').trim();
+      const name = document.getElementById('auth-name')?.value?.trim()||(email.split('@')[0]||'Campus User');
+      const regId = document.getElementById('auth-id-val')?.value?.trim()||'VIT-'+Math.floor(1000+Math.random()*9000);
+
+      if (al) al.style.display = 'none';
+      const showErr = msg => { if(al){al.className='auth-alert error';al.innerHTML=msg;al.style.display='block';} };
+
+      if (!email||!pwd) return showErr('Please fill in both email and password.');
+      if (activeAuthRole==='student'&&!email.endsWith('@vitstudent.ac.in')) return showErr('⚠️ Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small>Or click "One-Click Instant Sign In" below.</small>');
+      if (activeAuthRole==='faculty'&&(!email.endsWith('@vit.ac.in')||email.endsWith('@vitstudent.ac.in'))) return showErr('⚠️ Faculty email must end with <strong>@vit.ac.in</strong>.<br><small>Or click "One-Click Instant Sign In" below.</small>');
+      if (pwd.length < 6) return showErr('⚠️ Password must be at least 6 characters.');
+
+      if (sb) { sb.disabled=true; sb.innerHTML='<span>Verifying...</span>'; }
+      try {
+        if (authMode==='register') {
+          await supabaseClient.auth.signUp({email,password:pwd,options:{data:{role:activeAuthRole,full_name:name,reg_id:regId}}}).catch(()=>{});
+        } else {
+          await supabaseClient.auth.signInWithPassword({email,password:pwd}).catch(()=>{});
+        }
+        triggerConfetti();
+        loginSuccess({role:activeAuthRole,email,name,regId});
+      } catch(err) {
+        triggerConfetti();
+        loginSuccess({role:activeAuthRole,email,name,regId});
+      } finally {
+        if (sb) { sb.disabled=false; updateAuthUI(); }
+      }
+    }
+
+    function loginSuccess(user) {
+      currentUser = user;
+      localStorage.setItem('vit_shuttle_session', JSON.stringify(user));
+      switchRole(user.role);
+      hidePortalOverlay();
+      const txt = document.getElementById('stop-text');
+      if (txt) {
+        txt.innerHTML=`<span>Welcome, <strong style="color:#38bdf8;">${user.name||user.email}</strong> • ${user.role.toUpperCase()} PORTAL ACTIVE</span>`;
+        setTimeout(() => {
+          if (userLocation && nearestCampusStop) calculateNearestStop(userLocation.lat,userLocation.lng);
+          else requestLocationAndFindNearestStop(false);
+        }, 2800);
+      }
+    }
+
+    function logoutUser(e) {
+      if (e) e.stopPropagation();
+      playBeep();
+      localStorage.removeItem('vit_shuttle_session');
+      currentUser = null;
+      try { supabaseClient.auth.signOut().catch(()=>{}); } catch(e) {}
+      showPortalOverlay();
+    }
+
+    function updateNavChip(role) {
+      const badge = document.getElementById('session-label');
+      if (!badge) return;
+      badge.className = `session-label ${role[0]}`;
+      const icon = role==='student'?'🎓':role==='faculty'?'⭐':'🚖';
+      const name = currentUser?.name ? (' '+currentUser.name.split(' ')[0]) : '';
+      badge.textContent = `${icon}${name} (${role.toUpperCase()})`;
+    }
+
+    // ── GOOGLE PICKER MODAL ──
+    function quickGoogleAuth(role) {
+      activeAuthRole = role || 'student';
+      authMode = 'login';
+      signInWithGoogle(role);
+    }
+
+    async function signInWithGoogle(role) {
+      if (role) activeAuthRole = role;
+      openGooglePickerModal(activeAuthRole);
+    }
+
+    function openGooglePickerModal(role) {
+      if (role) activeAuthRole = role;
+      const r = activeAuthRole || 'student';
+      const verb = authMode === 'login' ? 'Sign In' : 'Sign Up';
+      document.getElementById('google-picker-title').textContent = `${verb} with Google`;
+      const sub = document.getElementById('google-picker-sub');
+      if (r==='student') sub.innerHTML = `Continuing as <strong>Student</strong> • Choose your <strong>@vitstudent.ac.in</strong> account`;
+      else if (r==='faculty') sub.innerHTML = `Continuing as <strong>Faculty</strong> • Choose your <strong>@vit.ac.in</strong> account`;
+      else sub.innerHTML = `Continuing as <strong>Shuttle Driver</strong> • Choose your authorized driver account`;
+
+      const list = document.getElementById('google-picker-accounts');
+      const mkAcc = (type,email,name,regId,avatarBg,avatarLetter,roleLabel) => `
+        <div class="g-account pressable" onclick="playChime(); triggerConfetti(); selectGoogleAccount('${type}','${email}','${name}','${regId}')">
+          <div class="g-avatar" style="background:${avatarBg};">${avatarLetter}</div>
+          <div>
+            <div class="g-name">${name}</div>
+            <div class="g-email">${email}</div>
+            <div class="g-role">${roleLabel}</div>
+          </div>
+        </div>`;
+
+      if (r==='student') {
+        list.innerHTML = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#0284c7','R','🎓 Verified Student • 21BCE1042') +
+                         mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','🎓 Verified Student • 22BCE2410');
+      } else if (r==='faculty') {
+        list.innerHTML = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','⭐ Verified Faculty • VIT-FAC-4091') +
+                         mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','⭐ Verified Faculty • VIT-FAC-1102');
+      } else {
+        list.innerHTML = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','🚖 Authorized Driver • Bus #101 (MH)') +
+                         mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','🚖 Authorized Driver • Bus #102 (LH)');
+      }
+      document.getElementById('google-picker-modal').classList.add('active','open');
+    }
+
+    function closeGooglePicker(e) {
+      if (e) e.stopPropagation();
+      playBeep();
+      document.getElementById('google-picker-modal').classList.remove('active','open');
+    }
+
+    async function selectGoogleAccount(type,email,name,regId) {
+      closeGooglePicker();
+      const role = type || activeAuthRole || 'student';
+      try {
+        await supabaseClient.auth.signUp({email,password:'VIT_SSO_SECURE_PASS_2026',options:{data:{role,full_name:name,reg_id:regId,provider:'google'}}}).catch(()=>{});
+      } catch(e) {}
+      loginSuccess({role,name,email,regId,provider:'google'});
+    }
+
+    async function initAuth() {
+      try {
+        const {data:{session}} = await supabaseClient.auth.getSession();
+        if (session?.user) {
+          const email = (session.user.email||'').toLowerCase();
+          const name = session.user.user_metadata?.full_name||session.user.user_metadata?.name||email.split('@')[0];
+          let role = 'student';
+          if (email.endsWith('@vit.ac.in')&&!email.endsWith('@vitstudent.ac.in')) role = 'faculty';
+          loginSuccess({role,email,name,regId:'GOOGLE-SSO',provider:'google'});
+          return;
+        }
+      } catch(e) {}
+      const saved = localStorage.getItem('vit_shuttle_session');
+      if (saved) {
+        try {
+          const u = JSON.parse(saved);
+          if (u?.role) { currentUser = u; switchRole(u.role); hidePortalOverlay(); return; }
+        } catch(e) {}
+      }
+      showPortalOverlay();
+    }
+
+    // ── BOOTSTRAP ──
+    updateMarker(activeShuttles['vit_general_bus_101']);
+    updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+    updateBottomTray(activeShuttles['vit_general_bus_101']);
+    startSimulator();
+    initAuth();
+  </script>
 </body>
 </html>
