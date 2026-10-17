@@ -2986,7 +2986,12 @@
       showPortalOverlay();
     }
 
-    // ── BOOTSTRAP ──
+    // ── BOOTSTRAP & CACHE CLEAR ──
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) { registration.unregister(); }
+      }).catch(()=>{});
+    }
     updateMarker(activeShuttles['vit_general_bus_101']);
     updateMarker(activeShuttles['vit_faculty_shuttle_201']);
     updateBottomTray(activeShuttles['vit_general_bus_101']);
