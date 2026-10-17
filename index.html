@@ -1067,6 +1067,7 @@
       border: 1px solid rgba(255,255,255,0.18);
       position: relative;
     }
+    /* Iridescent foil animation across ticket */
     .ticket-card::before {
       content: '';
       position: absolute;
@@ -1115,6 +1116,7 @@
       align-items: center;
       justify-content: center;
     }
+    /* Laser Scan Line */
     .laser-line {
       position: absolute;
       left: 0; right: 0;
@@ -1636,6 +1638,7 @@
       align-items: center;
       justify-content: center;
     }
+    /* Rotating Sonar Radar Sweep */
     .radar-sweep-cone {
       position: absolute;
       top: 50%; left: 50%;
@@ -2586,6 +2589,7 @@
       // Update Driver Circular Gauge
       const speedoBar = document.getElementById('speedo-bar');
       if (speedoBar) {
+        // max 60 kmh -> stroke offset: 377 to 0
         const pct = Math.min(1, spd / 60);
         const offset = 377 - (377 * pct);
         speedoBar.style.strokeDashoffset = offset;
