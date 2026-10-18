@@ -562,12 +562,26 @@
     ══════════════════════════════════════════════════════ */
     .bottom-tray {
       position: absolute;
-      bottom: 12px; left: 12px; right: 12px;
+      bottom: 74px; left: 12px; right: 12px;
       max-width: 500px;
       margin: 0 auto;
-      z-index: 1000;
+      z-index: 1050;
       border-radius: var(--radius-xl);
       padding: 13px 15px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .tray-grab-bar {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      margin: -4px auto 10px auto;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .tray-grab-bar:hover {
+      background: var(--primary);
     }
 
     /* Shuttle selector buttons */
@@ -2347,6 +2361,557 @@
     }
 
     /* ══════════════════════════════════════════════════════
+       PHASE 3 — INTERACTIVE CAMPUS MAP STYLES
+    ══════════════════════════════════════════════════════ */
+    /* Map Loading & Error Banner */
+    .map-loading-overlay {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1090;
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+    .map-loading-overlay.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-10px);
+      pointer-events: none;
+    }
+    .map-loading-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      backdrop-filter: blur(12px);
+    }
+    .map-loading-spinner {
+      width: 12px;
+      height: 12px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Map Search Row */
+    .map-search-row {
+      pointer-events: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      position: relative;
+    }
+    .map-search-input-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 6px 10px;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(14px);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .map-search-input-wrap:focus-within {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-subtle);
+    }
+    .map-search-icon {
+      font-size: 13px;
+      margin-right: 6px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .map-search-input {
+      background: transparent;
+      border: none;
+      outline: none;
+      font-size: 0.8rem;
+      color: var(--text);
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+    }
+    .map-search-input::placeholder {
+      color: var(--text-muted);
+    }
+    .map-search-clear {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .map-search-results-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1200;
+      display: none;
+      backdrop-filter: blur(16px);
+    }
+    .map-search-results-dropdown.active {
+      display: block;
+    }
+    .map-search-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .map-search-item:last-child {
+      border-bottom: none;
+    }
+    .map-search-item:hover {
+      background: var(--surface-hover);
+    }
+    .map-search-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .map-search-item-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .map-search-item-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    /* Map / List View Toggle Button */
+    .map-view-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: var(--radius-lg);
+      background: var(--surface-card);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+    .map-view-toggle-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+      color: var(--primary-light);
+    }
+
+    /* Map Filter Chips Bar */
+    .map-filter-bar {
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding: 2px 0;
+      width: 100%;
+    }
+    .map-filter-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .filter-pill {
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+      backdrop-filter: blur(12px);
+    }
+    .filter-pill:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .filter-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+    }
+
+    /* Interactive Stop Detail Drawer */
+    .stop-detail-drawer {
+      position: absolute;
+      bottom: 74px;
+      left: 12px;
+      right: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+      z-index: 1060;
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      display: none;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(20px);
+      animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .stop-detail-drawer.open {
+      display: block;
+    }
+    .stop-drawer-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .stop-drawer-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .stop-drawer-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-md);
+      background: var(--primary-subtle);
+      border: 1px solid rgba(37,99,235,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .stop-drawer-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .stop-drawer-zone {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .stop-drawer-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 2px 6px;
+    }
+    .stop-drawer-distance {
+      font-size: 0.72rem;
+      color: var(--primary-light);
+      background: var(--primary-subtle);
+      border: 1px solid rgba(37,99,235,0.2);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      margin-bottom: 12px;
+    }
+    .stop-drawer-routes-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .stop-drawer-routes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 12px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    .stop-drawer-route-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+    }
+    .stop-drawer-route-badge {
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+      color: white;
+      letter-spacing: 0.3px;
+    }
+    .stop-drawer-eta-pill {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--emerald-light);
+    }
+    .stop-drawer-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .stop-drawer-actions .btn {
+      flex: 1;
+      font-size: 0.75rem;
+      padding: 7px 10px;
+    }
+
+    /* Floating Route Legend */
+    .route-legend-card {
+      position: absolute;
+      bottom: 74px;
+      left: 12px;
+      z-index: 1040;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      box-shadow: var(--shadow-md);
+      backdrop-filter: blur(16px);
+      width: 230px;
+      display: none;
+      animation: modalPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .route-legend-card.open {
+      display: block;
+    }
+    .legend-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 5px;
+    }
+    .legend-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .legend-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .legend-routes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: background 0.15s ease;
+    }
+    .legend-item:hover {
+      background: var(--surface-hover);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 6px currentColor;
+    }
+    .legend-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .legend-name {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .legend-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    /* Full-Screen Map / List Mode Container */
+    .map-list-view-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 64px;
+      background: var(--bg);
+      z-index: 1030;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px 14px 24px 14px;
+    }
+    .map-list-view-container.active {
+      display: flex;
+    }
+    .list-view-header {
+      margin-bottom: 16px;
+    }
+    .list-route-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .list-route-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .list-route-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      color: white;
+      font-weight: 700;
+      font-size: 0.75rem;
+    }
+    .list-route-seq {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 12px 0;
+      padding-left: 10px;
+      border-left: 2px solid var(--border);
+    }
+    .list-seq-step {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .list-seq-num {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      margin-left: -19px;
+    }
+
+    /* Manual Location Selector Modal */
+    .manual-loc-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      max-width: 460px;
+      width: 90%;
+      margin: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .manual-loc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 12px;
+    }
+    .manual-loc-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-hover);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.18s ease;
+    }
+    .manual-loc-btn:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+    .manual-loc-btn-title {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .manual-loc-btn-sub {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Telemetry Data Origin Tag */
+    .telemetry-origin-tag {
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .origin-simulated {
+      background: rgba(245, 158, 11, 0.16);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .origin-live {
+      background: rgba(16, 185, 129, 0.16);
+      color: var(--emerald-light);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .origin-paused {
+      background: rgba(148, 163, 184, 0.16);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ══════════════════════════════════════════════════════
        REDUCED MOTION PREFERENCE
     ══════════════════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
@@ -2536,12 +3101,18 @@
   </div>
 
   <!-- ══════════════════════════════
-       MAP CANVAS
+       MAP CANVAS & LOADING OVERLAY
   ══════════════════════════════ -->
+  <div id="map-loading-overlay" class="map-loading-overlay">
+    <div class="map-loading-pill">
+      <div class="map-loading-spinner"></div>
+      <span id="map-loading-text">Loading VIT Vellore Campus Map...</span>
+    </div>
+  </div>
   <div id="map" role="region" aria-label="Campus Interactive Map"></div>
 
   <!-- ══════════════════════════════
-       TOP BAR NAVIGATION
+       TOP BAR NAVIGATION & MAP FILTERS
   ══════════════════════════════ -->
   <div class="top-bar">
     <div class="nav-pill card">
@@ -2564,6 +3135,31 @@
       <button class="theme-toggle-btn" id="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Toggle light and dark theme" title="Toggle Theme">
         <span id="theme-toggle-icon">☀️</span>
       </button>
+    </div>
+
+    <!-- In-Map Search & Mode Toggle -->
+    <div class="map-search-row">
+      <div class="map-search-input-wrap">
+        <span class="map-search-icon">🔍</span>
+        <input type="text" id="map-search-input" class="map-search-input" placeholder="Search campus building or stop..." oninput="handleMapSearch(this.value)" autocomplete="off">
+        <button class="map-search-clear" id="map-search-clear" type="button" onclick="clearMapSearch()" style="display:none;">✕</button>
+        <div id="map-search-results" class="map-search-results-dropdown"></div>
+      </div>
+      <button id="map-mode-btn" class="map-view-toggle-btn" type="button" onclick="toggleMapListMode()" title="Switch between Map and Full List Mode">
+        <span id="map-mode-btn-icon">📋</span>
+        <span id="map-mode-btn-text">List</span>
+      </button>
+    </div>
+
+    <!-- Map Filter Chips Bar -->
+    <div class="map-filter-bar" id="map-filter-bar" role="toolbar" aria-label="Map Filter Layers">
+      <button class="filter-pill active" data-filter="all" type="button" onclick="setMapFilter('all')">All</button>
+      <button class="filter-pill" data-filter="shuttles" type="button" onclick="setMapFilter('shuttles')">🚌 Shuttles</button>
+      <button class="filter-pill" data-filter="stops" type="button" onclick="setMapFilter('stops')">🚏 Stops</button>
+      <button class="filter-pill" data-filter="buildings" type="button" onclick="setMapFilter('buildings')">🏛️ Buildings</button>
+      <button class="filter-pill" data-filter="vit_general_bus_101" type="button" onclick="setMapFilter('vit_general_bus_101')">🔵 Bus 101</button>
+      <button class="filter-pill" data-filter="vit_general_bus_102" type="button" onclick="setMapFilter('vit_general_bus_102')">🌸 Bus 102</button>
+      <button class="filter-pill" data-filter="vit_faculty_shuttle_201" type="button" onclick="setMapFilter('vit_faculty_shuttle_201')">⭐ Fac 201</button>
     </div>
 
     <!-- Nearest Stop Banner -->
@@ -2611,13 +3207,120 @@
     <button class="btn btn-icon" type="button" onclick="zoomIn()" aria-label="Zoom in" title="Zoom in">+</button>
     <button class="btn btn-icon" type="button" onclick="zoomOut()" aria-label="Zoom out" title="Zoom out">−</button>
     <button class="btn btn-icon" type="button" onclick="requestLocationAndFindNearestStop(true)" aria-label="Find my location" title="My Location" style="color:var(--primary);">🎯</button>
+    <button class="btn btn-icon" type="button" onclick="recenterCampusView()" aria-label="Recenter campus" title="Recenter Campus (🏛️)" style="color:var(--primary-light);">🏛️</button>
     <button class="btn btn-icon" type="button" onclick="centerOnShuttle()" aria-label="Center shuttle" title="Center Shuttle" style="color:var(--emerald);">📍</button>
+    <button class="btn btn-icon" id="btn-legend-toggle" type="button" onclick="toggleRouteLegend()" aria-label="Toggle Route Legend" title="Corridor Legend" style="color:#f59e0b;">🗺️</button>
+    <button class="btn btn-icon" id="btn-sim-toggle" type="button" onclick="toggleSimulationMode()" aria-label="Toggle Autonomous Fleet Simulation" title="Fleet Telemetry Mode" style="color:#38bdf8;">⚡</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       FLOATING ROUTE LEGEND
+  ══════════════════════════════ -->
+  <div id="route-legend-card" class="route-legend-card">
+    <div class="legend-header">
+      <span class="legend-title">🗺️ Campus Corridors</span>
+      <button class="legend-close" type="button" onclick="toggleRouteLegend()">✕</button>
+    </div>
+    <div class="legend-routes">
+      <div class="legend-item" onclick="setMapFilter('vit_general_bus_101')">
+        <span class="legend-dot" style="background:#2563eb;"></span>
+        <div class="legend-info">
+          <span class="legend-name">Bus 101 • Men's Express</span>
+          <span class="legend-sub">6 stops • Every 4m • ₹20</span>
+        </div>
+      </div>
+      <div class="legend-item" onclick="setMapFilter('vit_general_bus_102')">
+        <span class="legend-dot" style="background:#ec4899;"></span>
+        <div class="legend-info">
+          <span class="legend-name">Bus 102 • Ladies' Loop</span>
+          <span class="legend-sub">5 stops • Every 6m • ₹20</span>
+        </div>
+      </div>
+      <div class="legend-item" onclick="setMapFilter('vit_faculty_shuttle_201')">
+        <span class="legend-dot" style="background:#059669;"></span>
+        <div class="legend-info">
+          <span class="legend-name">Shuttle 201 • Faculty VIP</span>
+          <span class="legend-sub">7 stops • Every 8m • FREE</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-outline btn-sm" style="width:100%;margin-top:6px;font-size:10px;padding:4px;" type="button" onclick="setMapFilter('all')">Show All Corridors</button>
+  </div>
+
+  <!-- ══════════════════════════════
+       INTERACTIVE STOP DETAIL DRAWER
+  ══════════════════════════════ -->
+  <div id="stop-detail-drawer" class="stop-detail-drawer">
+    <div class="stop-drawer-header">
+      <div class="stop-drawer-title-wrap">
+        <div class="stop-drawer-icon" id="sdd-icon">🚏</div>
+        <div>
+          <div class="stop-drawer-name" id="sdd-name">SJT (Silver Jubilee Tower)</div>
+          <div class="stop-drawer-zone" id="sdd-zone">Academic Hub • Stop #10</div>
+        </div>
+      </div>
+      <button class="stop-drawer-close" type="button" onclick="closeStopDetailDrawer()">✕</button>
+    </div>
+    
+    <div class="stop-drawer-distance" id="sdd-dist">
+      🚶 <strong>120 m</strong> away (1.5 min walk from your location)
+    </div>
+
+    <div class="stop-drawer-routes-title">Serving Corridors & Estimated Arrivals:</div>
+    <div class="stop-drawer-routes-list" id="sdd-routes-list"></div>
+
+    <div class="stop-drawer-actions">
+      <button class="btn btn-primary" id="sdd-btn-walk" type="button" onclick="walkToCurrentStop()">🚶 Walk Here</button>
+      <button class="btn btn-outline" id="sdd-btn-fav" type="button" onclick="toggleCurrentStopFavorite()">⭐ Favorite</button>
+      <button class="btn btn-outline" type="button" onclick="centerMapOnCurrentStop()">📍 Center</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MANUAL LOCATION SELECTOR MODAL
+  ══════════════════════════════ -->
+  <div id="manual-loc-modal" class="modal-bg" onclick="closeManualLocModal(event)">
+    <div class="manual-loc-card" onclick="event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px;">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.05rem;color:var(--text);">📍 Select Your Campus Location</div>
+          <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">Browser GPS unavailable. Choose where you are standing:</div>
+        </div>
+        <button style="background:none;border:none;color:var(--text-muted);font-size:16px;cursor:pointer;" type="button" onclick="closeManualLocModal()">✕</button>
+      </div>
+      <div class="manual-loc-grid" id="manual-loc-grid"></div>
+      <div style="margin-top:12px;font-size:0.7rem;color:var(--text-muted);text-align:center;">
+        Select a location to pinpoint your position and calculate the nearest stop.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MAP & LIST FULL VIEW CONTAINER
+  ══════════════════════════════ -->
+  <div id="map-list-view" class="map-list-view-container">
+    <div class="list-view-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;color:var(--text);">Campus Transit Directory</div>
+          <div style="font-size:0.78rem;color:var(--text-secondary);">Comprehensive corridors, timetables & stops</div>
+        </div>
+        <button class="btn btn-primary btn-sm" type="button" onclick="toggleMapListMode()">🗺️ Back to Map</button>
+      </div>
+      <div class="role-tabs" style="width:100%;max-width:320px;margin-bottom:14px;">
+        <button id="tab-list-routes" class="role-tab active-student" type="button" onclick="switchListDirectoryTab('routes')">🚌 3 Corridors</button>
+        <button id="tab-list-stops" class="role-tab" type="button" onclick="switchListDirectoryTab('stops')">🚏 16 Stops</button>
+      </div>
+    </div>
+    <div id="list-routes-content" class="list-section"></div>
+    <div id="list-stops-content" class="list-section" style="display:none;"></div>
   </div>
 
   <!-- ══════════════════════════════
        BOTTOM TRAY
   ══════════════════════════════ -->
   <div class="bottom-tray card">
+    <div class="tray-grab-bar" onclick="toggleDetailsDrawer()" role="button" aria-label="Toggle drawer"></div>
     <!-- Passenger View -->
     <div id="passenger-view">
       <!-- Shuttle Selector Row -->
@@ -2641,13 +3344,19 @@
         <div class="next-stop-wrap">
           <div class="stop-indicator"></div>
           <div>
-            <span class="next-name" id="next-stop-label">Next: MB (Main Bldg)</span>
-            <span class="next-eta" id="next-stop-mins"> • 2 min</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span class="next-name" id="next-stop-label">Next: MB (Main Bldg)</span>
+              <span class="telemetry-origin-tag origin-simulated" id="fleet-origin-badge">[SIMULATED FLEET]</span>
+            </div>
+            <span class="next-eta" id="next-stop-mins"> • 2 min away</span>
           </div>
         </div>
-        <div class="speed-chip" id="speed-chip">
-          <span id="speed-val">22</span>
-          <span class="unit">KM/H</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="speed-chip" id="speed-chip">
+            <span id="speed-val">22</span>
+            <span class="unit">KM/H</span>
+          </div>
+          <button class="btn btn-icon btn-sm" id="sim-control-btn" style="width:28px;height:28px;font-size:12px;background:var(--surface-hover);border:1px solid var(--border);" type="button" onclick="toggleSimulationMode()" title="Toggle autonomous fleet movement vs static depot">⏸️</button>
         </div>
       </div>
 
@@ -3076,10 +3785,33 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── MAP INITIALIZATION ──
-    const map = L.map('map', { zoomControl: false, tap: false }).setView([12.9715, 79.1595], 16.2);
-    L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    const map = L.map('map', { zoomControl: false, tap: false }).setView([12.9698, 79.1558], 16.2);
+    const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
       subdomains: ['0','1','2','3'], maxZoom: 20, attribution: 'Google Maps'
     }).addTo(map);
+
+    const mapLoadingOverlay = document.getElementById('map-loading-overlay');
+    tileLayer.on('load', () => {
+      if (mapLoadingOverlay) mapLoadingOverlay.classList.add('hidden');
+    });
+    tileLayer.on('tileerror', () => {
+      const txt = document.getElementById('map-loading-text');
+      if (txt) txt.textContent = 'Offline / Cached Tiles Active';
+      setTimeout(() => mapLoadingOverlay?.classList.add('hidden'), 2000);
+    });
+    setTimeout(() => mapLoadingOverlay?.classList.add('hidden'), 2500);
+
+    // Layer Groups for Dynamic Map Filtering
+    const mapLayers = {
+      stops: L.layerGroup().addTo(map),
+      buildings: L.layerGroup().addTo(map),
+      routes: {
+        'vit_general_bus_101': L.layerGroup().addTo(map),
+        'vit_general_bus_102': L.layerGroup().addTo(map),
+        'vit_faculty_shuttle_201': L.layerGroup().addTo(map)
+      },
+      vehicles: L.layerGroup().addTo(map)
+    };
 
     // ── APP STATE ──
     let currentRole = 'student';
@@ -3123,23 +3855,23 @@
 
     // Comprehensive Campus Destinations Directory (Academic, Hostels, Facilities, Gates)
     const campusDestinations = [
-      { id: 10, name: "Silver Jubilee Tower (SJT)", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "School of Computer Science & Engineering", aliases: ["sjt", "silver jubilee", "cse", "scoop", "tower", "scse", "site"], stopId: 10, stopName: "SJT Portico", walkMins: 1 },
-      { id: 8,  name: "Periyar EVR Central Library", category: "academic", badge: "LIBRARY", icon: "📚", desc: "Central Campus Library & 24/7 Reading Hall", aliases: ["library", "books", "reading", "study", "periyar"], stopId: 8, stopName: "Periyar EVR Central Library", walkMins: 1 },
-      { id: 3,  name: "MH Food Court & All Maart", category: "dining", badge: "FOOD COURT", icon: "🍔", desc: "Hostel Dining Area, Domino's, Supermarket & Gazebo", aliases: ["food court", "all maart", "fc", "darling", "canteen", "lunch", "dinner", "mess", "dining", "snacks"], stopId: 3, stopName: "MH Food Court & All Maart Area", walkMins: 1 },
-      { id: 6,  name: "Main Ladies' Hostel (LH) Gate", category: "hostel", badge: "LH GATE", icon: "🌸", desc: "Ladies' Hostel Main Security & Drop", aliases: ["lh", "ladies hostel", "girls hostel", "lh gate", "women"], stopId: 6, stopName: "Main Ladies' Hostel (LH) Gate", walkMins: 1 },
-      { id: 15, name: "Technology Tower (TT)", category: "academic", badge: "ACADEMIC", icon: "⚙️", desc: "School of Mechanical, Civil & Biotech", aliases: ["tt", "technology tower", "mech", "civil", "biotech", "portico"], stopId: 15, stopName: "TT (Technology Tower)", walkMins: 1 },
-      { id: 9,  name: "SMV / MB Block Portico", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "Main Building, Electrical & Central Auditorium", aliases: ["mb", "smv", "main building", "electrical", "select", "portico", "auditorium"], stopId: 9, stopName: "SMV / MB Block Portico", walkMins: 1 },
-      { id: 11, name: "Main Campus Gate 1", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Main Katpadi Entrance & Campus Auto Stand", aliases: ["gate 1", "main gate", "entrance", "katpadi", "auto stand", "exit"], stopId: 11, stopName: "Main Gate 1 Entrance", walkMins: 1 },
-      { id: 12, name: "Main Campus Gate 2", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Staff & Faculty Access Gate (Chittoor Road)", aliases: ["gate 2", "faculty gate", "staff gate", "chittoor"], stopId: 12, stopName: "Main Gate 2 Entrance", walkMins: 1 },
-      { id: 1,  name: "Vajpayee / Q & R Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Upper Campus Corridor", aliases: ["q block", "r block", "vajpayee", "mens hostel", "hostel q", "hostel r"], stopId: 1, stopName: "Vajpayee / Q & R-Block Cluster", walkMins: 1 },
-      { id: 2,  name: "L, M, N, P Hostel Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Central Zone", aliases: ["l block", "m block", "n block", "p block", "hostel l", "hostel m", "hostel n", "hostel p"], stopId: 2, stopName: "L, M, N, P Block Cluster", walkMins: 1 },
-      { id: 4,  name: "GD Naidu Block / A–G Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Junior Hostels & Swimming Pool Pathway", aliases: ["gd naidu", "a block", "b block", "c block", "d block", "e block", "f block", "g block"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 1 },
-      { id: 7,  name: "LH G-Block & Dining", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Ladies' Hostel Residential Block G", aliases: ["lh g block", "g block lh", "girls dining"], stopId: 7, stopName: "LH G Block", walkMins: 1 },
-      { id: 13, name: "Dr. M.G.R. Central Admin Block", category: "facility", badge: "ADMINISTRATION", icon: "🏛️", desc: "Vice Chancellor, Registrar & Finance Offices", aliases: ["admin", "mgr block", "finance", "registrar", "director", "office", "fees"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 1 },
-      { id: 14, name: "Staff & Faculty Quarters Zone", category: "facility", badge: "RESIDENTIAL", icon: "🏡", desc: "Faculty Housing, Children's Play Zone", aliases: ["faculty quarters", "staff quarters", "teachers colony"], stopId: 14, stopName: "Staff & Faculty Quarters Zone", walkMins: 1 },
-      { id: 16, name: "Gandhi & Netaji Block Cluster", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Gate-Side Zone", aliases: ["gandhi block", "netaji block", "junior mh"], stopId: 16, stopName: "Gandhi Block / Netaji Block", walkMins: 1 },
-      { id: 17, name: "VIT Health Centre & Pharmacy", category: "facility", badge: "HEALTHCARE", icon: "🏥", desc: "24/7 Outpatient Clinic & Emergency Medical", aliases: ["health centre", "hospital", "clinic", "medical", "doctor", "medicine", "pharmacy", "emergency"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 2 },
-      { id: 18, name: "Sports Complex & Gymnasium", category: "facility", badge: "SPORTS", icon: "⚽", desc: "Outdoor Stadium, Basketball Courts & Gym", aliases: ["sports", "stadium", "gym", "gymnasium", "basketball", "tennis", "football", "ground", "swimming pool"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 2 }
+      { id: 10, name: "Silver Jubilee Tower (SJT)", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "School of Computer Science & Engineering", aliases: ["sjt", "silver jubilee", "cse", "scoop", "tower", "scse", "site"], stopId: 10, stopName: "SJT Portico", walkMins: 1, lat: 12.9708, lng: 79.1558 },
+      { id: 8,  name: "Periyar EVR Central Library", category: "academic", badge: "LIBRARY", icon: "📚", desc: "Central Campus Library & 24/7 Reading Hall", aliases: ["library", "books", "reading", "study", "periyar"], stopId: 8, stopName: "Periyar EVR Central Library", walkMins: 1, lat: 12.9688, lng: 79.1561 },
+      { id: 3,  name: "MH Food Court & All Maart", category: "dining", badge: "FOOD COURT", icon: "🍔", desc: "Hostel Dining Area, Domino's, Supermarket & Gazebo", aliases: ["food court", "all maart", "fc", "darling", "canteen", "lunch", "dinner", "mess", "dining", "snacks"], stopId: 3, stopName: "MH Food Court & All Maart Area", walkMins: 1, lat: 12.9701, lng: 79.1601 },
+      { id: 6,  name: "Main Ladies' Hostel (LH) Gate", category: "hostel", badge: "LH GATE", icon: "🌸", desc: "Ladies' Hostel Main Security & Drop", aliases: ["lh", "ladies hostel", "girls hostel", "lh gate", "women"], stopId: 6, stopName: "Main Ladies' Hostel (LH) Gate", walkMins: 1, lat: 12.9675, lng: 79.1595 },
+      { id: 15, name: "Technology Tower (TT)", category: "academic", badge: "ACADEMIC", icon: "⚙️", desc: "School of Mechanical, Civil & Biotech", aliases: ["tt", "technology tower", "mech", "civil", "biotech", "portico"], stopId: 15, stopName: "TT (Technology Tower)", walkMins: 1, lat: 12.9695, lng: 79.1563 },
+      { id: 9,  name: "SMV / MB Block Portico", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "Main Building, Electrical & Central Auditorium", aliases: ["mb", "smv", "main building", "electrical", "select", "portico", "auditorium"], stopId: 9, stopName: "SMV / MB Block Portico", walkMins: 1, lat: 12.9698, lng: 79.1552 },
+      { id: 11, name: "Main Campus Gate 1", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Main Katpadi Entrance & Campus Auto Stand", aliases: ["gate 1", "main gate", "entrance", "katpadi", "auto stand", "exit"], stopId: 11, stopName: "Main Gate 1 Entrance", walkMins: 1, lat: 12.9682, lng: 79.1542 },
+      { id: 12, name: "Main Campus Gate 2", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Staff & Faculty Access Gate (Chittoor Road)", aliases: ["gate 2", "faculty gate", "staff gate", "chittoor"], stopId: 12, stopName: "Main Gate 2 Entrance", walkMins: 1, lat: 12.9665, lng: 79.1551 },
+      { id: 1,  name: "Vajpayee / Q & R Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Upper Campus Corridor", aliases: ["q block", "r block", "vajpayee", "mens hostel", "hostel q", "hostel r"], stopId: 1, stopName: "Vajpayee / Q & R-Block Cluster", walkMins: 1, lat: 12.9723, lng: 79.1627 },
+      { id: 2,  name: "L, M, N, P Hostel Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Central Zone", aliases: ["l block", "m block", "n block", "p block", "hostel l", "hostel m", "hostel n", "hostel p"], stopId: 2, stopName: "L, M, N, P Block Cluster", walkMins: 1, lat: 12.9712, lng: 79.1612 },
+      { id: 4,  name: "GD Naidu Block / A–G Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Junior Hostels & Swimming Pool Pathway", aliases: ["gd naidu", "a block", "b block", "c block", "d block", "e block", "f block", "g block"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 1, lat: 12.9692, lng: 79.1588 },
+      { id: 7,  name: "LH G-Block & Dining", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Ladies' Hostel Residential Block G", aliases: ["lh g block", "g block lh", "girls dining"], stopId: 7, stopName: "LH G Block", walkMins: 1, lat: 12.9668, lng: 79.1602 },
+      { id: 13, name: "Dr. M.G.R. Central Admin Block", category: "facility", badge: "ADMINISTRATION", icon: "🏛️", desc: "Vice Chancellor, Registrar & Finance Offices", aliases: ["admin", "mgr block", "finance", "registrar", "director", "office", "fees"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 1, lat: 12.9688, lng: 79.1550 },
+      { id: 14, name: "Staff & Faculty Quarters Zone", category: "facility", badge: "RESIDENTIAL", icon: "🏡", desc: "Faculty Housing, Children's Play Zone", aliases: ["faculty quarters", "staff quarters", "teachers colony"], stopId: 14, stopName: "Staff & Faculty Quarters Zone", walkMins: 1, lat: 12.9658, lng: 79.1578 },
+      { id: 16, name: "Gandhi & Netaji Block Cluster", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Gate-Side Zone", aliases: ["gandhi block", "netaji block", "junior mh"], stopId: 16, stopName: "Gandhi Block / Netaji Block", walkMins: 1, lat: 12.9715, lng: 79.1548 },
+      { id: 17, name: "VIT Health Centre & Pharmacy", category: "facility", badge: "HEALTHCARE", icon: "🏥", desc: "24/7 Outpatient Clinic & Emergency Medical", aliases: ["health centre", "hospital", "clinic", "medical", "doctor", "medicine", "pharmacy", "emergency"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 2, lat: 12.9685, lng: 79.1553 },
+      { id: 18, name: "Sports Complex & Gymnasium", category: "facility", badge: "SPORTS", icon: "⚽", desc: "Outdoor Stadium, Basketball Courts & Gym", aliases: ["sports", "stadium", "gym", "gymnasium", "basketball", "tennis", "football", "ground", "swimming pool"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 2, lat: 12.9693, lng: 79.1582 }
     ];
 
     function initDashboard() {
@@ -3613,22 +4345,23 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
+        toggleMapListMode(false);
+        closeStopDetailDrawer();
         initDashboard();
       } else if (tab === 'map') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (topBar) topBar.style.display = 'flex';
         if (mapControls) mapControls.style.display = 'flex';
         if (bottomTray) bottomTray.style.display = 'block';
+        toggleMapListMode(false);
         setTimeout(() => map.invalidateSize(), 150);
       } else if (tab === 'routes') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (topBar) topBar.style.display = 'flex';
         if (mapControls) mapControls.style.display = 'flex';
-        if (bottomTray) bottomTray.style.display = 'block';
-        setTimeout(() => {
-          map.invalidateSize();
-          if (!isDrawerOpen) toggleDetailsDrawer();
-        }, 150);
+        if (bottomTray) bottomTray.style.display = 'none';
+        closeStopDetailDrawer();
+        toggleMapListMode(true);
       } else if (tab === 'pass') {
         openTicketModal(currentRole === 'faculty' ? 'faculty' : 'general');
       } else if (tab === 'profile') {
@@ -3667,56 +4400,666 @@
       }
     }
 
-    // ── DATA LOADING & STOPS ──
+    // ══════════════════════════════════════════════════════
+    // 🗺️ PHASE 3 — INTERACTIVE CAMPUS MAP CORE ENGINE
+    // ══════════════════════════════════════════════════════
+    const campusRoutes = [
+      {
+        id: 'vit_general_bus_101',
+        routeNumber: '101',
+        name: "Bus 101 — Men's Hostel Express",
+        shortName: "MH Bus 101",
+        color: '#2563eb',
+        fare: '₹20',
+        frequency: 'Every 4–6 mins',
+        operatingHours: '06:30 AM – 10:30 PM',
+        status: 'Normal Service',
+        stopIds: [1, 2, 3, 4, 5, 10],
+        coordinates: [
+          [12.9723, 79.1627],
+          [12.9712, 79.1612],
+          [12.9701, 79.1601],
+          [12.9692, 79.1588],
+          [12.9691, 79.1560],
+          [12.9708, 79.1558]
+        ]
+      },
+      {
+        id: 'vit_general_bus_102',
+        routeNumber: '102',
+        name: "Bus 102 — Ladies' Hostel Academic Loop",
+        shortName: "LH Bus 102",
+        color: '#ec4899',
+        fare: '₹20',
+        frequency: 'Every 6–8 mins',
+        operatingHours: '06:30 AM – 09:30 PM',
+        status: 'Normal Service',
+        stopIds: [6, 7, 8, 9, 10],
+        coordinates: [
+          [12.9675, 79.1595],
+          [12.9668, 79.1602],
+          [12.9688, 79.1561],
+          [12.9698, 79.1552],
+          [12.9708, 79.1558]
+        ]
+      },
+      {
+        id: 'vit_faculty_shuttle_201',
+        routeNumber: '201',
+        name: "Shuttle 201 — Faculty Special Corridor",
+        shortName: "Faculty Shuttle 201",
+        color: '#059669',
+        fare: 'FREE',
+        frequency: 'Every 8–10 mins',
+        operatingHours: '08:00 AM – 07:00 PM',
+        status: 'Priority VIP',
+        stopIds: [11, 12, 13, 14, 15, 10, 16],
+        coordinates: [
+          [12.9682, 79.1542],
+          [12.9665, 79.1551],
+          [12.9688, 79.1550],
+          [12.9658, 79.1578],
+          [12.9695, 79.1563],
+          [12.9708, 79.1558],
+          [12.9715, 79.1548]
+        ]
+      }
+    ];
+
+    let currentMapFilter = 'all';
+    let currentDetailStop = null;
+    let isMapListMode = false;
+    let currentListTab = 'routes';
+    let isRouteLegendOpen = false;
+    let isSimulationRunning = true;
+    let lastTelemetryTimestamp = Date.now();
+    let stopMarkerMap = {};
+    let buildingMarkerMap = {};
+
     async function loadCampusData() {
       try {
         const { data: stops } = await supabaseClient.from('stops').select('*');
         if (stops && stops.length >= 10) campusStops = stops;
       } catch(e) {}
 
+      // Clear layers
+      mapLayers.stops.clearLayers();
+      mapLayers.buildings.clearLayers();
+      Object.values(mapLayers.routes).forEach(rg => rg.clearLayers());
+
+      // 1. Render Shuttle Stops
       campusStops.forEach(stop => {
-        let dotColor = '#2563eb', badgeIcon = '🛏️';
+        let dotColor = '#2563eb', badgeIcon = '🚏';
         if (stop.category === 'lh')           { dotColor = '#ec4899'; badgeIcon = '🌸'; }
         else if (stop.category === 'faculty') { dotColor = '#059669'; badgeIcon = '⭐'; }
         else if (stop.category === 'academic'){ dotColor = '#7c3aed'; badgeIcon = '🏛️'; }
 
         const stopIcon = L.divIcon({
-          className:'',
-          html:`<div style="background:#0f172a;color:#f8fafc;font-size:9.5px;font-family:'Inter',sans-serif;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid ${dotColor};box-shadow:0 2px 8px rgba(0,0,0,0.3);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:4px;">
+          className: '',
+          html: `<div class="campus-stop-marker" style="background:#0f172a;color:#f8fafc;font-size:9.5px;font-family:'Inter',sans-serif;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid ${dotColor};box-shadow:0 3px 10px rgba(0,0,0,0.4);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:4px;cursor:pointer;transition:transform 0.15s ease;">
             <span>${badgeIcon}</span><span>${stop.name}</span>
-            <div style="width:6px;height:6px;background:${dotColor};border:1px solid white;border-radius:50%;margin-left:2px;"></div>
+            <div style="width:6px;height:6px;background:${dotColor};border:1.5px solid white;border-radius:50%;margin-left:2px;"></div>
           </div>`,
-          iconSize:[0,0]
+          iconSize: [0, 0]
         });
-        const m = L.marker([stop.lat,stop.lng], {icon:stopIcon}).addTo(map);
-        m.bindPopup(`
-          <div style="font-family:'Inter',sans-serif;min-width:180px;padding:4px;">
-            <div style="font-weight:700;font-size:12px;color:#0f172a;margin-bottom:2px;">${stop.name}</div>
-            <div style="font-size:11px;color:#64748b;margin-bottom:8px;">Campus Transit Stop</div>
-            <button onclick="window.navigateDirectlyToStop(${stop.id})" style="width:100%;background:#2563eb;color:white;border:none;padding:6px 10px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">🚶 Walk To This Stop</button>
-          </div>
-        `);
+
+        const m = L.marker([stop.lat, stop.lng], { icon: stopIcon });
+        m.on('click', () => openStopDetailDrawer(stop.id));
+        stopMarkerMap[stop.id] = m;
+        mapLayers.stops.addLayer(m);
       });
 
-      window.navigateDirectlyToStop = function(stopId) {
-        map.closePopup();
-        const t = campusStops.find(s => s.id === stopId);
-        if (t) { nearestCampusStop = t; startDirectionsMode(); }
-      };
+      // 2. Render Campus Buildings & POIs
+      campusDestinations.forEach(b => {
+        if (!b.lat || !b.lng) return;
+        const bIcon = L.divIcon({
+          className: '',
+          html: `<div style="background:var(--surface-card);color:var(--text);font-size:9px;font-family:'Inter',sans-serif;font-weight:600;padding:2px 7px;border-radius:6px;border:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.25);white-space:nowrap;transform:translate(-50%,-20px);display:flex;align-items:center;gap:3px;cursor:pointer;backdrop-filter:blur(8px);">
+            <span>${b.icon}</span><span style="max-width:110px;overflow:hidden;text-overflow:ellipsis;">${b.name.split('(')[0]}</span>
+          </div>`,
+          iconSize: [0, 0]
+        });
+        const bm = L.marker([b.lat, b.lng], { icon: bIcon });
+        bm.bindPopup(`
+          <div style="font-family:'Inter',sans-serif;min-width:190px;padding:4px;">
+            <div style="font-weight:700;font-size:12px;color:var(--text);">${b.name}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin:3px 0 6px 0;">${b.desc}</div>
+            <div style="font-size:10.5px;color:var(--primary);font-weight:600;margin-bottom:8px;">Nearest Stop: ${b.stopName} (~${b.walkMins}m walk)</div>
+            <button onclick="map.closePopup(); openStopDetailDrawer(${b.stopId});" style="width:100%;background:var(--primary);color:white;border:none;padding:5px 8px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">🚏 View Nearest Stop</button>
+          </div>
+        `);
+        buildingMarkerMap[b.id] = bm;
+        mapLayers.buildings.addLayer(bm);
+      });
 
-      // Campus Routes
-      const routes = [
-        { color:'#2563eb', pts:[[12.9723,79.1627],[12.9712,79.1612],[12.9701,79.1601],[12.9692,79.1588],[12.9691,79.1560],[12.9708,79.1558]] },
-        { color:'#db2777', pts:[[12.9675,79.1595],[12.9668,79.1602],[12.9688,79.1561],[12.9698,79.1552],[12.9708,79.1558]] },
-        { color:'#059669', pts:[[12.9682,79.1542],[12.9665,79.1551],[12.9688,79.1550],[12.9658,79.1578],[12.9695,79.1563],[12.9708,79.1558],[12.9715,79.1548]] }
-      ];
-      routes.forEach(r => {
-        L.polyline(r.pts, { color:r.color, weight:4, opacity:0.85, className:'animated-route-flow' }).addTo(map);
+      // 3. Render Campus Corridors (Polylines + Directional Flow)
+      campusRoutes.forEach(r => {
+        const poly = L.polyline(r.coordinates, {
+          color: r.color,
+          weight: 4.5,
+          opacity: 0.88,
+          className: 'animated-route-flow'
+        });
+        poly.on('click', () => setMapFilter(r.id));
+        mapLayers.routes[r.id].addLayer(poly);
       });
 
       requestLocationAndFindNearestStop(false);
+      renderListViewContent();
     }
     loadCampusData();
+
+    // ── 1. MAP RECENTER ──
+    function recenterCampusView() {
+      playChime();
+      map.flyTo([12.9698, 79.1558], 16.2, { animate: true, duration: 0.8 });
+    }
+
+    // ── 3. INTERACTIVE STOP DETAIL DRAWER ──
+    function openStopDetailDrawer(stopId) {
+      playBeep();
+      const stop = campusStops.find(s => s.id === stopId);
+      if (!stop) return;
+      currentDetailStop = stop;
+
+      const nameEl = document.getElementById('sdd-name');
+      const zoneEl = document.getElementById('sdd-zone');
+      const iconEl = document.getElementById('sdd-icon');
+      const distEl = document.getElementById('sdd-dist');
+      const routesListEl = document.getElementById('sdd-routes-list');
+      const favBtn = document.getElementById('sdd-btn-fav');
+
+      if (nameEl) nameEl.textContent = stop.name;
+      if (zoneEl) {
+        let zone = "Campus Transit Hub";
+        if (stop.category === 'mh') zone = "Men's Hostel Corridor • Stop #" + stop.id;
+        else if (stop.category === 'lh') zone = "Ladies' Hostel Corridor • Stop #" + stop.id;
+        else if (stop.category === 'faculty') zone = "Administrative & Faculty Corridor • Stop #" + stop.id;
+        else if (stop.category === 'academic') zone = "Academic Core Corridor • Stop #" + stop.id;
+        zoneEl.textContent = zone;
+      }
+      if (iconEl) {
+        iconEl.textContent = stop.category === 'lh' ? '🌸' : stop.category === 'faculty' ? '⭐' : stop.category === 'academic' ? '🏛️' : '🚏';
+      }
+
+      // Distance estimation
+      let distText = '📍 Centrally located on campus';
+      if (userLocation) {
+        const distM = Math.round(getDistanceMeters(userLocation.lat, userLocation.lng, stop.lat, stop.lng));
+        const walkM = Math.max(1, Math.round((distM / 75) * 1.35));
+        distText = `🚶 <strong>${distM} m</strong> away (~${walkM} min walk from your location)`;
+      } else {
+        distText = `🚶 ~120m from campus centre (~1.5 min walk)`;
+      }
+      if (distEl) distEl.innerHTML = distText;
+
+      // Serving routes and ETAs
+      const servingRoutes = campusRoutes.filter(r => r.stopIds.includes(stop.id));
+      if (routesListEl) {
+        if (servingRoutes.length === 0) {
+          routesListEl.innerHTML = `<div style="font-size:0.75rem;color:var(--text-muted);padding:4px;">No fixed schedule corridors at this stop.</div>`;
+        } else {
+          routesListEl.innerHTML = servingRoutes.map(r => {
+            const vehicle = activeShuttles[r.id];
+            let etaMin = 3;
+            if (vehicle) {
+              const e = calculateETA(vehicle.lat, vehicle.lng, stop.lat, stop.lng, vehicle.speed);
+              etaMin = e.etaMinutes;
+            }
+            return `
+              <div class="stop-drawer-route-item" onclick="setMapFilter('${r.id}')" style="cursor:pointer;" title="Click to isolate route on map">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span class="stop-drawer-route-badge" style="background:${r.color};">${r.shortName}</span>
+                  <span style="font-size:0.72rem;color:var(--text);font-weight:600;">${r.frequency}</span>
+                </div>
+                <span class="stop-drawer-eta-pill">~${etaMin} min away</span>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Favorite button
+      if (favBtn) {
+        const isFav = userFavorites.includes(stop.id);
+        favBtn.textContent = isFav ? '★ Favorited' : '⭐ Favorite';
+        favBtn.style.color = isFav ? '#fbbf24' : 'var(--text)';
+      }
+
+      document.getElementById('stop-detail-drawer')?.classList.add('open');
+      closeRouteLegend();
+    }
+
+    function closeStopDetailDrawer() {
+      playBeep();
+      document.getElementById('stop-detail-drawer')?.classList.remove('open');
+    }
+
+    function walkToCurrentStop() {
+      if (!currentDetailStop) return;
+      nearestCampusStop = currentDetailStop;
+      closeStopDetailDrawer();
+      startDirectionsMode();
+    }
+
+    function toggleCurrentStopFavorite() {
+      if (!currentDetailStop) return;
+      playChime();
+      const id = currentDetailStop.id;
+      const idx = userFavorites.indexOf(id);
+      if (idx > -1) {
+        userFavorites.splice(idx, 1);
+      } else {
+        userFavorites.push(id);
+      }
+      localStorage.setItem('vit_shuttle_favorites', JSON.stringify(userFavorites));
+      renderFavorites();
+      const favBtn = document.getElementById('sdd-btn-fav');
+      if (favBtn) {
+        const isFav = userFavorites.includes(id);
+        favBtn.textContent = isFav ? '★ Favorited' : '⭐ Favorite';
+        favBtn.style.color = isFav ? '#fbbf24' : 'var(--text)';
+      }
+    }
+
+    function centerMapOnCurrentStop() {
+      if (!currentDetailStop) return;
+      map.flyTo([currentDetailStop.lat, currentDetailStop.lng], 17.5, { animate: true, duration: 0.6 });
+    }
+
+    // ── 4. ROUTE LEGEND ──
+    function toggleRouteLegend() {
+      playBeep();
+      isRouteLegendOpen = !isRouteLegendOpen;
+      const el = document.getElementById('route-legend-card');
+      if (el) el.classList.toggle('open', isRouteLegendOpen);
+      const btn = document.getElementById('btn-legend-toggle');
+      if (btn) btn.style.background = isRouteLegendOpen ? 'var(--primary-subtle)' : '';
+    }
+
+    function closeRouteLegend() {
+      isRouteLegendOpen = false;
+      document.getElementById('route-legend-card')?.classList.remove('open');
+      const btn = document.getElementById('btn-legend-toggle');
+      if (btn) btn.style.background = '';
+    }
+
+    // ── 6. MAP FILTERS ENGINE ──
+    function setMapFilter(filterType) {
+      playBeep();
+      currentMapFilter = filterType;
+
+      // Update pills
+      document.querySelectorAll('#map-filter-bar .filter-pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-filter') === filterType);
+      });
+
+      if (filterType === 'all') {
+        if (!map.hasLayer(mapLayers.stops)) map.addLayer(mapLayers.stops);
+        if (!map.hasLayer(mapLayers.buildings)) map.addLayer(mapLayers.buildings);
+        if (!map.hasLayer(mapLayers.vehicles)) map.addLayer(mapLayers.vehicles);
+        campusRoutes.forEach(r => {
+          if (!map.hasLayer(mapLayers.routes[r.id])) map.addLayer(mapLayers.routes[r.id]);
+        });
+      } else if (filterType === 'shuttles') {
+        if (!map.hasLayer(mapLayers.vehicles)) map.addLayer(mapLayers.vehicles);
+        if (map.hasLayer(mapLayers.stops)) map.removeLayer(mapLayers.stops);
+        if (map.hasLayer(mapLayers.buildings)) map.removeLayer(mapLayers.buildings);
+        campusRoutes.forEach(r => {
+          if (!map.hasLayer(mapLayers.routes[r.id])) map.addLayer(mapLayers.routes[r.id]);
+        });
+      } else if (filterType === 'stops') {
+        if (!map.hasLayer(mapLayers.stops)) map.addLayer(mapLayers.stops);
+        if (map.hasLayer(mapLayers.buildings)) map.removeLayer(mapLayers.buildings);
+        if (map.hasLayer(mapLayers.vehicles)) map.removeLayer(mapLayers.vehicles);
+        campusRoutes.forEach(r => {
+          if (!map.hasLayer(mapLayers.routes[r.id])) map.addLayer(mapLayers.routes[r.id]);
+        });
+      } else if (filterType === 'buildings') {
+        if (!map.hasLayer(mapLayers.buildings)) map.addLayer(mapLayers.buildings);
+        if (map.hasLayer(mapLayers.stops)) map.removeLayer(mapLayers.stops);
+        if (map.hasLayer(mapLayers.vehicles)) map.removeLayer(mapLayers.vehicles);
+        campusRoutes.forEach(r => {
+          if (map.hasLayer(mapLayers.routes[r.id])) map.removeLayer(mapLayers.routes[r.id]);
+        });
+      } else {
+        // Specific Route Filter: Isolate route line, its stops, and vehicle
+        const targetRoute = campusRoutes.find(r => r.id === filterType);
+        if (targetRoute) {
+          campusRoutes.forEach(r => {
+            if (r.id === targetRoute.id) {
+              if (!map.hasLayer(mapLayers.routes[r.id])) map.addLayer(mapLayers.routes[r.id]);
+            } else {
+              if (map.hasLayer(mapLayers.routes[r.id])) map.removeLayer(mapLayers.routes[r.id]);
+            }
+          });
+
+          // Show only stops for this route
+          if (!map.hasLayer(mapLayers.stops)) map.addLayer(mapLayers.stops);
+          campusStops.forEach(s => {
+            const m = stopMarkerMap[s.id];
+            if (!m) return;
+            if (targetRoute.stopIds.includes(s.id)) {
+              if (!mapLayers.stops.hasLayer(m)) mapLayers.stops.addLayer(m);
+            } else {
+              if (mapLayers.stops.hasLayer(m)) mapLayers.stops.removeLayer(m);
+            }
+          });
+
+          if (map.hasLayer(mapLayers.buildings)) map.removeLayer(mapLayers.buildings);
+          if (!map.hasLayer(mapLayers.vehicles)) map.addLayer(mapLayers.vehicles);
+
+          selectShuttle(targetRoute.id);
+          map.fitBounds(targetRoute.coordinates, { padding: [60, 60], maxZoom: 17 });
+        }
+      }
+    }
+
+    // ── 7. IN-MAP LOCATION SEARCH ──
+    function handleMapSearch(query) {
+      const q = query.trim().toLowerCase();
+      const clearBtn = document.getElementById('map-search-clear');
+      const dropdown = document.getElementById('map-search-results');
+      if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+      if (!q) {
+        if (dropdown) dropdown.classList.remove('active');
+        return;
+      }
+
+      // Match stops, buildings, routes
+      const matchStops = campusStops.filter(s => s.name.toLowerCase().includes(q)).slice(0, 4);
+      const matchBldgs = campusDestinations.filter(b => 
+        b.name.toLowerCase().includes(q) || b.desc.toLowerCase().includes(q) || b.aliases.some(a => a.includes(q))
+      ).slice(0, 4);
+
+      if (matchStops.length === 0 && matchBldgs.length === 0) {
+        if (dropdown) {
+          dropdown.innerHTML = `<div style="padding:12px;text-align:center;font-size:0.75rem;color:var(--text-muted);">No campus locations matching "${query}"</div>`;
+          dropdown.classList.add('active');
+        }
+        return;
+      }
+
+      let html = '';
+      matchStops.forEach(s => {
+        html += `
+          <div class="map-search-item" onclick="selectMapSearchResult('stop', ${s.id})">
+            <div class="map-search-item-left">
+              <span style="font-size:14px;">🚏</span>
+              <div>
+                <div class="map-search-item-name">${s.name}</div>
+                <div class="map-search-item-sub">Shuttle Stop #${s.id}</div>
+              </div>
+            </div>
+            <span style="font-size:0.68rem;color:var(--primary);font-weight:700;">Fly To</span>
+          </div>
+        `;
+      });
+
+      matchBldgs.forEach(b => {
+        html += `
+          <div class="map-search-item" onclick="selectMapSearchResult('bldg', ${b.id})">
+            <div class="map-search-item-left">
+              <span style="font-size:14px;">${b.icon}</span>
+              <div>
+                <div class="map-search-item-name">${b.name}</div>
+                <div class="map-search-item-sub">${b.badge} • Stop: ${b.stopName}</div>
+              </div>
+            </div>
+            <span style="font-size:0.68rem;color:var(--primary);font-weight:700;">Fly To</span>
+          </div>
+        `;
+      });
+
+      if (dropdown) {
+        dropdown.innerHTML = html;
+        dropdown.classList.add('active');
+      }
+    }
+
+    function clearMapSearch() {
+      const input = document.getElementById('map-search-input');
+      if (input) input.value = '';
+      document.getElementById('map-search-clear')?.style.setProperty('display', 'none');
+      document.getElementById('map-search-results')?.classList.remove('active');
+    }
+
+    function selectMapSearchResult(type, id) {
+      clearMapSearch();
+      if (type === 'stop') {
+        const s = campusStops.find(stop => stop.id === id);
+        if (s) {
+          map.flyTo([s.lat, s.lng], 17.5, { duration: 0.8 });
+          setTimeout(() => openStopDetailDrawer(s.id), 400);
+        }
+      } else if (type === 'bldg') {
+        const b = campusDestinations.find(bldg => bldg.id === id);
+        if (b && b.lat && b.lng) {
+          map.flyTo([b.lat, b.lng], 17.5, { duration: 0.8 });
+          const m = buildingMarkerMap[b.id];
+          if (m) setTimeout(() => m.openPopup(), 450);
+        }
+      }
+    }
+
+    // ── 8. MANUAL LOCATION PICKER (FALLBACK ON GPS DENIED) ──
+    function openManualLocationPicker() {
+      playBeep();
+      const grid = document.getElementById('manual-loc-grid');
+      if (grid) {
+        grid.innerHTML = campusDestinations.map(b => `
+          <button class="manual-loc-btn" type="button" onclick="selectManualLocation(${b.id})">
+            <div style="font-size:16px;margin-bottom:2px;">${b.icon}</div>
+            <div class="manual-loc-btn-title">${b.name.split('(')[0]}</div>
+            <div class="manual-loc-btn-sub">${b.badge}</div>
+          </button>
+        `).join('');
+      }
+      document.getElementById('manual-loc-modal')?.classList.add('active');
+    }
+
+    function closeManualLocModal(e) {
+      if (!e || e.target.id === 'manual-loc-modal' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('manual-loc-modal')?.classList.remove('active');
+      }
+    }
+
+    function selectManualLocation(destId) {
+      playChime();
+      const dest = campusDestinations.find(d => d.id === destId);
+      if (!dest || !dest.lat || !dest.lng) return;
+
+      userLocation = { lat: dest.lat, lng: dest.lng };
+      updateUserMarker(dest.lat, dest.lng);
+      calculateNearestStop(dest.lat, dest.lng, true);
+
+      document.getElementById('manual-loc-modal')?.classList.remove('active');
+      const txt = document.getElementById('stop-text');
+      if (txt) {
+        txt.innerHTML = `<span>Manual Location: <span class="hi">${dest.name.split('(')[0]}</span></span>`;
+      }
+    }
+
+    // ── 9. MAP AND LIST MODES TOGGLE ──
+    function toggleMapListMode(forceMode) {
+      playBeep();
+      if (typeof forceMode === 'boolean') isMapListMode = forceMode;
+      else isMapListMode = !isMapListMode;
+
+      const listViewEl = document.getElementById('map-list-view');
+      const btnIcon = document.getElementById('map-mode-btn-icon');
+      const btnText = document.getElementById('map-mode-btn-text');
+
+      if (isMapListMode) {
+        listViewEl?.classList.add('active');
+        if (btnIcon) btnIcon.textContent = '🗺️';
+        if (btnText) btnText.textContent = 'Map';
+        renderListViewContent();
+      } else {
+        listViewEl?.classList.remove('active');
+        if (btnIcon) btnIcon.textContent = '📋';
+        if (btnText) btnText.textContent = 'List';
+        setTimeout(() => map.invalidateSize(), 150);
+      }
+    }
+
+    function switchListDirectoryTab(tab) {
+      playBeep();
+      currentListTab = tab;
+      document.getElementById('tab-list-routes')?.classList.toggle('active-student', tab === 'routes');
+      document.getElementById('tab-list-stops')?.classList.toggle('active-student', tab === 'stops');
+      document.getElementById('list-routes-content')?.style.setProperty('display', tab === 'routes' ? 'block' : 'none');
+      document.getElementById('list-stops-content')?.style.setProperty('display', tab === 'stops' ? 'block' : 'none');
+    }
+
+    function renderListViewContent() {
+      // 1. Routes directory
+      const routesContent = document.getElementById('list-routes-content');
+      if (routesContent) {
+        routesContent.innerHTML = campusRoutes.map(r => {
+          const stopsList = r.stopIds.map((sid, idx) => {
+            const s = campusStops.find(st => st.id === sid);
+            return `
+              <div class="list-seq-step">
+                <span class="list-seq-num">${idx + 1}</span>
+                <span>${s ? s.name : 'Stop #' + sid}</span>
+              </div>
+            `;
+          }).join('');
+
+          return `
+            <div class="list-route-card">
+              <div class="list-route-top">
+                <div class="list-route-badge" style="background:${r.color};">
+                  <span>🚌</span>
+                  <span>${r.name}</span>
+                </div>
+                <div style="font-weight:800;font-size:0.75rem;color:${r.color};">${r.fare}</div>
+              </div>
+              <div style="display:flex;gap:12px;font-size:0.7rem;color:var(--text-secondary);margin:6px 0;">
+                <span>⏱️ ${r.frequency}</span>
+                <span>•</span>
+                <span>🕒 ${r.operatingHours}</span>
+                <span>•</span>
+                <span style="color:var(--emerald);font-weight:700;">● ${r.status}</span>
+              </div>
+              <div class="list-route-seq">
+                ${stopsList}
+              </div>
+              <button class="btn btn-primary" style="width:100%;font-size:0.75rem;padding:7px;" type="button" onclick="inspectRouteOnMap('${r.id}')">
+                🗺️ View Corridor on Interactive Map
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 2. Stops directory
+      const stopsContent = document.getElementById('list-stops-content');
+      if (stopsContent) {
+        stopsContent.innerHTML = `
+          <div style="margin-bottom:12px;">
+            <input type="text" class="input" placeholder="Filter stops by name..." oninput="filterListStops(this.value)" style="font-size:0.75rem;padding:7px 10px;">
+          </div>
+          <div id="list-stops-grid" style="display:flex;flex-direction:column;gap:8px;">
+            ${campusStops.map(s => {
+              const serving = campusRoutes.filter(r => r.stopIds.includes(s.id));
+              const badges = serving.map(r => `<span style="font-size:0.64rem;font-weight:700;color:white;background:${r.color};padding:2px 6px;border-radius:4px;">${r.shortName}</span>`).join(' ');
+              return `
+                <div class="card" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:0.8rem;font-weight:700;color:var(--text);">${s.name}</div>
+                    <div style="display:flex;gap:4px;margin-top:4px;">${badges}</div>
+                  </div>
+                  <div style="display:flex;gap:6px;">
+                    <button class="btn btn-outline btn-sm" style="font-size:0.7rem;padding:5px 8px;" type="button" onclick="inspectStopOnMap(${s.id})">🗺️ Map</button>
+                    <button class="btn btn-primary btn-sm" style="font-size:0.7rem;padding:5px 8px;" type="button" onclick="walkToStopFromList(${s.id})">🚶 Walk</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function inspectRouteOnMap(routeId) {
+      toggleMapListMode(false);
+      setMapFilter(routeId);
+    }
+
+    function inspectStopOnMap(stopId) {
+      toggleMapListMode(false);
+      const s = campusStops.find(stop => stop.id === stopId);
+      if (s) {
+        map.flyTo([s.lat, s.lng], 17.5, { duration: 0.8 });
+        setTimeout(() => openStopDetailDrawer(s.id), 400);
+      }
+    }
+
+    function walkToStopFromList(stopId) {
+      toggleMapListMode(false);
+      const s = campusStops.find(stop => stop.id === stopId);
+      if (s) {
+        nearestCampusStop = s;
+        startDirectionsMode();
+      }
+    }
+
+    function filterListStops(query) {
+      const q = query.toLowerCase();
+      const grid = document.getElementById('list-stops-grid');
+      if (!grid) return;
+      const filtered = campusStops.filter(s => s.name.toLowerCase().includes(q));
+      grid.innerHTML = filtered.map(s => {
+        const serving = campusRoutes.filter(r => r.stopIds.includes(s.id));
+        const badges = serving.map(r => `<span style="font-size:0.64rem;font-weight:700;color:white;background:${r.color};padding:2px 6px;border-radius:4px;">${r.shortName}</span>`).join(' ');
+        return `
+          <div class="card" style="padding:10px 12px;display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-size:0.8rem;font-weight:700;color:var(--text);">${s.name}</div>
+              <div style="display:flex;gap:4px;margin-top:4px;">${badges}</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-outline btn-sm" style="font-size:0.7rem;padding:5px 8px;" type="button" onclick="inspectStopOnMap(${s.id})">🗺️ Map</button>
+              <button class="btn btn-primary btn-sm" style="font-size:0.7rem;padding:5px 8px;" type="button" onclick="walkToStopFromList(${s.id})">🚶 Walk</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── 5. AUTONOMOUS SIMULATION TOGGLE & TRUTHFUL TELEMETRY (RULE 211) ──
+    function toggleSimulationMode() {
+      playChime();
+      isSimulationRunning = !isSimulationRunning;
+
+      const simBtn = document.getElementById('sim-control-btn');
+      const toggleMapBtn = document.getElementById('btn-sim-toggle');
+      const originBadge = document.getElementById('fleet-origin-badge');
+
+      if (isSimulationRunning) {
+        if (simBtn) simBtn.textContent = '⏸️';
+        if (toggleMapBtn) toggleMapBtn.style.color = '#38bdf8';
+        if (originBadge) {
+          originBadge.className = 'telemetry-origin-tag origin-simulated';
+          originBadge.textContent = '[SIMULATED FLEET]';
+        }
+      } else {
+        if (simBtn) simBtn.textContent = '▶️';
+        if (toggleMapBtn) toggleMapBtn.style.color = 'var(--text-muted)';
+        if (originBadge) {
+          originBadge.className = 'telemetry-origin-tag origin-paused';
+          originBadge.textContent = '[STATIC DEPOT / STANDBY]';
+        }
+        // Set speed to 0 km/h in static standby
+        document.getElementById('speed-val').textContent = '0';
+        const drvSpeed = document.getElementById('driver-speed');
+        if (drvSpeed) drvSpeed.textContent = '0';
+      }
+    }
 
     // ── GEO & NEAREST STOP ──
     let userLocation = null, userMarker = null, walkingPolyline = null;
@@ -3731,7 +5074,11 @@
     function requestLocationAndFindNearestStop(manual=false) {
       const txt = document.getElementById('stop-text');
       const btn = document.getElementById('nearest-stop-btn');
-      if (!navigator.geolocation) { txt.innerHTML='<span>GPS not supported</span>'; btn && (btn.style.display='none'); return; }
+      if (!navigator.geolocation) {
+        if (manual) openManualLocationPicker();
+        else { txt.innerHTML='<span>GPS not supported. Tap to pick.</span>'; btn && (btn.style.display='none'); }
+        return;
+      }
       txt.innerHTML='<span>Locating your position...</span>';
       if (btn) { btn.textContent='Locating...'; btn.disabled=true; }
       navigator.geolocation.getCurrentPosition(
@@ -3743,9 +5090,10 @@
         },
         err => {
           console.warn('Geo error:', err.message);
-          txt.innerHTML='<span>Enable location to view nearest stop</span>';
-          if(btn){btn.textContent='Enable GPS';btn.disabled=false;}
-          if(manual) alert('Allow location access in your browser to view distance to campus stops.');
+          txt.innerHTML='<span>Location permission denied. Tap to pick.</span>';
+          if(btn){btn.textContent='Pick Location';btn.disabled=false;}
+          // Prompt requirement 8: Provide a manual location selection option when permission is denied.
+          if(manual) openManualLocationPicker();
         },
         { enableHighAccuracy:true, timeout:8000, maximumAge:15000 }
       );
@@ -3984,12 +5332,35 @@
         iconSize:[60,60], iconAnchor:[30,30]
       });
 
+      const isStale = (Date.now() - lastTelemetryTimestamp) > 30000;
+      const statusText = !isSimulationRunning ? 'Static Standby • Terminal Depot' : isStale ? 'Stale Location (>30s)' : 'Live Fleet Tracking';
+      const statusColor = !isSimulationRunning ? '#94a3b8' : isStale ? '#f59e0b' : 'var(--emerald-light)';
+      const originTag = !isSimulationRunning ? '[STATIC DEPOT]' : '[SIMULATED FLEET]';
+
+      const popupHtml = `
+        <div style="font-family:'Inter',sans-serif;min-width:185px;padding:4px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <div style="font-weight:700;font-size:12px;color:var(--text);">${shuttle.name}</div>
+            <span style="font-size:9px;font-weight:800;color:${statusColor};">${originTag}</span>
+          </div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-bottom:6px;">
+            Speed: <strong>${shuttle.speed || 0} KM/H</strong> • Fare: <strong>${shuttle.fare === 0 ? 'FREE' : '₹' + shuttle.fare}</strong>
+          </div>
+          <div style="font-size:10px;color:${statusColor};font-weight:600;margin-bottom:8px;">
+            ● Status: ${statusText}
+          </div>
+          <button onclick="selectShuttle('${shuttle.shuttleId}')" style="width:100%;background:var(--primary);color:white;border:none;padding:5px 8px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">Focus Telemetry</button>
+        </div>
+      `;
+
       if (!shuttleMarkers[shuttle.shuttleId]) {
-        shuttleMarkers[shuttle.shuttleId] = L.marker([shuttle.lat,shuttle.lng],{icon:cusIcon}).addTo(map);
+        shuttleMarkers[shuttle.shuttleId] = L.marker([shuttle.lat,shuttle.lng],{icon:cusIcon}).addTo(mapLayers.vehicles);
+        shuttleMarkers[shuttle.shuttleId].bindPopup(popupHtml);
         shuttleMarkers[shuttle.shuttleId].on('click',() => selectShuttle(shuttle.shuttleId));
       } else {
         shuttleMarkers[shuttle.shuttleId].setLatLng([shuttle.lat,shuttle.lng]);
         shuttleMarkers[shuttle.shuttleId].setIcon(cusIcon);
+        shuttleMarkers[shuttle.shuttleId].setPopupContent(popupHtml);
       }
     }
 
@@ -4179,6 +5550,16 @@
     function startSimulator() {
       if (fallbackSimulatorTimer) return;
       fallbackSimulatorTimer = setInterval(() => {
+        if (!isSimulationRunning) {
+          // If simulation is paused, update markers to reflect static/stale state
+          updateMarker(activeShuttles['vit_general_bus_101']);
+          updateMarker(activeShuttles['vit_general_bus_102']);
+          updateMarker(activeShuttles['vit_faculty_shuttle_201']);
+          return;
+        }
+
+        lastTelemetryTimestamp = Date.now();
+
         // Vehicle 1: Campus Bus #101 (Men's Corridor)
         gP += 0.12;
         if (gP >= 1) { gP = 0; gI = (gI + 1) % genWps.length; }
