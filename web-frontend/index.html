@@ -1575,6 +1575,778 @@
     }
 
     /* ══════════════════════════════════════════════════════
+       📱 PHASE 2 — STUDENT DASHBOARD & NAVIGATION
+    ══════════════════════════════════════════════════════ */
+    .dashboard-view-wrapper {
+      position: absolute;
+      inset: 0;
+      z-index: 850;
+      background: var(--bg);
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dashboard-view-wrapper.active {
+      display: block;
+      animation: modalPopIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .dashboard-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 16px 16px 96px;
+      min-height: 100%;
+    }
+
+    /* Brand Header Bar */
+    .dash-brand-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 2px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+    .dash-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .dash-brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      border: 1.5px solid rgba(255, 255, 255, 0.25);
+    }
+    .dash-brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 1.05rem;
+      color: var(--text);
+      line-height: 1.15;
+      letter-spacing: -0.3px;
+    }
+    .dash-brand-sub {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .dash-telemetry-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--emerald-light);
+      box-shadow: var(--shadow-sm);
+    }
+    .telemetry-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulseRing 1.8s infinite;
+    }
+
+    /* Personalized Student Welcome Card */
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-sm);
+    }
+    .dash-profile-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .dash-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      font-weight: 800;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+    }
+    .dash-greeting {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .dash-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .dash-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .notif-btn {
+      position: relative;
+    }
+    .notif-badge-count {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 10px;
+      background: var(--rose);
+      color: white;
+      font-size: 9.5px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      box-shadow: 0 0 8px rgba(244, 63, 94, 0.6);
+      border: 1.5px solid var(--surface-card);
+    }
+
+    /* Destination Search Box & Autocomplete */
+    .search-box-wrap {
+      position: relative;
+      margin-bottom: 22px;
+      z-index: 50;
+    }
+    .search-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      font-size: 16px;
+      color: var(--text-secondary);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      background: var(--surface-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 13px 40px 13px 42px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-subtle), var(--shadow-md);
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+    .search-clear-btn:hover { color: var(--text); }
+
+    /* Search Dropdown & Suggestions */
+    .search-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg), 0 12px 36px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 100;
+      overflow: hidden;
+      display: none;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .search-dropdown.open {
+      display: block;
+      animation: slideDownBounce 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .search-section-header {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 10px 14px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .search-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border-subtle);
+      transition: background 0.15s ease;
+    }
+    .search-item:last-child { border-bottom: none; }
+    .search-item:hover {
+      background: var(--surface-hover);
+    }
+    .search-item-icon {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      border: 1px solid var(--border-subtle);
+    }
+    .search-item-info { flex: 1; min-width: 0; }
+    .search-item-name {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .search-item-sub {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 1px;
+    }
+    .search-item-badge {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--primary-subtle);
+      color: var(--primary-light);
+    }
+    .search-empty {
+      padding: 24px 16px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.82rem;
+    }
+    .search-suggestions-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    .search-suggestion-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 14px;
+      font-size: 0.72rem;
+      color: var(--primary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .search-suggestion-chip:hover {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    /* Section Headers */
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .section-link {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .section-link:hover { text-decoration: underline; }
+
+    /* Quick Shortcuts Grid */
+    .shortcuts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 22px;
+    }
+    @media (max-width: 640px) {
+      .shortcuts-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .shortcut-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.18s ease;
+      position: relative;
+    }
+    .shortcut-card:hover {
+      border-color: var(--border-focus);
+      background: var(--surface-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-sm);
+    }
+    .sc-head-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sc-icon { font-size: 18px; }
+    .sc-eta-pill {
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--primary-subtle);
+      color: var(--primary-light);
+    }
+    .sc-name {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sc-desc {
+      font-size: 0.65rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Interactive Map Hero Shortcut Banner */
+    .map-banner-card {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.16), rgba(5, 150, 105, 0.14));
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+    }
+    .map-banner-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.25);
+      transform: translateY(-1px);
+    }
+    .map-banner-info { flex: 1; }
+    .map-banner-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .map-banner-sub {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.35;
+      margin-bottom: 8px;
+    }
+    .map-banner-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .map-stat-chip {
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--surface-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    .map-banner-btn { flex-shrink: 0; }
+
+    /* Live Shuttle Cards List */
+    .shuttle-cards-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .shuttle-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .shuttle-card:hover {
+      border-color: var(--border-focus);
+      background: var(--surface-hover);
+      box-shadow: var(--shadow-sm);
+    }
+    .sc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .sc-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .sc-head-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .sc-data-origin {
+      font-size: 0.58rem;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: var(--surface);
+      color: var(--text-muted);
+      border: 1px solid var(--border-subtle);
+      letter-spacing: 0.3px;
+    }
+    .sc-status-pill {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sc-status-active {
+      background: var(--emerald-subtle);
+      color: var(--emerald-light);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .sc-route-desc {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .sc-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 9px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.73rem;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .sc-eta-highlight {
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+    .sc-occupancy-pill {
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sc-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-subtle);
+    }
+    .sc-btn {
+      padding: 5px 10px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      transition: all 0.15s ease;
+    }
+    .sc-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary);
+      color: var(--primary-light);
+    }
+
+    /* Saved Favourites */
+    .fav-list {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 22px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .fav-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .fav-chip:hover {
+      border-color: var(--gold-light);
+      background: var(--surface-hover);
+      transform: translateY(-1px);
+    }
+    .fav-chip-eta {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      background: var(--primary-subtle);
+      padding: 1px 5px;
+      border-radius: 8px;
+    }
+    .fav-chip-del {
+      color: var(--text-muted);
+      margin-left: 2px;
+      padding: 0 2px;
+    }
+    .fav-chip-del:hover { color: var(--rose); }
+    .fav-empty {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 8px 0;
+      font-style: italic;
+    }
+
+    /* Service Announcements Panel */
+    .announcements-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .announcement-item {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .announcement-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .announcement-item:first-child { padding-top: 0; }
+    .announcement-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .announcement-text { font-size: 0.74rem; color: var(--text-secondary); line-height: 1.4; flex: 1; }
+    .announcement-text strong { color: var(--text); }
+    .announcement-badge {
+      display: inline-block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 4px;
+      text-transform: uppercase;
+    }
+    .badge-op   { background: var(--primary-subtle); color: var(--primary-light); }
+    .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge-vip  { background: var(--emerald-subtle); color: var(--emerald-light); }
+    .announcement-time {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    /* Mobile & Desktop Bottom Navigation Bar */
+    .bottom-nav-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 64px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 1000;
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      transition: all 0.25s ease;
+    }
+    @media (min-width: 680px) {
+      .bottom-nav-bar {
+        max-width: 500px;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 14px;
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow-lg), 0 10px 30px rgba(0, 0, 0, 0.45);
+      }
+    }
+    .bnav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+      font-weight: 600;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      transition: color 0.18s ease, transform 0.14s ease;
+      position: relative;
+    }
+    .bnav-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .bnav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 2px;
+      width: 16px;
+      height: 3px;
+      border-radius: 2px;
+      background: var(--primary);
+    }
+    .bnav-item:active {
+      transform: scale(0.92);
+    }
+    .bnav-icon {
+      font-size: 18px;
+    }
+
+    /* Notifications Slide-Down Modal / Card */
+    .notif-modal {
+      position: fixed;
+      top: 66px;
+      right: 16px;
+      max-width: 380px;
+      width: calc(100vw - 32px);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg), 0 12px 36px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 2000;
+      padding: 16px;
+      display: none;
+    }
+    .notif-modal.active {
+      display: block;
+      animation: modalPopIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Profile Modal Details Card */
+    .profile-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+      max-width: 420px;
+      width: 90%;
+      margin: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalPopIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ══════════════════════════════════════════════════════
        REDUCED MOTION PREFERENCE
     ══════════════════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
@@ -1941,6 +2713,238 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════
+       📱 STUDENT DASHBOARD (PHASE 2)
+  ══════════════════════════════ -->
+  <div id="dashboard-view-wrapper" class="dashboard-view-wrapper active">
+    <div id="student-dashboard" class="dashboard-container">
+      <!-- 1. Header: Brand Bar -->
+      <div class="dash-brand-bar">
+        <div class="dash-brand" onclick="switchTab('profile')" role="button" tabindex="0" title="About VIT Shuttle System">
+          <div class="dash-brand-logo">🚌</div>
+          <div>
+            <div class="dash-brand-title">VIT Shuttle System</div>
+            <div class="dash-brand-sub">Vellore Campus Transit</div>
+          </div>
+        </div>
+        <div class="dash-telemetry-badge" id="dash-telemetry-status" title="Fleet Data Telemetry Status">
+          <span class="telemetry-pulse"></span>
+          <span id="telemetry-status-text">Autonomous Simulation</span>
+        </div>
+      </div>
+
+      <!-- 1. Header: Personalized Greeting & Profile Actions -->
+      <div class="dash-header">
+        <div class="dash-profile-wrap" onclick="switchTab('profile')" role="button" tabindex="0" title="View Student Profile & Pass">
+          <div class="dash-avatar" id="dash-avatar-letter">R</div>
+          <div>
+            <div class="dash-greeting" id="dash-greeting-text">Good evening, Student</div>
+            <div class="dash-sub">
+              <span style="color:var(--emerald);">●</span>
+              <span id="dash-role-badge">Student Transit Pass Active (₹20)</span>
+            </div>
+          </div>
+        </div>
+        <div class="dash-actions">
+          <!-- Notifications Bell -->
+          <button class="btn btn-icon notif-btn" type="button" onclick="toggleNotifications()" aria-label="Notifications" title="Transport Announcements">
+            <span>🔔</span>
+            <span class="notif-badge-count" id="notif-unread-count">4</span>
+          </button>
+          <!-- Theme Switcher -->
+          <button class="btn btn-icon" type="button" onclick="toggleTheme()" aria-label="Toggle Theme" title="Toggle Theme">
+            <span id="dash-theme-icon">☀️</span>
+          </button>
+          <!-- Profile Quick Trigger -->
+          <button class="btn btn-icon" type="button" onclick="openProfileModal()" aria-label="Account Settings" title="Student Profile">
+            <span>👤</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2. Destination Search Bar -->
+      <div class="search-box-wrap">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="dash-search-input"
+            class="search-input"
+            placeholder="Where do you want to go?"
+            autocomplete="off"
+            oninput="handleDestinationSearch(this.value)"
+            onfocus="handleSearchFocus()"
+            onkeydown="handleSearchKeyDown(event)"
+          />
+          <button id="search-clear-btn" class="search-clear-btn" type="button" onclick="clearSearchInput()" aria-label="Clear Search">✕</button>
+        </div>
+
+        <!-- Autocomplete Dropdown & Recent Searches -->
+        <div id="search-dropdown" class="search-dropdown">
+          <div id="search-results-content"></div>
+        </div>
+      </div>
+
+      <!-- 3. Quick Destinations -->
+      <div class="section-title">
+        <span>Quick Destinations</span>
+        <span class="section-link" onclick="switchTab('map')">View Map →</span>
+      </div>
+      <div class="shortcuts-grid" id="shortcuts-grid">
+        <!-- Injected dynamically by initDashboard() -->
+      </div>
+
+      <!-- 5. Interactive Campus Map Hero Shortcut Banner -->
+      <div class="map-banner-card" onclick="switchTab('map')" role="button" tabindex="0">
+        <div class="map-banner-info">
+          <div class="map-banner-title">
+            <span>🗺️ Interactive Campus Map</span>
+          </div>
+          <div class="map-banner-sub">
+            Track 3 shuttles driving in real-time, inspect route corridors, and get live turn-by-turn walking directions to your nearest stop.
+          </div>
+          <div class="map-banner-stats">
+            <span class="map-stat-chip">🚌 3 Active Shuttles</span>
+            <span class="map-stat-chip">📍 16 Campus Stops</span>
+            <span class="map-stat-chip">⏱️ ~3 min Avg ETA</span>
+            <span class="map-stat-chip">🚶 GPS Walking Nav</span>
+          </div>
+        </div>
+        <button class="btn btn-primary map-banner-btn" type="button">Open Live Map</button>
+      </div>
+
+      <!-- 4. Live Shuttle Overview Cards -->
+      <div class="section-title">
+        <span>Available Shuttles</span>
+        <span style="font-size:0.7rem; color:var(--emerald-light); font-weight:600;" id="shuttle-overview-sub">● 3 Shuttles Active</span>
+      </div>
+      <div class="shuttle-cards-list" id="shuttle-cards-list">
+        <!-- Injected dynamically with live telemetry and simulation data -->
+      </div>
+
+      <!-- 6. Saved Favourites -->
+      <div class="section-title">
+        <span>⭐ Saved Favourites</span>
+        <span style="font-size:0.68rem; color:var(--text-muted);">Quick Transit ETAs</span>
+      </div>
+      <div class="fav-list" id="fav-list">
+        <!-- Injected dynamically with next shuttle ETAs -->
+      </div>
+
+      <!-- 8. Service Announcements Panel -->
+      <div class="section-title">
+        <span>📢 Transport Announcements</span>
+        <span class="section-link" onclick="toggleNotifications()">View All Alerts →</span>
+      </div>
+      <div class="announcements-card">
+        <div class="announcement-item">
+          <span class="announcement-icon">⚡</span>
+          <div class="announcement-text">
+            <div><span class="announcement-badge badge-op">Peak Hours</span><strong>Frequency Boosted:</strong> Shuttle headway increased to every 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</div>
+            <div class="announcement-time">Operational • Updated 15m ago</div>
+          </div>
+        </div>
+        <div class="announcement-item">
+          <span class="announcement-icon">🚧</span>
+          <div class="announcement-text">
+            <div><span class="announcement-badge badge-warn">Route Notice</span><strong>TT Portico Diversion:</strong> Temporary turnaround diversion near Technology Tower portico; alight at SMV block junction.</div>
+            <div class="announcement-time">Traffic Advisory • Active today</div>
+          </div>
+        </div>
+        <div class="announcement-item">
+          <span class="announcement-icon">🎫</span>
+          <div class="announcement-text">
+            <div><span class="announcement-badge badge-op">Ticketing</span><strong>Instant QR Check-in:</strong> Tap "Pass" on bottom navigation to display your ₹20 Commuter Pass for contactless optical scanning.</div>
+            <div class="announcement-time">Transit Policy • Regular Service</div>
+          </div>
+        </div>
+        <div class="announcement-item">
+          <span class="announcement-icon">⭐</span>
+          <div class="announcement-text">
+            <div><span class="announcement-badge badge-vip">Faculty Priority</span><strong>Faculty VIP Shuttle #201:</strong> Exclusively reserved for verified @vit.ac.in faculty credentials. Free complimentary rides.</div>
+            <div class="announcement-time">Policy Reminder • Continuous</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       NOTIFICATIONS MODAL
+  ══════════════════════════════ -->
+  <div id="notif-modal" class="notif-modal">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+      <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.95rem; color:var(--text);">Campus Transit Alerts (4)</div>
+      <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;" type="button" onclick="closeNotifications()">✕</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; max-height:280px; overflow-y:auto;">
+      <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+        <span style="color:var(--primary-light); font-weight:700;">● Peak Schedule Active:</span> Shuttles arriving every 4–6 minutes at SJT, TT, and MH Food Court.
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+        <span style="color:var(--emerald-light); font-weight:700;">● Faculty VIP Pass:</span> Complimentary rides enabled for all verified @vit.ac.in credentials on Shuttle #201.
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+        <span style="color:#fbbf24; font-weight:700;">● TT Diversion Notice:</span> Temporary diversion active near Technology Tower portico.
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4;">
+        <span style="color:var(--primary-light); font-weight:700;">● Digital QR Pass:</span> Keep your QR pass ready before boarding General Bus #101 or #102.
+      </div>
+    </div>
+    <div style="margin-top:12px; text-align:right;">
+      <button class="btn btn-sm btn-outline" style="font-size:11px;" type="button" onclick="markAllNotificationsRead()">Mark all as read</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PROFILE MODAL
+  ══════════════════════════════ -->
+  <div id="profile-modal" class="modal-bg" onclick="closeProfileModal(event)">
+    <div class="profile-card" onclick="event.stopPropagation()">
+      <div style="text-align:center; margin-bottom:16px;">
+        <div class="dash-avatar" style="width:62px; height:62px; font-size:1.55rem; margin:0 auto 10px;" id="profile-modal-avatar">R</div>
+        <div style="font-family:'Space Grotesk',sans-serif; font-size:1.2rem; font-weight:700; color:var(--text);" id="profile-modal-name">Rushi Raj Meher</div>
+        <div style="font-size:0.75rem; color:var(--text-secondary);" id="profile-modal-email">student@vitstudent.ac.in</div>
+        <div style="display:inline-block; margin-top:6px; font-size:0.68rem; font-weight:700; padding:2px 10px; border-radius:12px; background:var(--primary-subtle); color:var(--primary-light); border:1px solid rgba(37,99,235,0.3);" id="profile-modal-badge">
+          🎓 Verified Student • 21BCE1042
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-primary" type="button" onclick="closeProfileModal(); openTicketModal(currentRole==='faculty'?'faculty':'general')">🎫 View Active QR Boarding Pass</button>
+        <button class="btn btn-outline" type="button" onclick="closeProfileModal(); showPortalOverlay()">🔄 Switch Portal / Institutional Account</button>
+        <button class="btn btn-outline" type="button" onclick="toggleTheme()">🌓 Toggle Light / Dark Theme</button>
+        <button class="btn btn-outline" style="border-color:var(--rose); color:var(--rose);" type="button" onclick="closeProfileModal(); logoutUser()">🚪 Sign Out</button>
+        <button class="btn btn-outline" type="button" onclick="closeProfileModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MOBILE & DESKTOP BOTTOM NAV BAR (10. MOBILE NAVIGATION)
+  ══════════════════════════════ -->
+  <nav class="bottom-nav-bar" id="bottom-nav-bar" aria-label="Main Navigation">
+    <button class="bnav-item active" id="bnav-home" type="button" onclick="switchTab('home')" aria-label="Student Dashboard Home">
+      <span class="bnav-icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="bnav-item" id="bnav-map" type="button" onclick="switchTab('map')" aria-label="Interactive Campus Map">
+      <span class="bnav-icon">🗺️</span>
+      <span>Map</span>
+    </button>
+    <button class="bnav-item" id="bnav-routes" type="button" onclick="switchTab('routes')" aria-label="Campus Routes and Timetables">
+      <span class="bnav-icon">🚌</span>
+      <span>Routes</span>
+    </button>
+    <button class="bnav-item" id="bnav-pass" type="button" onclick="switchTab('pass')" aria-label="Digital Transit QR Boarding Pass">
+      <span class="bnav-icon">🎫</span>
+      <span>Pass</span>
+    </button>
+    <button class="bnav-item" id="bnav-profile" type="button" onclick="switchTab('profile')" aria-label="Student Account and Profile">
+      <span class="bnav-icon">👤</span>
+      <span>Profile</span>
+    </button>
+  </nav>
+
   <!-- Confetti Particle Canvas -->
   <canvas id="confetti-canvas"></canvas>
 
@@ -1961,6 +2965,8 @@
       localStorage.setItem('vit_shuttle_theme', theme);
       const icon = document.getElementById('theme-toggle-icon');
       if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      const dashIcon = document.getElementById('dash-theme-icon');
+      if (dashIcon) dashIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
 
     function toggleTheme() {
@@ -2107,6 +3113,559 @@
 
     let shuttleMarkers = {};
     let fallbackSimulatorTimer = null;
+
+    // ══════════════════════════════════════════════════════
+    // 📱 PHASE 2 — STUDENT DASHBOARD ENGINE
+    // ══════════════════════════════════════════════════════
+    let currentTab = 'home';
+    let userFavorites = JSON.parse(localStorage.getItem('vit_shuttle_favorites') || '[10, 8]');
+    let recentSearches = JSON.parse(localStorage.getItem('vit_shuttle_recent') || '[]');
+
+    // Comprehensive Campus Destinations Directory (Academic, Hostels, Facilities, Gates)
+    const campusDestinations = [
+      { id: 10, name: "Silver Jubilee Tower (SJT)", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "School of Computer Science & Engineering", aliases: ["sjt", "silver jubilee", "cse", "scoop", "tower", "scse", "site"], stopId: 10, stopName: "SJT Portico", walkMins: 1 },
+      { id: 8,  name: "Periyar EVR Central Library", category: "academic", badge: "LIBRARY", icon: "📚", desc: "Central Campus Library & 24/7 Reading Hall", aliases: ["library", "books", "reading", "study", "periyar"], stopId: 8, stopName: "Periyar EVR Central Library", walkMins: 1 },
+      { id: 3,  name: "MH Food Court & All Maart", category: "dining", badge: "FOOD COURT", icon: "🍔", desc: "Hostel Dining Area, Domino's, Supermarket & Gazebo", aliases: ["food court", "all maart", "fc", "darling", "canteen", "lunch", "dinner", "mess", "dining", "snacks"], stopId: 3, stopName: "MH Food Court & All Maart Area", walkMins: 1 },
+      { id: 6,  name: "Main Ladies' Hostel (LH) Gate", category: "hostel", badge: "LH GATE", icon: "🌸", desc: "Ladies' Hostel Main Security & Drop", aliases: ["lh", "ladies hostel", "girls hostel", "lh gate", "women"], stopId: 6, stopName: "Main Ladies' Hostel (LH) Gate", walkMins: 1 },
+      { id: 15, name: "Technology Tower (TT)", category: "academic", badge: "ACADEMIC", icon: "⚙️", desc: "School of Mechanical, Civil & Biotech", aliases: ["tt", "technology tower", "mech", "civil", "biotech", "portico"], stopId: 15, stopName: "TT (Technology Tower)", walkMins: 1 },
+      { id: 9,  name: "SMV / MB Block Portico", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "Main Building, Electrical & Central Auditorium", aliases: ["mb", "smv", "main building", "electrical", "select", "portico", "auditorium"], stopId: 9, stopName: "SMV / MB Block Portico", walkMins: 1 },
+      { id: 11, name: "Main Campus Gate 1", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Main Katpadi Entrance & Campus Auto Stand", aliases: ["gate 1", "main gate", "entrance", "katpadi", "auto stand", "exit"], stopId: 11, stopName: "Main Gate 1 Entrance", walkMins: 1 },
+      { id: 12, name: "Main Campus Gate 2", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Staff & Faculty Access Gate (Chittoor Road)", aliases: ["gate 2", "faculty gate", "staff gate", "chittoor"], stopId: 12, stopName: "Main Gate 2 Entrance", walkMins: 1 },
+      { id: 1,  name: "Vajpayee / Q & R Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Upper Campus Corridor", aliases: ["q block", "r block", "vajpayee", "mens hostel", "hostel q", "hostel r"], stopId: 1, stopName: "Vajpayee / Q & R-Block Cluster", walkMins: 1 },
+      { id: 2,  name: "L, M, N, P Hostel Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Central Zone", aliases: ["l block", "m block", "n block", "p block", "hostel l", "hostel m", "hostel n", "hostel p"], stopId: 2, stopName: "L, M, N, P Block Cluster", walkMins: 1 },
+      { id: 4,  name: "GD Naidu Block / A–G Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Junior Hostels & Swimming Pool Pathway", aliases: ["gd naidu", "a block", "b block", "c block", "d block", "e block", "f block", "g block"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 1 },
+      { id: 7,  name: "LH G-Block & Dining", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Ladies' Hostel Residential Block G", aliases: ["lh g block", "g block lh", "girls dining"], stopId: 7, stopName: "LH G Block", walkMins: 1 },
+      { id: 13, name: "Dr. M.G.R. Central Admin Block", category: "facility", badge: "ADMINISTRATION", icon: "🏛️", desc: "Vice Chancellor, Registrar & Finance Offices", aliases: ["admin", "mgr block", "finance", "registrar", "director", "office", "fees"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 1 },
+      { id: 14, name: "Staff & Faculty Quarters Zone", category: "facility", badge: "RESIDENTIAL", icon: "🏡", desc: "Faculty Housing, Children's Play Zone", aliases: ["faculty quarters", "staff quarters", "teachers colony"], stopId: 14, stopName: "Staff & Faculty Quarters Zone", walkMins: 1 },
+      { id: 16, name: "Gandhi & Netaji Block Cluster", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Gate-Side Zone", aliases: ["gandhi block", "netaji block", "junior mh"], stopId: 16, stopName: "Gandhi Block / Netaji Block", walkMins: 1 },
+      { id: 17, name: "VIT Health Centre & Pharmacy", category: "facility", badge: "HEALTHCARE", icon: "🏥", desc: "24/7 Outpatient Clinic & Emergency Medical", aliases: ["health centre", "hospital", "clinic", "medical", "doctor", "medicine", "pharmacy", "emergency"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 2 },
+      { id: 18, name: "Sports Complex & Gymnasium", category: "facility", badge: "SPORTS", icon: "⚽", desc: "Outdoor Stadium, Basketball Courts & Gym", aliases: ["sports", "stadium", "gym", "gymnasium", "basketball", "tennis", "football", "ground", "swimming pool"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 2 }
+    ];
+
+    function initDashboard() {
+      // 1. Personalized Greeting
+      const hr = new Date().getHours();
+      let greetingTime = 'Good morning';
+      if (hr >= 12 && hr < 17) greetingTime = 'Good afternoon';
+      else if (hr >= 17) greetingTime = 'Good evening';
+
+      const studentName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Rushi';
+      const greetEl = document.getElementById('dash-greeting-text');
+      if (greetEl) greetEl.textContent = `${greetingTime}, ${studentName}`;
+
+      const avatarLetterEl = document.getElementById('dash-avatar-letter');
+      if (avatarLetterEl) avatarLetterEl.textContent = studentName.charAt(0).toUpperCase();
+
+      const roleBadgeEl = document.getElementById('dash-role-badge');
+      if (roleBadgeEl) {
+        if (currentRole === 'faculty') roleBadgeEl.textContent = 'Faculty VIP Transit Active (₹0 Free)';
+        else if (currentRole === 'driver') roleBadgeEl.textContent = 'Driver Telemetry Console Active';
+        else roleBadgeEl.textContent = 'Student Transit Pass Active (₹20)';
+      }
+
+      // Profile modal elements
+      const pmName = document.getElementById('profile-modal-name');
+      const pmEmail = document.getElementById('profile-modal-email');
+      const pmAvatar = document.getElementById('profile-modal-avatar');
+      const pmBadge = document.getElementById('profile-modal-badge');
+      if (pmName) pmName.textContent = currentUser?.name || 'Rushi Raj Meher';
+      if (pmEmail) pmEmail.textContent = currentUser?.email || 'student@vitstudent.ac.in';
+      if (pmAvatar) pmAvatar.textContent = (currentUser?.name || 'Rushi').charAt(0).toUpperCase();
+      if (pmBadge) pmBadge.textContent = `${currentRole === 'faculty' ? '⭐ Verified Faculty' : currentRole === 'driver' ? '🚖 Authorized Driver' : '🎓 Verified Student'} • ${currentUser?.regId || '21BCE1042'}`;
+
+      const themeIcon = document.getElementById('dash-theme-icon');
+      if (themeIcon) {
+        const curTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        themeIcon.textContent = curTheme === 'dark' ? '☀️' : '🌙';
+      }
+
+      renderQuickShortcuts();
+      renderShuttleOverview();
+      renderFavorites();
+    }
+
+    // 3. QUICK DESTINATIONS
+    function renderQuickShortcuts() {
+      const grid = document.getElementById('shortcuts-grid');
+      if (!grid) return;
+
+      const shortcuts = [
+        { name: "SJT Tower", desc: "CS & Eng Block", icon: "🏛️", id: 10 },
+        { name: "Central Library", desc: "Periyar EVR 24/7", icon: "📚", id: 8 },
+        { name: "MH Food Court", desc: "Mess & All Maart", icon: "🍔", id: 3 },
+        { name: "LH Main Gate", desc: "Ladies' Hostel Gate", icon: "🌸", id: 6 },
+        { name: "TT Portico", desc: "Tech Tower Junction", icon: "⚙️", id: 15 },
+        { name: "MB / SMV", desc: "Main Building Block", icon: "🏛️", id: 9 },
+        { name: "Campus Gate 1", desc: "Main Entrance", icon: "🚪", id: 11 },
+        { name: "Health Centre", desc: "Medical Clinic", icon: "🏥", id: 17 }
+      ];
+
+      grid.innerHTML = shortcuts.map(sc => {
+        // Calculate nearest bus ETA to this shortcut stop
+        const dest = campusDestinations.find(d => d.id === sc.id);
+        const stopId = dest ? dest.stopId : sc.id;
+        const stop = campusStops.find(s => s.id === stopId);
+        let bestEta = 2;
+        if (stop) {
+          const etas = Object.values(activeShuttles).map(sh =>
+            calculateETA(sh.lat, sh.lng, stop.lat, stop.lng, sh.speed).etaMinutes
+          );
+          bestEta = Math.min(...etas);
+        }
+
+        return `
+          <div class="shortcut-card" onclick="selectQuickShortcut(${sc.id})" role="button" tabindex="0" title="Navigate to ${sc.name}">
+            <div class="sc-head-row">
+              <span class="sc-icon">${sc.icon}</span>
+              <span class="sc-eta-pill">~${bestEta} min</span>
+            </div>
+            <div class="sc-name">${sc.name}</div>
+            <div class="sc-desc">${sc.desc}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectQuickShortcut(destId) {
+      playBeep();
+      const dest = campusDestinations.find(d => d.id === destId);
+      const stopId = dest ? dest.stopId : destId;
+      const stop = campusStops.find(s => s.id === stopId);
+      if (stop) {
+        switchTab('map');
+        map.setView([stop.lat, stop.lng], 17.5, { animate: true });
+        nearestCampusStop = stop;
+        startDirectionsMode();
+      }
+    }
+
+    // 4. SHUTTLE OVERVIEW
+    function renderShuttleOverview() {
+      const container = document.getElementById('shuttle-cards-list');
+      if (!container) return;
+
+      const shuttles = Object.values(activeShuttles);
+      const overviewSub = document.getElementById('shuttle-overview-sub');
+      if (overviewSub) overviewSub.textContent = `● ${shuttles.length} Shuttles Active`;
+
+      // 9. Graceful empty state when no shuttles active
+      if (!shuttles || shuttles.length === 0) {
+        container.innerHTML = `
+          <div class="announcements-card" style="text-align:center; padding:24px 16px;">
+            <div style="font-size:32px; margin-bottom:8px;">🌙</div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);">Campus Fleet Offline</div>
+            <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:4px; max-width:320px; margin-left:auto; margin-right:auto;">
+              No campus shuttles are currently active on the transit corridor. Regular operating hours: <strong>06:00 AM – 10:00 PM</strong>.
+            </div>
+            <button class="btn btn-primary" style="margin-top:14px; font-size:0.75rem;" type="button" onclick="startSimulator(); initDashboard();">
+              🔄 Check Live Telemetry
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = shuttles.map(s => {
+        const isFac = s.shuttleType === 'faculty';
+        const isLH = s.shuttleId === 'vit_general_bus_102';
+        const badgeColor = isFac ? 'var(--emerald-light)' : isLH ? '#f472b6' : 'var(--primary-light)';
+        const routeDesc = isFac
+          ? "Academic Corridor • Main Gate 1 & 2 ↔ Central Admin ↔ Staff Housing ↔ TT ↔ SJT"
+          : isLH
+          ? "Women's Corridor • LH Main Gate ↔ LH G-Block ↔ Central Library ↔ SMV ↔ SJT"
+          : "Men's Corridor • Vajpayee Q/R Block ↔ MH Food Court ↔ TT ↔ SJT Tower";
+
+        // Calculate next stop from live coordinates
+        const etas = campusStops.map(stop => ({
+          name: stop.name,
+          ...calculateETA(s.lat, s.lng, stop.lat, stop.lng, s.speed)
+        })).sort((a,b) => a.etaMinutes - b.etaMinutes);
+        const next = etas[0] || { name: "SMV / MB Portico", etaMinutes: 2 };
+
+        const occupancy = isFac
+          ? "Moderate • Faculty Priority (18/30 Seats)"
+          : isLH
+          ? "Low Occupancy (11/35 Seats)"
+          : "Moderate (24/35 Seats)";
+        const occColor = isLH ? 'var(--emerald-light)' : '#fbbf24';
+        const spd = Math.round(s.speed || 21);
+
+        return `
+          <div class="shuttle-card">
+            <div class="sc-head">
+              <div class="sc-badge" style="color:${badgeColor}">
+                <span>${isFac ? '⭐' : isLH ? '🌸' : '🚌'}</span>
+                <span>${s.name}</span>
+              </div>
+              <div class="sc-head-right">
+                <span class="sc-data-origin">SIMULATED FLEET</span>
+                <div class="sc-status-pill sc-status-active">
+                  <span style="width:5px; height:5px; border-radius:50%; background:currentColor;"></span>
+                  <span>In Service</span>
+                </div>
+              </div>
+            </div>
+            <div class="sc-route-desc">${routeDesc}</div>
+            <div class="sc-meta-row">
+              <div>
+                <span>Next: <strong>${next.name}</strong></span>
+                <span class="sc-eta-highlight"> (~${next.etaMinutes} min)</span>
+              </div>
+              <div class="sc-occupancy-pill">
+                <span style="width:6px; height:6px; border-radius:50%; background:${occColor};"></span>
+                <span>${occupancy}</span>
+              </div>
+              <div style="color:var(--text-muted); font-size:0.65rem;">Live GPS • ${spd} km/h • Updated 2s ago</div>
+            </div>
+            <div class="sc-actions-row">
+              <button class="sc-btn" type="button" onclick="selectShuttleFromDashboard('${s.shuttleId}')">
+                <span>🗺️ Track on Map</span>
+              </button>
+              <button class="sc-btn" type="button" onclick="openTicketModal('${isFac ? 'faculty' : 'general'}')">
+                <span>${isFac ? '⭐ Faculty Pass (₹0)' : '🎫 Boarding Pass (₹20)'}</span>
+              </button>
+              <button class="sc-btn" type="button" onclick="promptCrowdReport('${s.shuttleId}')">
+                <span>👥 Report Crowd</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectShuttleFromDashboard(shuttleId) {
+      playBeep();
+      selectShuttle(shuttleId);
+      switchTab('map');
+    }
+
+    function promptCrowdReport(shuttleId) {
+      playBeep();
+      const s = activeShuttles[shuttleId];
+      const level = prompt(`Submit live crowding status for ${s?.name || 'Shuttle'}:\n1: Low (plenty of seats)\n2: Moderate (few seats)\n3: Full (standing only)\n\nEnter 1, 2, or 3:`, "2");
+      if (level === '1') reportCrowd('Low');
+      else if (level === '2') reportCrowd('Moderate');
+      else if (level === '3') reportCrowd('Full');
+    }
+
+    // 2. DESTINATION SEARCH & AUTOCOMPLETE
+    function handleSearchFocus() {
+      const q = document.getElementById('dash-search-input')?.value || '';
+      handleDestinationSearch(q);
+    }
+
+    function handleSearchKeyDown(e) {
+      if (e.key === 'Enter') {
+        const firstItem = document.querySelector('.search-item');
+        if (firstItem) firstItem.click();
+      } else if (e.key === 'Escape') {
+        document.getElementById('search-dropdown')?.classList.remove('open');
+      }
+    }
+
+    function handleDestinationSearch(query) {
+      const dropdown = document.getElementById('search-dropdown');
+      const content = document.getElementById('search-results-content');
+      const clearBtn = document.getElementById('search-clear-btn');
+      if (!dropdown || !content) return;
+
+      const q = (query || '').trim().toLowerCase();
+      if (clearBtn) clearBtn.style.display = q.length > 0 ? 'block' : 'none';
+
+      if (!q) {
+        // Show Recent Searches & Suggested Stops
+        let html = '';
+        if (recentSearches && recentSearches.length > 0) {
+          html += `
+            <div class="search-section-header">
+              <span>🕒 Recent Searches</span>
+              <span style="cursor:pointer; color:var(--rose);" onclick="clearRecentSearches(event)">Clear All</span>
+            </div>
+            ${recentSearches.slice(0, 4).map(item => `
+              <div class="search-item" onclick="selectSearchResult(${item.id})">
+                <div class="search-item-icon">🕒</div>
+                <div class="search-item-info">
+                  <div class="search-item-name">${escapeHtml(item.name)}</div>
+                  <div class="search-item-sub">Recently searched destination • 1 tap to route</div>
+                </div>
+              </div>
+            `).join('')}
+          `;
+        }
+        html += `
+          <div class="search-section-header">
+            <span>🏛️ Popular Campus Destinations</span>
+          </div>
+          ${campusDestinations.slice(0, 5).map(d => `
+            <div class="search-item" onclick="selectSearchResult(${d.id})">
+              <div class="search-item-icon">${d.icon}</div>
+              <div class="search-item-info">
+                <div class="search-item-name">${escapeHtml(d.name)}</div>
+                <div class="search-item-sub">
+                  <span class="search-item-badge">${d.badge}</span>
+                  <span>Nearest: ${escapeHtml(d.stopName)} • ${d.walkMins}m walk</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px;" type="button" onclick="event.stopPropagation(); toggleFavorite(${d.id})">
+                ${userFavorites.includes(d.id) ? '⭐' : '☆'}
+              </button>
+            </div>
+          `).join('')}
+        `;
+        content.innerHTML = html;
+        dropdown.classList.add('open');
+        return;
+      }
+
+      // Filter campus destinations using name, category, and aliases
+      const matches = campusDestinations.filter(d =>
+        d.name.toLowerCase().includes(q) ||
+        d.category.toLowerCase().includes(q) ||
+        d.desc.toLowerCase().includes(q) ||
+        d.badge.toLowerCase().includes(q) ||
+        d.aliases.some(alias => alias.includes(q))
+      );
+
+      // 9. Useful empty state when no results match
+      if (matches.length === 0) {
+        content.innerHTML = `
+          <div class="search-empty">
+            <div style="font-size:26px; margin-bottom:6px;">🔍</div>
+            <div style="font-weight:600; color:var(--text);">No campus destinations matching "<strong>${escapeHtml(query)}</strong>"</div>
+            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
+              Try searching for popular campus locations:
+            </div>
+            <div class="search-suggestions-chips">
+              <span class="search-suggestion-chip" onclick="fillSearchSuggestion('SJT')">SJT Tower</span>
+              <span class="search-suggestion-chip" onclick="fillSearchSuggestion('Library')">Central Library</span>
+              <span class="search-suggestion-chip" onclick="fillSearchSuggestion('Food Court')">MH Food Court</span>
+              <span class="search-suggestion-chip" onclick="fillSearchSuggestion('LH Gate')">Ladies' Hostel</span>
+              <span class="search-suggestion-chip" onclick="fillSearchSuggestion('Gate 1')">Main Gate 1</span>
+            </div>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `
+          <div class="search-section-header">
+            <span>Matching Destinations (${matches.length})</span>
+          </div>
+          ${matches.map(d => `
+            <div class="search-item" onclick="selectSearchResult(${d.id})">
+              <div class="search-item-icon">${d.icon}</div>
+              <div class="search-item-info">
+                <div class="search-item-name">${highlightMatch(d.name, q)}</div>
+                <div class="search-item-sub">
+                  <span class="search-item-badge">${d.badge}</span>
+                  <span>Nearest: ${escapeHtml(d.stopName)} • ~${d.walkMins}m walk</span>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px;" type="button" onclick="event.stopPropagation(); toggleFavorite(${d.id})" title="Save to Favourites">
+                ${userFavorites.includes(d.id) ? '⭐' : '☆'}
+              </button>
+            </div>
+          `).join('')}
+        `;
+      }
+      dropdown.classList.add('open');
+    }
+
+    function fillSearchSuggestion(txt) {
+      const input = document.getElementById('dash-search-input');
+      if (input) {
+        input.value = txt;
+        input.focus();
+        handleDestinationSearch(txt);
+      }
+    }
+
+    function clearSearchInput() {
+      const input = document.getElementById('dash-search-input');
+      if (input) { input.value = ''; input.focus(); }
+      handleDestinationSearch('');
+    }
+
+    function clearRecentSearches(e) {
+      if (e) e.stopPropagation();
+      recentSearches = [];
+      localStorage.removeItem('vit_shuttle_recent');
+      handleDestinationSearch('');
+    }
+
+    function selectSearchResult(destId) {
+      playBeep();
+      const dest = campusDestinations.find(d => d.id === destId);
+      const stopId = dest ? dest.stopId : destId;
+      const stop = campusStops.find(s => s.id === stopId);
+      if (!stop) return;
+
+      // Add to recent searches
+      recentSearches = [{ id: destId, name: dest ? dest.name : stop.name }, ...recentSearches.filter(r => r.id !== destId)].slice(0, 6);
+      localStorage.setItem('vit_shuttle_recent', JSON.stringify(recentSearches));
+
+      // Close dropdown
+      const dd = document.getElementById('search-dropdown');
+      if (dd) dd.classList.remove('open');
+
+      // Navigate to Map
+      switchTab('map');
+      map.setView([stop.lat, stop.lng], 17.5, { animate: true });
+      nearestCampusStop = stop;
+      startDirectionsMode();
+    }
+
+    function highlightMatch(text, query) {
+      const idx = text.toLowerCase().indexOf(query.toLowerCase());
+      if (idx === -1) return escapeHtml(text);
+      return escapeHtml(text.slice(0, idx)) +
+        `<strong style="color:var(--primary-light); text-decoration:underline;">${escapeHtml(text.slice(idx, idx + query.length))}</strong>` +
+        escapeHtml(text.slice(idx + query.length));
+    }
+
+    function escapeHtml(str) {
+      return (str || '').replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[m]));
+    }
+
+    // Close search dropdown on click outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-box-wrap')) {
+        document.getElementById('search-dropdown')?.classList.remove('open');
+      }
+    });
+
+    // 6. FAVOURITES SYSTEM
+    function toggleFavorite(destId) {
+      playBeep();
+      const idx = userFavorites.indexOf(destId);
+      if (idx === -1) userFavorites.push(destId);
+      else userFavorites.splice(idx, 1);
+      localStorage.setItem('vit_shuttle_favorites', JSON.stringify(userFavorites));
+      renderFavorites();
+      const q = document.getElementById('dash-search-input')?.value || '';
+      if (q) handleDestinationSearch(q);
+    }
+
+    function removeFavorite(destId, e) {
+      if (e) e.stopPropagation();
+      playBoop();
+      userFavorites = userFavorites.filter(id => id !== destId);
+      localStorage.setItem('vit_shuttle_favorites', JSON.stringify(userFavorites));
+      renderFavorites();
+    }
+
+    function renderFavorites() {
+      const container = document.getElementById('fav-list');
+      if (!container) return;
+
+      if (!userFavorites || userFavorites.length === 0) {
+        container.innerHTML = `<div class="fav-empty">No saved destinations yet. Tap the ⭐ star on any stop in search to pin it here!</div>`;
+        return;
+      }
+
+      const favItems = userFavorites.map(id => {
+        const dest = campusDestinations.find(d => d.id === id);
+        if (dest) return dest;
+        const stop = campusStops.find(s => s.id === id);
+        if (stop) return { id: stop.id, name: stop.name, stopId: stop.id };
+        return null;
+      }).filter(Boolean);
+
+      container.innerHTML = favItems.map(item => {
+        // Find best next ETA for this stop
+        const stop = campusStops.find(s => s.id === item.stopId);
+        let bestEta = 2;
+        if (stop) {
+          const etas = Object.values(activeShuttles).map(sh =>
+            calculateETA(sh.lat, sh.lng, stop.lat, stop.lng, sh.speed).etaMinutes
+          );
+          bestEta = Math.min(...etas);
+        }
+
+        const shortName = item.name.split('(')[0].trim();
+        return `
+          <div class="fav-chip" onclick="selectSearchResult(${item.id})" role="button" tabindex="0" title="Navigate to ${item.name}">
+            <span>⭐</span>
+            <span>${escapeHtml(shortName)}</span>
+            <span class="fav-chip-eta">~${bestEta}m</span>
+            <span class="fav-chip-del" onclick="removeFavorite(${item.id}, event)" title="Remove favourite">✕</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // 10. MOBILE & DESKTOP NAVIGATION
+    function switchTab(tab) {
+      playBeep();
+      currentTab = tab;
+
+      // Update bottom nav bar
+      ['home', 'map', 'routes', 'pass', 'profile'].forEach(t => {
+        const btn = document.getElementById(`bnav-${t}`);
+        if (btn) btn.classList.toggle('active', t === tab);
+      });
+
+      const dashWrapper = document.getElementById('dashboard-view-wrapper');
+      const topBar = document.querySelector('.top-bar');
+      const mapControls = document.querySelector('.map-controls');
+      const bottomTray = document.querySelector('.bottom-tray');
+
+      if (tab === 'home') {
+        if (dashWrapper) dashWrapper.classList.add('active');
+        if (topBar) topBar.style.display = 'none';
+        if (mapControls) mapControls.style.display = 'none';
+        if (bottomTray) bottomTray.style.display = 'none';
+        initDashboard();
+      } else if (tab === 'map') {
+        if (dashWrapper) dashWrapper.classList.remove('active');
+        if (topBar) topBar.style.display = 'flex';
+        if (mapControls) mapControls.style.display = 'flex';
+        if (bottomTray) bottomTray.style.display = 'block';
+        setTimeout(() => map.invalidateSize(), 150);
+      } else if (tab === 'routes') {
+        if (dashWrapper) dashWrapper.classList.remove('active');
+        if (topBar) topBar.style.display = 'flex';
+        if (mapControls) mapControls.style.display = 'flex';
+        if (bottomTray) bottomTray.style.display = 'block';
+        setTimeout(() => {
+          map.invalidateSize();
+          if (!isDrawerOpen) toggleDetailsDrawer();
+        }, 150);
+      } else if (tab === 'pass') {
+        openTicketModal(currentRole === 'faculty' ? 'faculty' : 'general');
+      } else if (tab === 'profile') {
+        openProfileModal();
+      }
+    }
+
+    // 8. NOTIFICATIONS & PROFILE MODALS
+    function toggleNotifications() {
+      playBeep();
+      const nm = document.getElementById('notif-modal');
+      if (nm) nm.classList.toggle('active');
+    }
+
+    function closeNotifications() {
+      document.getElementById('notif-modal')?.classList.remove('active');
+    }
+
+    function markAllNotificationsRead() {
+      playChime();
+      const countEl = document.getElementById('notif-unread-count');
+      if (countEl) countEl.style.display = 'none';
+      closeNotifications();
+    }
+
+    function openProfileModal() {
+      initDashboard();
+      const pm = document.getElementById('profile-modal');
+      if (pm) pm.classList.add('active');
+    }
+
+    function closeProfileModal(e) {
+      if (!e || e.target.id === 'profile-modal' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('profile-modal')?.classList.remove('active');
+      }
+    }
 
     // ── DATA LOADING & STOPS ──
     async function loadCampusData() {
@@ -2498,11 +4057,35 @@
         btn.setAttribute('aria-selected', role===r);
       });
       const pv = document.getElementById('passenger-view'), dv = document.getElementById('driver-view');
+      const bnav = document.getElementById('bottom-nav-bar');
+      const dashWrapper = document.getElementById('dashboard-view-wrapper');
+      const topBar = document.querySelector('.top-bar');
+      const mapControls = document.querySelector('.map-controls');
+      const bottomTray = document.querySelector('.bottom-tray');
+
       if (role==='driver') {
         pv.style.display='none'; dv.style.display='block';
+        if (dashWrapper) dashWrapper.classList.remove('active');
+        if (bnav) bnav.style.display = 'none';
+        if (topBar) topBar.style.display = 'flex';
+        if (mapControls) mapControls.style.display = 'flex';
+        if (bottomTray) bottomTray.style.display = 'block';
       } else {
         pv.style.display='block'; dv.style.display='none';
+        if (bnav) bnav.style.display = 'flex';
         selectShuttle(role==='faculty'?'vit_faculty_shuttle_201':'vit_general_bus_101');
+        initDashboard();
+        if (currentTab === 'home') {
+          if (dashWrapper) dashWrapper.classList.add('active');
+          if (topBar) topBar.style.display = 'none';
+          if (mapControls) mapControls.style.display = 'none';
+          if (bottomTray) bottomTray.style.display = 'none';
+        } else {
+          if (dashWrapper) dashWrapper.classList.remove('active');
+          if (topBar) topBar.style.display = 'flex';
+          if (mapControls) mapControls.style.display = 'flex';
+          if (bottomTray) bottomTray.style.display = 'block';
+        }
       }
       updateNavChip(role);
     }
@@ -2531,15 +4114,15 @@
             <div style="display:inline-block;background:#ffffff;color:#1e3a8a;font-size:0.68rem;font-weight:800;padding:2px 10px;border-radius:10px;">PAID ₹20.00</div>
           </div>
           <div class="tkt-body">
-            <div style="font-family:'Space Grotesk';font-weight:700;color:var(--text);font-size:0.92rem;">General Campus Bus #101</div>
-            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Single Ride • Valid 45 Minutes</div>
+            <div style="font-family:'Space Grotesk';font-weight:700;color:var(--text);font-size:0.92rem;">General Campus Bus #101 / #102</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Single Ride • Valid 45 Minutes across Campus Corridors</div>
             <div class="qr-box-wrap" style="position:relative;overflow:hidden;">
               <div class="laser-line"></div>
               <div style="font-size:42px;">🏁</div>
               <div style="font-size:0.72rem;font-weight:800;color:#0f172a;font-family:'Space Grotesk',sans-serif;">${tkt}</div>
             </div>
-            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Boarding Pass Verified</div>
-            <div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">Issued at ${time}</div>
+            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Boarding Pass Verified & Active</div>
+            <div style="font-size:0.66rem;color:var(--text-muted);margin-top:2px;">Issued at ${time} • Student Fare ₹20</div>
             <button class="modal-close btn" onclick="closeModal()">Dismiss Pass</button>
           </div>`;
       } else {
@@ -2551,13 +4134,13 @@
           </div>
           <div class="tkt-body">
             <div style="font-family:'Space Grotesk';font-weight:700;color:var(--text);font-size:0.92rem;">Faculty Shuttle #201</div>
-            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Academic Faculty Official Clearance</div>
+            <div style="font-size:0.7rem;color:var(--text-muted);margin-top:2px;">Academic Faculty Official VIP Transit Clearance</div>
             <div class="qr-box-wrap" style="position:relative;overflow:hidden;border:2px solid var(--emerald);">
               <div class="laser-line"></div>
               <div style="font-size:42px;">⭐</div>
-              <div style="font-size:0.72rem;font-weight:800;color:var(--emerald);font-family:'Space Grotesk',sans-serif;">FACULTY VIP</div>
+              <div style="font-size:0.72rem;font-weight:800;color:var(--emerald);font-family:'Space Grotesk',sans-serif;">FACULTY VIP • 100% FREE</div>
             </div>
-            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Official Free Transit Clearance</div>
+            <div style="font-size:0.74rem;color:var(--emerald);font-weight:700;margin-top:4px;">● Official Complimentary Transit Clearance</div>
             <button class="modal-close btn" onclick="closeModal()">Dismiss Pass</button>
           </div>`;
       }
@@ -2575,14 +4158,28 @@
       alert(`Reported ${lvl} crowding for ${activeShuttles[selectedShuttleId].name}.`);
     }
 
-    // ── SHUTTLE SIMULATOR ──
-    const genWps = [{lat:12.9692,lng:79.1559},{lat:12.9698,lng:79.1588},{lat:12.9708,lng:79.1610},{lat:12.9715,lng:79.1633},{lat:12.9735,lng:79.1620},{lat:12.9750,lng:79.1610},{lat:12.9730,lng:79.1585},{lat:12.9705,lng:79.1565}];
-    const facWps = [{lat:12.9715,lng:79.1633},{lat:12.9723,lng:79.1609},{lat:12.9730,lng:79.1585},{lat:12.9714,lng:79.1586},{lat:12.9698,lng:79.1588},{lat:12.9692,lng:79.1559},{lat:12.9702,lng:79.1600}];
-    let gI=0,gP=0,fI=0,fP=0;
+    // ── SHUTTLE SIMULATOR (ALL 3 VEHICLES SIMULATED) ──
+    const genWps = [
+      {lat:12.9692,lng:79.1559}, {lat:12.9698,lng:79.1588}, {lat:12.9708,lng:79.1610},
+      {lat:12.9715,lng:79.1633}, {lat:12.9735,lng:79.1620}, {lat:12.9750,lng:79.1610},
+      {lat:12.9730,lng:79.1585}, {lat:12.9705,lng:79.1565}
+    ];
+    const lhWps = [
+      {lat:12.9675,lng:79.1595}, {lat:12.9668,lng:79.1602}, {lat:12.9688,lng:79.1561},
+      {lat:12.9698,lng:79.1552}, {lat:12.9708,lng:79.1558}, {lat:12.9698,lng:79.1552},
+      {lat:12.9688,lng:79.1561}
+    ];
+    const facWps = [
+      {lat:12.9715,lng:79.1633}, {lat:12.9723,lng:79.1609}, {lat:12.9730,lng:79.1585},
+      {lat:12.9714,lng:79.1586}, {lat:12.9698,lng:79.1588}, {lat:12.9692,lng:79.1559},
+      {lat:12.9702,lng:79.1600}
+    ];
+    let gI=0, gP=0, lhI=0, lhP=0, fI=0, fP=0;
 
     function startSimulator() {
       if (fallbackSimulatorTimer) return;
       fallbackSimulatorTimer = setInterval(() => {
+        // Vehicle 1: Campus Bus #101 (Men's Corridor)
         gP += 0.12;
         if (gP >= 1) { gP = 0; gI = (gI + 1) % genWps.length; }
         const g1 = genWps[gI], g2 = genWps[(gI + 1) % genWps.length];
@@ -2591,6 +4188,16 @@
         activeShuttles['vit_general_bus_101'].speed = Math.round(20 + Math.sin(Date.now() / 3000) * 3);
         updateMarker(activeShuttles['vit_general_bus_101']);
 
+        // Vehicle 2: Campus Bus #102 (Women's Corridor)
+        lhP += 0.11;
+        if (lhP >= 1) { lhP = 0; lhI = (lhI + 1) % lhWps.length; }
+        const l1 = lhWps[lhI], l2 = lhWps[(lhI + 1) % lhWps.length];
+        activeShuttles['vit_general_bus_102'].lat = l1.lat + (l2.lat - l1.lat) * lhP;
+        activeShuttles['vit_general_bus_102'].lng = l1.lng + (l2.lng - l1.lng) * lhP;
+        activeShuttles['vit_general_bus_102'].speed = Math.round(19 + Math.sin(Date.now() / 2500) * 2.5);
+        updateMarker(activeShuttles['vit_general_bus_102']);
+
+        // Vehicle 3: Faculty Exclusive Shuttle #201
         fP += 0.10;
         if (fP >= 1) { fP = 0; fI = (fI + 1) % facWps.length; }
         const f1 = facWps[fI], f2 = facWps[(fI + 1) % facWps.length];
@@ -2600,6 +4207,7 @@
         updateMarker(activeShuttles['vit_faculty_shuttle_201']);
 
         updateBottomTray(activeShuttles[selectedShuttleId]);
+        renderShuttleOverview();
       }, 2000);
     }
 
@@ -2735,6 +4343,8 @@
       hidePortalOverlay();
       triggerConfetti();
       playChime();
+      initDashboard();
+      switchTab('home');
       const txt = document.getElementById('stop-text');
       if (txt) {
         txt.innerHTML=`<span>Welcome, <strong style="color:var(--primary);">${user.name||user.email}</strong> • ${user.role.toUpperCase()} PORTAL ACTIVE</span>`;
@@ -2854,10 +4464,27 @@
         for (let registration of registrations) { registration.unregister(); }
       }).catch(()=>{});
     }
+    // ── NETWORK & CONNECTIVITY RESILIENCE ──
+    window.addEventListener('online', () => {
+      const statusText = document.getElementById('telemetry-status-text');
+      const badge = document.getElementById('dash-telemetry-status');
+      if (statusText) statusText.textContent = 'Autonomous Simulation';
+      if (badge) { badge.style.color = 'var(--emerald-light)'; badge.style.borderColor = 'var(--border)'; }
+    });
+    window.addEventListener('offline', () => {
+      const statusText = document.getElementById('telemetry-status-text');
+      const badge = document.getElementById('dash-telemetry-status');
+      if (statusText) statusText.textContent = 'Offline • Cached Mode';
+      if (badge) { badge.style.color = '#fbbf24'; badge.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }
+    });
+
     updateMarker(activeShuttles['vit_general_bus_101']);
+    updateMarker(activeShuttles['vit_general_bus_102']);
     updateMarker(activeShuttles['vit_faculty_shuttle_201']);
     updateBottomTray(activeShuttles['vit_general_bus_101']);
     startSimulator();
+    initDashboard();
+    switchTab('home');
     initAuth();
   </script>
 </body>
