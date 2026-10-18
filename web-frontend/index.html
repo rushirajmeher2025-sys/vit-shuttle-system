@@ -3469,37 +3469,91 @@
         font-size: 0.72rem !important;
       }
 
+      .map-filter-bar {
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        scrollbar-width: none !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 2px !important;
+      }
+      .map-filter-bar::-webkit-scrollbar {
+        display: none !important;
+      }
+
       .stop-banner {
         padding: 6px 10px !important;
         font-size: 0.72rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 6px !important;
+      }
+      .stop-banner .stop-text {
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      .stop-banner .stop-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        flex-shrink: 0 !important;
       }
       .stop-banner .btn {
-        padding: 3px 8px !important;
-        font-size: 0.7rem !important;
+        padding: 4px 8px !important;
+        font-size: 0.68rem !important;
+        white-space: nowrap !important;
       }
 
-      /* 3. Map Floating Controls: Eliminate overlap with search & filter bars */
+      /* 3. Map Floating Controls: Horizontal Dock docked safely above bottom tray, 0% top-bar collision */
       .map-controls {
+        position: absolute !important;
         top: auto !important;
-        bottom: 235px !important;
-        right: 10px !important;
-        gap: 5px !important;
-        z-index: 1000 !important;
-        background: var(--surface-card) !important;
+        bottom: calc(248px + env(safe-area-inset-bottom, 0px)) !important;
+        right: 12px !important;
+        left: auto !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+        z-index: 990 !important;
+        background: rgba(15, 23, 42, 0.88) !important;
         border: 1px solid var(--border) !important;
-        border-radius: var(--radius-xl) !important;
-        padding: 4px !important;
-        box-shadow: var(--shadow-md) !important;
+        border-radius: 30px !important;
+        padding: 4px 8px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
         backdrop-filter: blur(16px) !important;
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+      }
+      .map-controls .btn-zoom,
+      .map-controls .btn-sim-desktop {
+        display: none !important; /* Hide desktop-only zoom and redundant sim button on touch screens */
       }
       .map-controls .btn-icon {
-        width: 34px !important;
-        height: 34px !important;
+        width: 32px !important;
+        height: 32px !important;
         font-size: 14px !important;
         border-radius: 50% !important;
+        background: transparent !important;
+        border: none !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      .map-controls .btn-icon:active {
+        background: var(--surface-hover) !important;
+        transform: scale(0.92);
       }
       body.has-active-hud .map-controls {
-        bottom: 180px !important;
+        bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
+      }
+      body.has-drawer-open .map-controls {
+        bottom: calc(340px + env(safe-area-inset-bottom, 0px)) !important;
       }
 
       /* 4. Map Markers: Clean circular pins on phone instead of 30 overlapping text banners */
@@ -3851,14 +3905,14 @@
        MAP CONTROLS
   ══════════════════════════════ -->
   <div class="map-controls">
-    <button class="btn btn-icon" type="button" onclick="zoomIn()" aria-label="Zoom in" title="Zoom in">+</button>
-    <button class="btn btn-icon" type="button" onclick="zoomOut()" aria-label="Zoom out" title="Zoom out">−</button>
+    <button class="btn btn-icon btn-zoom" type="button" onclick="zoomIn()" aria-label="Zoom in" title="Zoom in">+</button>
+    <button class="btn btn-icon btn-zoom" type="button" onclick="zoomOut()" aria-label="Zoom out" title="Zoom out">−</button>
     <button class="btn btn-icon" type="button" onclick="requestLocationAndFindNearestStop(true)" aria-label="Find my location" title="My Location" style="color:var(--primary);">🎯</button>
     <button class="btn btn-icon" type="button" onclick="recenterCampusView()" aria-label="Recenter campus" title="Recenter Campus (🏛️)" style="color:var(--primary-light);">🏛️</button>
     <button class="btn btn-icon" type="button" onclick="centerOnShuttle()" aria-label="Center shuttle" title="Center Shuttle" style="color:var(--emerald);">📍</button>
     <button class="btn btn-icon" id="btn-planner-toggle" type="button" onclick="openJourneyPlanner()" aria-label="Open Journey Planner" title="Campus Journey Planner (🧭)" style="color:var(--primary-light);">🧭</button>
     <button class="btn btn-icon" id="btn-legend-toggle" type="button" onclick="toggleRouteLegend()" aria-label="Toggle Route Legend" title="Corridor Legend" style="color:#f59e0b;">🗺️</button>
-    <button class="btn btn-icon" id="btn-sim-toggle" type="button" onclick="toggleSimulationMode()" aria-label="Toggle Autonomous Fleet Simulation" title="Fleet Telemetry Mode" style="color:#38bdf8;">⚡</button>
+    <button class="btn btn-icon btn-sim-desktop" id="btn-sim-toggle" type="button" onclick="toggleSimulationMode()" aria-label="Toggle Autonomous Fleet Simulation" title="Fleet Telemetry Mode" style="color:#38bdf8;">⚡</button>
   </div>
 
   <!-- ══════════════════════════════
@@ -5162,6 +5216,7 @@
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
         closeJourneyMapHUD();
+        document.body.classList.remove('has-drawer-open');
         toggleMapListMode(false);
         closeStopDetailDrawer();
         initDashboard();
@@ -6234,6 +6289,7 @@
       isDrawerOpen=!isDrawerOpen;
       document.getElementById('details-drawer').classList.toggle('open',isDrawerOpen);
       document.getElementById('drawer-toggle-text').textContent = isDrawerOpen ? 'Hide stops & crowding ▴' : 'Show stops & crowding ▾';
+      document.body.classList.toggle('has-drawer-open', isDrawerOpen);
     }
 
     // ── ROLE SWITCHING ──
