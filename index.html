@@ -571,6 +571,107 @@
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    .tray-top-bar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .tray-minimize-btn {
+      display: none;
+      background: var(--surface-hover);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      margin-left: auto;
+      transition: all 0.15s ease;
+    }
+    .tray-minimize-btn:hover {
+      background: var(--surface-active);
+      color: var(--text);
+    }
+    .tray-peek-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      user-select: none;
+      cursor: pointer;
+    }
+    .tray-peek-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      flex: 1 1 auto;
+      overflow: hidden;
+    }
+    .peek-badge {
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: var(--text);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .peek-dot {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+    }
+    .peek-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .peek-fare {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tray-collapse-btn {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      color: var(--primary-light);
+      font-size: 0.7rem;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    .tray-collapse-btn:active {
+      transform: scale(0.94);
+    }
+
+    @media (min-width: 641px) {
+      .bottom-tray.collapsed .tray-full-content {
+        display: block !important;
+      }
+      .bottom-tray.collapsed .tray-peek-bar {
+        display: none !important;
+      }
+      .bottom-tray.collapsed .tray-minimize-btn {
+        display: none !important;
+      }
+    }
+
     .tray-grab-bar {
       width: 36px;
       height: 4px;
@@ -3435,19 +3536,15 @@
         display: none !important; /* Hide redundant profile icon on phone */
       }
 
-      /* 2. Map View Top Bar: Prevent multi-line explosions */
+      /* 2. Map View Top Bar: Prevent multi-line explosions and reserve right column for tools */
       .top-bar {
         top: calc(8px + env(safe-area-inset-top, 0px)) !important;
         left: 8px !important;
-        right: 8px !important;
-        gap: 6px !important;
+        right: 54px !important;
+        gap: 5px !important;
       }
-      .nav-pill {
-        padding: 5px 10px !important;
-        gap: 6px !important;
-      }
-      .nav-pill .role-tabs {
-        display: none !important; /* Hide role tabs on phone top bar to prevent 2-line clump */
+      .top-bar .nav-pill {
+        display: none !important; /* Reclaim 50px top area on mobile so map has huge visible viewport */
       }
       .session-chip {
         padding: 4px 8px !important;
@@ -3490,8 +3587,8 @@
       }
 
       .stop-banner {
-        padding: 6px 10px !important;
-        font-size: 0.72rem !important;
+        padding: 5px 8px !important;
+        font-size: 0.70rem !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
@@ -3511,39 +3608,39 @@
         flex-shrink: 0 !important;
       }
       .stop-banner .btn {
-        padding: 4px 8px !important;
-        font-size: 0.68rem !important;
+        padding: 3px 7px !important;
+        font-size: 0.66rem !important;
         white-space: nowrap !important;
       }
 
-      /* 3. Map Floating Controls: Horizontal Dock docked safely above bottom tray, 0% top-bar collision */
+      /* 3. Map Floating Controls: Dedicated vertical dock on right edge, matching PC experience */
       .map-controls {
         position: absolute !important;
-        top: auto !important;
-        bottom: calc(248px + env(safe-area-inset-bottom, 0px)) !important;
-        right: 12px !important;
+        top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        bottom: auto !important;
+        right: 8px !important;
         left: auto !important;
-        flex-direction: row !important;
+        flex-direction: column !important;
         align-items: center !important;
-        gap: 6px !important;
-        z-index: 990 !important;
-        background: rgba(15, 23, 42, 0.88) !important;
+        gap: 4px !important;
+        z-index: 1040 !important;
+        background: rgba(15, 23, 42, 0.92) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 30px !important;
-        padding: 4px 8px !important;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+        border-radius: 22px !important;
+        padding: 4px !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
         backdrop-filter: blur(16px) !important;
-        width: auto !important;
-        max-width: calc(100vw - 24px) !important;
+        width: 38px !important;
+        max-width: 44px !important;
       }
       .map-controls .btn-zoom,
       .map-controls .btn-sim-desktop {
-        display: none !important; /* Hide desktop-only zoom and redundant sim button on touch screens */
+        display: flex !important; /* All 8 tools visible and accessible on mobile web app */
       }
       .map-controls .btn-icon {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 14px !important;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 13px !important;
         border-radius: 50% !important;
         background: transparent !important;
         border: none !important;
@@ -3552,19 +3649,14 @@
         justify-content: center !important;
         padding: 0 !important;
         flex-shrink: 0 !important;
+        color: var(--text);
       }
       .map-controls .btn-icon:active {
         background: var(--surface-hover) !important;
         transform: scale(0.92);
       }
-      body.has-active-hud .map-controls {
-        bottom: calc(150px + env(safe-area-inset-bottom, 0px)) !important;
-      }
-      body.has-drawer-open .map-controls {
-        bottom: calc(340px + env(safe-area-inset-bottom, 0px)) !important;
-      }
 
-      /* 4. Map Markers: Clean circular pins on phone instead of 30 overlapping text banners */
+      /* 4. Map Markers: Clean circular pins on phone */
       .marker-label-text {
         display: none !important;
       }
@@ -3595,15 +3687,52 @@
         padding: 11px 13px !important;
       }
 
-      /* 6. Bottom Tray on phone */
-      .bottom-tray {
-        bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+      /* 6. Route Legend Card on phone */
+      .route-legend-card {
+        bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
         left: 8px !important;
         right: 8px !important;
-        padding: 10px 12px !important;
+        width: auto !important;
+        max-width: calc(100vw - 16px) !important;
+        z-index: 1060 !important;
       }
 
-      /* 7. Journey Planner Modal on phone */
+      /* 7. Bottom Tray on phone: Collapsible peek bar giving 75%+ screen area to map */
+      .bottom-tray {
+        bottom: calc(68px + env(safe-area-inset-bottom, 0px)) !important;
+        left: 8px !important;
+        right: 8px !important;
+        max-width: none !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+      .bottom-tray.collapsed {
+        padding: 6px 12px !important;
+        border-radius: 18px !important;
+        cursor: pointer;
+      }
+      .bottom-tray.collapsed .tray-peek-bar {
+        display: flex !important;
+      }
+      .bottom-tray.collapsed .tray-full-content {
+        display: none !important;
+      }
+      .bottom-tray:not(.collapsed) {
+        padding: 10px 12px !important;
+        border-radius: var(--radius-xl) !important;
+        max-height: calc(100vh - 180px) !important;
+        overflow-y: auto !important;
+      }
+      .bottom-tray:not(.collapsed) .tray-peek-bar {
+        display: none !important;
+      }
+      .bottom-tray:not(.collapsed) .tray-full-content {
+        display: block !important;
+      }
+      .bottom-tray:not(.collapsed) .tray-minimize-btn {
+        display: flex !important;
+      }
+
+      /* 8. Journey Planner Modal on phone */
       .jp-card {
         padding: 16px 14px !important;
         width: 95% !important;
@@ -4171,81 +4300,100 @@
   <!-- ══════════════════════════════
        BOTTOM TRAY
   ══════════════════════════════ -->
-  <div class="bottom-tray card">
-    <div class="tray-grab-bar" onclick="toggleDetailsDrawer()" role="button" aria-label="Toggle drawer"></div>
-    <!-- Passenger View -->
-    <div id="passenger-view">
-      <!-- Shuttle Selector Row -->
-      <div class="shuttle-row">
-        <button id="btn-mh" class="shuttle-btn sel-mh" type="button" onclick="selectShuttle('vit_general_bus_101')">
-          <span class="shuttle-name">🚌 MH Bus #101</span>
-          <span class="fare-tag fare-paid">₹20</span>
-        </button>
-        <button id="btn-lh" class="shuttle-btn" type="button" onclick="selectShuttle('vit_general_bus_102')">
-          <span class="shuttle-name">🌸 LH Bus #102</span>
-          <span class="fare-tag fare-pink">₹20</span>
-        </button>
-        <button id="btn-fac" class="shuttle-btn" type="button" onclick="selectShuttle('vit_faculty_shuttle_201')">
-          <span class="shuttle-name">⭐ Faculty VIP</span>
-          <span class="fare-tag fare-free">FREE</span>
-        </button>
+  <div class="bottom-tray card collapsed">
+    <!-- Mobile Peek Bar (collapsed state for maximum map area) -->
+    <div class="tray-peek-bar" onclick="toggleBottomTrayCollapse()" role="button" aria-label="Expand shuttle panel" tabindex="0">
+      <div class="tray-peek-info">
+        <span class="peek-badge" id="peek-shuttle-name">🚌 MH Bus #101</span>
+        <span class="peek-dot">•</span>
+        <span class="peek-sub" id="peek-next-stop">Next: MB (Main Bldg) • 2 min</span>
+        <span class="peek-fare fare-tag fare-paid" id="peek-fare-tag">₹20</span>
       </div>
-
-      <!-- Telemetry Snapshot -->
-      <div class="telemetry">
-        <div class="next-stop-wrap">
-          <div class="stop-indicator"></div>
-          <div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span class="next-name" id="next-stop-label">Next: MB (Main Bldg)</span>
-              <span class="telemetry-origin-tag origin-simulated" id="fleet-origin-badge">[SIMULATED FLEET]</span>
-            </div>
-            <span class="next-eta" id="next-stop-mins"> • 2 min away</span>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:6px;">
-          <div class="speed-chip" id="speed-chip">
-            <span id="speed-val">22</span>
-            <span class="unit">KM/H</span>
-          </div>
-          <button class="btn btn-icon btn-sm" id="sim-control-btn" style="width:28px;height:28px;font-size:12px;background:var(--surface-hover);border:1px solid var(--border);" type="button" onclick="toggleSimulationMode()" title="Toggle autonomous fleet movement vs static depot">⏸️</button>
-        </div>
-      </div>
-
-      <!-- Action Row -->
-      <div class="action-row" id="action-row-content"></div>
-
-      <!-- Expand Drawer Toggle -->
-      <div class="expand-toggle" onclick="toggleDetailsDrawer()" role="button" tabindex="0">
-        <span id="drawer-toggle-text">Show stops & crowding ▾</span>
-      </div>
-
-      <!-- Drawer Content -->
-      <div class="drawer" id="details-drawer">
-        <div class="stops-scroll" id="drawer-stops-list">
-          <div class="stop-box"><div class="stop-box-name">MB (Main Bldg)</div><div class="stop-box-eta">2 min</div></div>
-          <div class="stop-box"><div class="stop-box-name">SJT Tower</div><div class="stop-box-eta">5 min</div></div>
-          <div class="stop-box"><div class="stop-box-name">Men's Hostel</div><div class="stop-box-eta">8 min</div></div>
-        </div>
-        <div class="crowd-bar">
-          <span class="crowd-lbl">Live Crowding:</span>
-          <button class="crowd-btn" type="button" onclick="reportCrowd('Low')">🟢 Low</button>
-          <button class="crowd-btn" type="button" onclick="reportCrowd('Moderate')">🟡 Med</button>
-          <button class="crowd-btn" type="button" onclick="reportCrowd('Full')">🔴 Full</button>
-        </div>
-      </div>
+      <button class="tray-collapse-btn" type="button" onclick="event.stopPropagation(); toggleBottomTrayCollapse()" aria-label="Expand shuttle details">
+        <span id="tray-collapse-label">Expand ▴</span>
+      </button>
     </div>
 
-    <!-- Driver View -->
-    <div id="driver-view" class="driver-view">
-      <div class="driver-label">ACTIVE DRIVING SHIFT</div>
-      <div class="speedo-wrap">
-        <div class="speedo-num" id="driver-speed">22</div>
-        <div class="speedo-unit">KM / H</div>
+    <!-- Full Tray Content Container -->
+    <div class="tray-full-content">
+      <div class="tray-top-bar-row">
+        <div class="tray-grab-bar" onclick="toggleBottomTrayCollapse()" role="button" aria-label="Toggle drawer"></div>
+        <button class="tray-minimize-btn" type="button" onclick="toggleBottomTrayCollapse()" title="Minimize to map view" aria-label="Minimize">▾</button>
       </div>
-      <button class="btn btn-outline" style="width:100%; border-color:var(--rose); color:var(--rose);" type="button" onclick="switchRole('student')">
-        End Driving Shift
-      </button>
+      <!-- Passenger View -->
+      <div id="passenger-view">
+        <!-- Shuttle Selector Row -->
+        <div class="shuttle-row">
+          <button id="btn-mh" class="shuttle-btn sel-mh" type="button" onclick="selectShuttle('vit_general_bus_101')">
+            <span class="shuttle-name">🚌 MH Bus #101</span>
+            <span class="fare-tag fare-paid">₹20</span>
+          </button>
+          <button id="btn-lh" class="shuttle-btn" type="button" onclick="selectShuttle('vit_general_bus_102')">
+            <span class="shuttle-name">🌸 LH Bus #102</span>
+            <span class="fare-tag fare-pink">₹20</span>
+          </button>
+          <button id="btn-fac" class="shuttle-btn" type="button" onclick="selectShuttle('vit_faculty_shuttle_201')">
+            <span class="shuttle-name">⭐ Faculty VIP</span>
+            <span class="fare-tag fare-free">FREE</span>
+          </button>
+        </div>
+
+        <!-- Telemetry Snapshot -->
+        <div class="telemetry">
+          <div class="next-stop-wrap">
+            <div class="stop-indicator"></div>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="next-name" id="next-stop-label">Next: MB (Main Bldg)</span>
+                <span class="telemetry-origin-tag origin-simulated" id="fleet-origin-badge">[SIMULATED FLEET]</span>
+              </div>
+              <span class="next-eta" id="next-stop-mins"> • 2 min away</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="speed-chip" id="speed-chip">
+              <span id="speed-val">22</span>
+              <span class="unit">KM/H</span>
+            </div>
+            <button class="btn btn-icon btn-sm" id="sim-control-btn" style="width:28px;height:28px;font-size:12px;background:var(--surface-hover);border:1px solid var(--border);" type="button" onclick="toggleSimulationMode()" title="Toggle autonomous fleet movement vs static depot">⏸️</button>
+          </div>
+        </div>
+
+        <!-- Action Row -->
+        <div class="action-row" id="action-row-content"></div>
+
+        <!-- Expand Drawer Toggle -->
+        <div class="expand-toggle" onclick="toggleDetailsDrawer()" role="button" tabindex="0">
+          <span id="drawer-toggle-text">Show stops & crowding ▾</span>
+        </div>
+
+        <!-- Drawer Content -->
+        <div class="drawer" id="details-drawer">
+          <div class="stops-scroll" id="drawer-stops-list">
+            <div class="stop-box"><div class="stop-box-name">MB (Main Bldg)</div><div class="stop-box-eta">2 min</div></div>
+            <div class="stop-box"><div class="stop-box-name">SJT Tower</div><div class="stop-box-eta">5 min</div></div>
+            <div class="stop-box"><div class="stop-box-name">Men's Hostel</div><div class="stop-box-eta">8 min</div></div>
+          </div>
+          <div class="crowd-bar">
+            <span class="crowd-lbl">Live Crowding:</span>
+            <button class="crowd-btn" type="button" onclick="reportCrowd('Low')">🟢 Low</button>
+            <button class="crowd-btn" type="button" onclick="reportCrowd('Moderate')">🟡 Med</button>
+            <button class="crowd-btn" type="button" onclick="reportCrowd('Full')">🔴 Full</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Driver View -->
+      <div id="driver-view" class="driver-view">
+        <div class="driver-label">ACTIVE DRIVING SHIFT</div>
+        <div class="speedo-wrap">
+          <div class="speedo-num" id="driver-speed">22</div>
+          <div class="speedo-unit">KM / H</div>
+        </div>
+        <button class="btn btn-outline" style="width:100%; border-color:var(--rose); color:var(--rose);" type="button" onclick="switchRole('student')">
+          End Driving Shift
+        </button>
+      </div>
     </div>
   </div>
 
@@ -6311,6 +6459,50 @@
       } else {
         ar.innerHTML = `<div class="restrict-pill"><span>⚠️ Faculty VIP Shuttle (₹0)</span><button class="switch-btn" onclick="selectShuttle('vit_general_bus_101')">Switch ₹20</button></div>`;
       }
+
+      // Update Peek Bar in Collapsed Mode on Mobile
+      const peekName = document.getElementById('peek-shuttle-name');
+      const peekNext = document.getElementById('peek-next-stop');
+      const peekFare = document.getElementById('peek-fare-tag');
+      if (peekName) {
+        let displayName = shuttle.name || 'MH Bus #101';
+        if (shuttle.id === 'vit_faculty_shuttle_201') displayName = '⭐ Faculty VIP';
+        else if (shuttle.id === 'vit_general_bus_102') displayName = '🌸 LH Bus #102';
+        else if (shuttle.id === 'vit_general_bus_101') displayName = '🚌 MH Bus #101';
+        peekName.textContent = displayName;
+      }
+      if (peekNext && next) {
+        peekNext.textContent = `Next: ${next.stopName} (${next.etaMinutes}m)`;
+      }
+      if (peekFare) {
+        peekFare.textContent = isFac ? 'FREE' : '₹20';
+        peekFare.className = `peek-fare fare-tag ${isFac ? 'fare-free' : (shuttle.id==='vit_general_bus_102' ? 'fare-pink' : 'fare-paid')}`;
+      }
+    }
+
+    let isBottomTrayCollapsed = false;
+
+    function toggleBottomTrayCollapse(forceState) {
+      const tray = document.querySelector('.bottom-tray');
+      if (!tray) return;
+      if (typeof forceState === 'boolean') {
+        isBottomTrayCollapsed = forceState;
+      } else {
+        isBottomTrayCollapsed = !tray.classList.contains('collapsed');
+      }
+      if (isBottomTrayCollapsed) {
+        tray.classList.add('collapsed');
+      } else {
+        tray.classList.remove('collapsed');
+      }
+      triggerHapticFeedback('selection');
+      const label = document.getElementById('tray-collapse-label');
+      if (label) {
+        label.textContent = isBottomTrayCollapsed ? 'Expand ▴' : 'Collapse ▾';
+      }
+      if (isBottomTrayCollapsed && isDrawerOpen) {
+        toggleDetailsDrawer();
+      }
     }
 
     function toggleDetailsDrawer() {
@@ -6363,9 +6555,10 @@
       updateNavChip(role);
     }
 
-    function zoomIn()  { map.zoomIn(); }
-    function zoomOut() { map.zoomOut(); }
+    function zoomIn()  { triggerHapticFeedback('light'); map.zoomIn(); }
+    function zoomOut() { triggerHapticFeedback('light'); map.zoomOut(); }
     function centerOnShuttle() {
+      triggerHapticFeedback('selection');
       const s = activeShuttles[selectedShuttleId];
       if (s) map.setView([s.lat,s.lng], 16.5, {animate:true});
     }
