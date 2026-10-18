@@ -2912,6 +2912,371 @@
     }
 
     /* ══════════════════════════════════════════════════════
+       PHASE 4 — SMART JOURNEY PLANNER STYLES
+    ══════════════════════════════════════════════════════ */
+    .jp-banner-card {
+      background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(139,92,246,0.08) 100%);
+      border: 1px solid rgba(37,99,235,0.3);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jp-banner-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.22);
+      border-color: var(--primary);
+    }
+    .jp-banner-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: var(--primary-subtle);
+      border: 1px solid rgba(37,99,235,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    /* Full Planner Modal Card */
+    .jp-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      max-width: 540px;
+      width: 92%;
+      max-height: 90vh;
+      overflow-y: auto;
+      margin: auto;
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(24px);
+      animation: modalPopIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .jp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 12px;
+    }
+    .jp-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .jp-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .jp-sub {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* Form Fields */
+    .jp-form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+    .jp-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .jp-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .jp-select-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .jp-select {
+      width: 100%;
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 9px 12px;
+      appearance: none;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .jp-select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-subtle);
+    }
+    .jp-swap-btn {
+      align-self: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--surface-card);
+      border: 1.5px solid var(--border);
+      color: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      cursor: pointer;
+      margin: -4px auto;
+      z-index: 2;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .jp-swap-btn:hover {
+      transform: rotate(180deg) scale(1.08);
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+
+    /* Preference Chips */
+    .jp-prefs-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 2px 0;
+    }
+    .jp-pref-chip {
+      flex: 1;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--surface-hover);
+      color: var(--text-secondary);
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+    .jp-pref-chip:hover {
+      border-color: var(--border);
+      color: var(--text);
+    }
+    .jp-pref-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+    }
+
+    /* Results List */
+    .jp-results-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .jp-result-card {
+      background: var(--surface-hover);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .jp-result-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: var(--surface-card);
+    }
+    .jp-result-card.recommended {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(37,99,235,0.06) 0%, rgba(15,23,42,0) 100%);
+    }
+    .jp-result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.64rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.3px;
+    }
+    .jp-badge-rec {
+      background: rgba(37,99,235,0.2);
+      color: var(--primary-light);
+      border: 1px solid rgba(37,99,235,0.35);
+    }
+    .jp-badge-walk {
+      background: rgba(16,185,129,0.18);
+      color: var(--emerald-light);
+      border: 1px solid rgba(16,185,129,0.3);
+    }
+    .jp-badge-transfer {
+      background: rgba(139,92,246,0.18);
+      color: #a78bfa;
+      border: 1px solid rgba(139,92,246,0.3);
+    }
+
+    .jp-res-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .jp-res-duration {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .jp-res-duration small {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-left: 2px;
+    }
+    .jp-res-summary {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .jp-res-legs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .jp-leg-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* Chronological Step Breakdown Timeline */
+    .jp-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 14px 0;
+      position: relative;
+    }
+    .jp-step {
+      display: flex;
+      gap: 12px;
+      position: relative;
+      padding-bottom: 16px;
+    }
+    .jp-step:last-child {
+      padding-bottom: 0;
+    }
+    .jp-step-line {
+      position: absolute;
+      top: 24px;
+      left: 14px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+    .jp-step.shuttle .jp-step-line {
+      background: var(--primary);
+    }
+    .jp-step.walking .jp-step-line {
+      border-left: 2px dashed var(--text-muted);
+      background: transparent;
+    }
+    .jp-step-node {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--surface-card);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+    .jp-step-node.origin { border-color: var(--primary); color: var(--primary); }
+    .jp-step-node.bus { border-color: var(--primary-light); background: var(--primary-subtle); color: var(--primary-light); }
+    .jp-step-node.walk { border-color: var(--emerald); color: var(--emerald); }
+    .jp-step-node.dest { border-color: #ef4444; color: #ef4444; }
+
+    .jp-step-content {
+      flex: 1;
+      padding-top: 3px;
+    }
+    .jp-step-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .jp-step-desc {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .jp-step-meta {
+      display: flex;
+      gap: 8px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Active Journey Map HUD */
+    .journey-map-hud {
+      position: absolute;
+      bottom: 74px;
+      left: 12px;
+      right: 12px;
+      max-width: 500px;
+      margin: 0 auto;
+      z-index: 1060;
+      border-radius: var(--radius-xl);
+      padding: 14px 16px;
+      background: var(--surface-card);
+      border: 1.5px solid var(--primary);
+      box-shadow: var(--shadow-lg);
+      backdrop-filter: blur(20px);
+      display: none;
+      animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .journey-map-hud.active {
+      display: block;
+    }
+
+    /* ══════════════════════════════════════════════════════
        REDUCED MOTION PREFERENCE
     ══════════════════════════════════════════════════════ */
     @media (prefers-reduced-motion: reduce) {
@@ -3209,6 +3574,7 @@
     <button class="btn btn-icon" type="button" onclick="requestLocationAndFindNearestStop(true)" aria-label="Find my location" title="My Location" style="color:var(--primary);">🎯</button>
     <button class="btn btn-icon" type="button" onclick="recenterCampusView()" aria-label="Recenter campus" title="Recenter Campus (🏛️)" style="color:var(--primary-light);">🏛️</button>
     <button class="btn btn-icon" type="button" onclick="centerOnShuttle()" aria-label="Center shuttle" title="Center Shuttle" style="color:var(--emerald);">📍</button>
+    <button class="btn btn-icon" id="btn-planner-toggle" type="button" onclick="openJourneyPlanner()" aria-label="Open Journey Planner" title="Campus Journey Planner (🧭)" style="color:var(--primary-light);">🧭</button>
     <button class="btn btn-icon" id="btn-legend-toggle" type="button" onclick="toggleRouteLegend()" aria-label="Toggle Route Legend" title="Corridor Legend" style="color:#f59e0b;">🗺️</button>
     <button class="btn btn-icon" id="btn-sim-toggle" type="button" onclick="toggleSimulationMode()" aria-label="Toggle Autonomous Fleet Simulation" title="Fleet Telemetry Mode" style="color:#38bdf8;">⚡</button>
   </div>
@@ -3266,14 +3632,43 @@
       🚶 <strong>120 m</strong> away (1.5 min walk from your location)
     </div>
 
-    <div class="stop-drawer-routes-title">Serving Corridors & Estimated Arrivals:</div>
+    <div class="stop-drawer-routes-title">Serving Corridors &amp; Estimated Arrivals:</div>
     <div class="stop-drawer-routes-list" id="sdd-routes-list"></div>
 
     <div class="stop-drawer-actions">
       <button class="btn btn-primary" id="sdd-btn-walk" type="button" onclick="walkToCurrentStop()">🚶 Walk Here</button>
       <button class="btn btn-outline" id="sdd-btn-fav" type="button" onclick="toggleCurrentStopFavorite()">⭐ Favorite</button>
+      <button class="btn btn-outline" id="sdd-btn-plan" type="button" onclick="planJourneyFromCurrentStop()">🧭 Plan Route</button>
       <button class="btn btn-outline" type="button" onclick="centerMapOnCurrentStop()">📍 Center</button>
     </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PHASE 4 — ACTIVE JOURNEY MAP HUD
+  ══════════════════════════════ -->
+  <div id="journey-map-hud" class="journey-map-hud">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:14px;">🧭</span>
+          <span style="font-weight:800;font-size:0.86rem;color:var(--text);" id="hud-journey-title">Active Route Plan</span>
+          <span id="hud-journey-fare" class="badge" style="background:var(--primary-subtle);color:var(--primary-light);font-size:0.62rem;padding:1px 6px;">₹20</span>
+        </div>
+        <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:2px;" id="hud-journey-subtitle">
+          Total: ~11 min • 850m • Bus 101
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm btn-outline" type="button" onclick="openJourneyBreakdownModal()" style="padding:4px 8px;font-size:11px;" title="View Step Breakdown">
+          📋 Steps
+        </button>
+        <button class="btn btn-sm btn-outline" type="button" onclick="closeJourneyMapHUD()" style="padding:4px 8px;font-size:11px;border-color:var(--rose);color:var(--rose);" title="Exit Journey Plan">
+          ✕ Exit
+        </button>
+      </div>
+    </div>
+    <!-- Step Navigator Pills -->
+    <div id="hud-steps-pills" style="display:flex;gap:6px;overflow-x:auto;padding:4px 0;scrollbar-width:none;"></div>
   </div>
 
   <!-- ══════════════════════════════
@@ -3291,6 +3686,119 @@
       <div class="manual-loc-grid" id="manual-loc-grid"></div>
       <div style="margin-top:12px;font-size:0.7rem;color:var(--text-muted);text-align:center;">
         Select a location to pinpoint your position and calculate the nearest stop.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PHASE 4 — SMART JOURNEY PLANNER MODAL
+  ══════════════════════════════ -->
+  <div id="journey-planner-modal" class="modal-bg" onclick="closeJourneyPlanner(event)">
+    <div class="jp-card" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div class="jp-header">
+        <div class="jp-title-wrap">
+          <div class="jp-banner-icon">🧭</div>
+          <div>
+            <div class="jp-title">Campus Journey Planner</div>
+            <div class="jp-sub">Multi-modal shuttle &amp; walking directions</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button class="btn btn-icon" id="jp-save-trip-btn" type="button" onclick="saveCurrentJourney()" title="Save Journey to Favourites" style="font-size:15px;">⭐</button>
+          <button class="btn btn-icon" type="button" onclick="closeJourneyPlanner()" aria-label="Close Journey Planner">✕</button>
+        </div>
+      </div>
+
+      <!-- Origin & Destination Form with Swap Button -->
+      <div class="jp-form-row">
+        <div class="jp-field">
+          <label class="jp-label" for="jp-origin-select">
+            <span>🟢 Starting Point</span>
+            <span id="jp-origin-indicator" style="font-size:0.65rem;color:var(--emerald-light);font-weight:600;"></span>
+          </label>
+          <div class="jp-select-wrap">
+            <select id="jp-origin-select" class="jp-select" onchange="handleJourneyInputsChanged()">
+              <option value="current">📍 Current Location (GPS / Pin)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="jp-swap-btn" type="button" onclick="swapJourneyLocations()" title="Swap Origin and Destination" aria-label="Swap Starting Point and Destination">
+          ⇄
+        </button>
+
+        <div class="jp-field">
+          <label class="jp-label" for="jp-dest-select">
+            <span>🔴 Destination</span>
+            <span id="jp-dest-indicator" style="font-size:0.65rem;color:var(--rose);font-weight:600;"></span>
+          </label>
+          <div class="jp-select-wrap">
+            <select id="jp-dest-select" class="jp-select" onchange="handleJourneyInputsChanged()">
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Travel Preferences -->
+      <div>
+        <div style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;">
+          Travel Preference
+        </div>
+        <div class="jp-prefs-row">
+          <button class="jp-pref-chip active" id="jp-pref-fastest" type="button" onclick="setJourneyPreference('fastest')">⚡ Fastest Route</button>
+          <button class="jp-pref-chip" id="jp-pref-least_walking" type="button" onclick="setJourneyPreference('least_walking')">🚶 Least Walking</button>
+          <button class="jp-pref-chip" id="jp-pref-fewest_transfers" type="button" onclick="setJourneyPreference('fewest_transfers')">🚌 Direct / Fewest Transfers</button>
+        </div>
+      </div>
+
+      <!-- Quick Saved Trips Bar (if any saved) -->
+      <div id="jp-saved-trips-bar" style="display:none;padding-top:2px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:0.68rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;">⭐ Saved Trips</span>
+          <span style="font-size:0.65rem;color:var(--text-secondary);cursor:pointer;" onclick="clearAllSavedJourneys()">Clear All</span>
+        </div>
+        <div id="jp-saved-trips-list" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;"></div>
+      </div>
+
+      <!-- Action Button -->
+      <button class="btn btn-primary" type="button" onclick="calculateJourneyRoutes()" style="width:100%;justify-content:center;padding:11px 14px;font-weight:700;">
+        <span>🔍 Find Best Campus Routes</span>
+      </button>
+
+      <!-- Results View -->
+      <div id="jp-results-container" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:0.75rem;font-weight:700;color:var(--text);">Available Journey Options</div>
+          <div id="jp-freshness-badge" style="font-size:0.64rem;font-weight:700;padding:2px 6px;border-radius:4px;background:rgba(37,99,235,0.15);color:var(--primary-light);border:1px solid rgba(37,99,235,0.3);">
+            ● LIVE FLEET TELEMETRY
+          </div>
+        </div>
+        <div class="jp-results-list" id="jp-results-list"></div>
+      </div>
+
+      <!-- Detailed Step-by-Step Chronological Breakdown View -->
+      <div id="jp-detail-container" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--border-subtle);padding-bottom:8px;">
+          <button class="btn btn-outline btn-sm" type="button" onclick="backToJourneyResults()" style="padding:4px 8px;font-size:11px;">
+            ← Back to Options
+          </button>
+          <div style="font-size:0.8rem;font-weight:700;color:var(--text);" id="jp-detail-title">Journey Breakdown</div>
+        </div>
+        <div id="jp-detail-summary-card"></div>
+        <div class="jp-timeline" id="jp-timeline-steps"></div>
+        <div style="display:flex;gap:8px;margin-top:14px;">
+          <button class="btn btn-primary" type="button" onclick="inspectActiveJourneyOnMap()" style="flex:1;justify-content:center;">
+            <span>🗺️ Show Route on Campus Map</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty / Error state -->
+      <div id="jp-empty-state" style="display:none;text-align:center;padding:20px 10px;background:var(--surface-hover);border-radius:var(--radius-md);border:1px dashed var(--border);">
+        <div style="font-size:28px;margin-bottom:8px;" id="jp-empty-icon">📍</div>
+        <div style="font-weight:700;font-size:0.88rem;color:var(--text);" id="jp-empty-title">Select Origin &amp; Destination</div>
+        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;" id="jp-empty-msg">Choose your starting point and where you want to go on campus to calculate shuttle and walking routes.</div>
       </div>
     </div>
   </div>
@@ -3491,6 +3999,28 @@
         <!-- Autocomplete Dropdown & Recent Searches -->
         <div id="search-dropdown" class="search-dropdown">
           <div id="search-results-content"></div>
+        </div>
+      </div>
+
+      <!-- 2.5 Smart Journey Planner Hero Banner -->
+      <div class="jp-banner-card" onclick="openJourneyPlanner()" role="button" tabindex="0">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="jp-banner-icon">🧭</div>
+            <div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:1.02rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
+                <span>Smart Campus Journey Planner</span>
+                <span class="badge" style="background:var(--primary);color:white;font-size:0.6rem;padding:2px 6px;">PHASE 4</span>
+              </div>
+              <div class="jp-sub">
+                Find the fastest shuttle + walking route with live arrival times and transfer options.
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary jp-banner-btn" type="button" onclick="event.stopPropagation(); openJourneyPlanner()" style="flex-shrink:0;">
+            <span>Plan Route</span>
+            <span>→</span>
+          </button>
         </div>
       </div>
 
@@ -3946,7 +4476,7 @@
         }
 
         return `
-          <div class="shortcut-card" onclick="selectQuickShortcut(${sc.id})" role="button" tabindex="0" title="Navigate to ${sc.name}">
+          <div class="shortcut-card" onclick="openJourneyPlanner(${sc.id})" role="button" tabindex="0" title="Plan Route to ${sc.name}">
             <div class="sc-head-row">
               <span class="sc-icon">${sc.icon}</span>
               <span class="sc-eta-pill">~${bestEta} min</span>
@@ -4138,6 +4668,9 @@
                   <span>Nearest: ${escapeHtml(d.stopName)} • ${d.walkMins}m walk</span>
                 </div>
               </div>
+              <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px; margin-right:4px;" type="button" onclick="event.stopPropagation(); openJourneyPlanner(${d.id})" title="Plan Journey">
+                🧭
+              </button>
               <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px;" type="button" onclick="event.stopPropagation(); toggleFavorite(${d.id})">
                 ${userFavorites.includes(d.id) ? '⭐' : '☆'}
               </button>
@@ -4191,6 +4724,9 @@
                   <span>Nearest: ${escapeHtml(d.stopName)} • ~${d.walkMins}m walk</span>
                 </div>
               </div>
+              <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px; margin-right:4px;" type="button" onclick="event.stopPropagation(); openJourneyPlanner(${d.id})" title="Plan Journey">
+                🧭
+              </button>
               <button class="btn btn-sm btn-outline" style="padding:2px 7px; font-size:11px;" type="button" onclick="event.stopPropagation(); toggleFavorite(${d.id})" title="Save to Favourites">
                 ${userFavorites.includes(d.id) ? '⭐' : '☆'}
               </button>
@@ -4526,6 +5062,7 @@
             <div style="font-size:10px;color:var(--text-muted);margin:3px 0 6px 0;">${b.desc}</div>
             <div style="font-size:10.5px;color:var(--primary);font-weight:600;margin-bottom:8px;">Nearest Stop: ${b.stopName} (~${b.walkMins}m walk)</div>
             <button onclick="map.closePopup(); openStopDetailDrawer(${b.stopId});" style="width:100%;background:var(--primary);color:white;border:none;padding:5px 8px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">🚏 View Nearest Stop</button>
+            <button onclick="map.closePopup(); openJourneyPlanner(${b.id});" style="width:100%;margin-top:4px;background:var(--surface-hover);color:var(--text);border:1px solid var(--border);padding:4px 8px;border-radius:6px;font-weight:600;font-size:11px;cursor:pointer;">🧭 Plan Route Here</button>
           </div>
         `);
         buildingMarkerMap[b.id] = bm;
@@ -5859,12 +6396,836 @@
       if (badge) { badge.style.color = '#fbbf24'; badge.style.borderColor = 'rgba(245, 158, 11, 0.4)'; }
     });
 
+    // ══════════════════════════════════════════════════════
+    // 🧭 PHASE 4 — SMART JOURNEY PLANNER ENGINE
+    // ══════════════════════════════════════════════════════
+    const journeyPlannerState = {
+      originId: 'current',
+      destId: 10,
+      preference: 'fastest', // 'fastest' | 'least_walking' | 'fewest_transfers'
+      currentOptions: [],
+      selectedOptionIndex: 0,
+      activeJourney: null
+    };
+
+    let journeyMapLayerGroup = null;
+    let savedJourneysList = JSON.parse(localStorage.getItem('vit_shuttle_saved_journeys') || '[]');
+
+    function populateJourneySelects() {
+      const origSel = document.getElementById('jp-origin-select');
+      const destSel = document.getElementById('jp-dest-select');
+      if (!origSel || !destSel) return;
+
+      const groups = {
+        academic: { label: 'Academic Towers & Blocks', items: [] },
+        hostel: { label: 'Hostel Blocks (MH & LH)', items: [] },
+        dining: { label: 'Dining & Student Facilities', items: [] },
+        entrance: { label: 'Campus Gates & Entrances', items: [] }
+      };
+
+      campusDestinations.forEach(d => {
+        if (d.category === 'academic') groups.academic.items.push(d);
+        else if (d.category === 'hostel') groups.hostel.items.push(d);
+        else if (d.category === 'dining' || d.category === 'facility') groups.dining.items.push(d);
+        else if (d.category === 'entrance') groups.entrance.items.push(d);
+        else groups.academic.items.push(d);
+      });
+
+      const buildOptionsHtml = (includeCurrent) => {
+        let html = includeCurrent ? '<option value="current">📍 Current Location (GPS / Pin)</option>' : '';
+        Object.values(groups).forEach(g => {
+          if (g.items.length > 0) {
+            html += `<optgroup label="${g.label}">`;
+            g.items.forEach(it => {
+              html += `<option value="${it.id}">${it.icon} ${escapeHtml(it.name)}</option>`;
+            });
+            html += `</optgroup>`;
+          }
+        });
+        return html;
+      };
+
+      origSel.innerHTML = buildOptionsHtml(true);
+      destSel.innerHTML = buildOptionsHtml(false);
+
+      origSel.value = journeyPlannerState.originId || 'current';
+      destSel.value = journeyPlannerState.destId || 10;
+      handleJourneyInputsChanged();
+    }
+
+    function handleJourneyInputsChanged() {
+      const origSel = document.getElementById('jp-origin-select');
+      const destSel = document.getElementById('jp-dest-select');
+      if (!origSel || !destSel) return;
+
+      journeyPlannerState.originId = origSel.value;
+      journeyPlannerState.destId = destSel.value;
+
+      const origInd = document.getElementById('jp-origin-indicator');
+      const destInd = document.getElementById('jp-dest-indicator');
+      if (origInd) origInd.textContent = origSel.value === 'current' ? (userLocation ? '● GPS Locked' : '● Campus Center') : '● Selected';
+      if (destInd) destInd.textContent = '● Selected';
+    }
+
+    function openJourneyPlanner(defaultDestId = null, defaultOriginId = null) {
+      playBeep();
+      populateJourneySelects();
+
+      if (defaultDestId !== null && defaultDestId !== undefined) {
+        journeyPlannerState.destId = defaultDestId;
+        const destSel = document.getElementById('jp-dest-select');
+        if (destSel) destSel.value = defaultDestId;
+      }
+      if (defaultOriginId !== null && defaultOriginId !== undefined) {
+        journeyPlannerState.originId = defaultOriginId;
+        const origSel = document.getElementById('jp-origin-select');
+        if (origSel) origSel.value = defaultOriginId;
+      }
+
+      handleJourneyInputsChanged();
+      renderSavedJourneys();
+
+      const modal = document.getElementById('journey-planner-modal');
+      if (modal) modal.classList.add('active');
+
+      calculateJourneyRoutes();
+    }
+
+    function closeJourneyPlanner(e) {
+      if (!e || e.target.id === 'journey-planner-modal' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('journey-planner-modal')?.classList.remove('active');
+      }
+    }
+
+    function swapJourneyLocations() {
+      playBeep();
+      const origSel = document.getElementById('jp-origin-select');
+      const destSel = document.getElementById('jp-dest-select');
+      if (!origSel || !destSel) return;
+
+      const oldOrig = origSel.value;
+      const oldDest = destSel.value;
+
+      if (oldOrig === 'current') {
+        origSel.value = oldDest;
+        destSel.value = (String(oldDest) === '10') ? '8' : '10';
+      } else {
+        origSel.value = oldDest;
+        destSel.value = oldOrig;
+      }
+
+      handleJourneyInputsChanged();
+      calculateJourneyRoutes();
+    }
+
+    function setJourneyPreference(pref) {
+      playBeep();
+      journeyPlannerState.preference = pref;
+      ['fastest', 'least_walking', 'fewest_transfers'].forEach(p => {
+        const chip = document.getElementById(`jp-pref-${p}`);
+        if (chip) chip.classList.toggle('active', p === pref);
+      });
+      calculateJourneyRoutes();
+    }
+
+    function resolveJourneyPoint(val) {
+      if (val === 'current') {
+        const lat = userLocation ? userLocation.lat : 12.9691;
+        const lng = userLocation ? userLocation.lng : 79.1560;
+        return {
+          id: 'current',
+          name: userLocation ? 'Your Current Location' : 'Campus Center (Walkway Junction)',
+          lat,
+          lng,
+          icon: '📍',
+          isCurrent: true
+        };
+      }
+      const numId = parseInt(val, 10);
+      const dest = campusDestinations.find(d => d.id === numId);
+      if (dest) {
+        return {
+          id: dest.id,
+          name: dest.name,
+          lat: dest.lat,
+          lng: dest.lng,
+          icon: dest.icon || '🏛️',
+          stopId: dest.stopId,
+          stopName: dest.stopName,
+          walkMins: dest.walkMins
+        };
+      }
+      const stop = campusStops.find(s => s.id === numId);
+      if (stop) {
+        return {
+          id: stop.id,
+          name: stop.name,
+          lat: stop.lat,
+          lng: stop.lng,
+          icon: '🚏',
+          stopId: stop.id,
+          stopName: stop.name,
+          walkMins: 0
+        };
+      }
+      return null;
+    }
+
+    function calculateJourneyRoutes() {
+      const origPoint = resolveJourneyPoint(journeyPlannerState.originId);
+      const destPoint = resolveJourneyPoint(journeyPlannerState.destId);
+
+      const emptyState = document.getElementById('jp-empty-state');
+      const resultsCont = document.getElementById('jp-results-container');
+      const detailCont = document.getElementById('jp-detail-container');
+      const resultsList = document.getElementById('jp-results-list');
+      const freshnessBadge = document.getElementById('jp-freshness-badge');
+
+      if (!origPoint || !destPoint) {
+        journeyPlannerState.currentOptions = [];
+        journeyPlannerState.selectedOptionIndex = 0;
+        if (emptyState) {
+          emptyState.style.display = 'block';
+          document.getElementById('jp-empty-title').textContent = 'Location Incomplete';
+          document.getElementById('jp-empty-msg').textContent = 'Please choose both a valid starting point and a destination.';
+        }
+        if (resultsCont) resultsCont.style.display = 'none';
+        if (detailCont) detailCont.style.display = 'none';
+        return;
+      }
+
+      const directDist = getDistanceMeters(origPoint.lat, origPoint.lng, destPoint.lat, destPoint.lng);
+      if (origPoint.id === destPoint.id || directDist < 18) {
+        journeyPlannerState.currentOptions = [];
+        journeyPlannerState.selectedOptionIndex = 0;
+        if (emptyState) {
+          emptyState.style.display = 'block';
+          document.getElementById('jp-empty-icon').textContent = '🎯';
+          document.getElementById('jp-empty-title').textContent = "You're Already There!";
+          document.getElementById('jp-empty-msg').textContent = `Your starting point and destination (${origPoint.name}) are identical (distance: ${Math.round(directDist)}m). No transit needed.`;
+        }
+        if (resultsCont) resultsCont.style.display = 'none';
+        if (detailCont) detailCont.style.display = 'none';
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = 'none';
+      if (detailCont) detailCont.style.display = 'none';
+
+      // ── ROUTING ALGORITHM ──
+      const options = [];
+      const campusCircuity = 1.35;
+      const walkSpeedMpm = 72;
+
+      // 1. Pure Walking Option
+      const walkTotalMeters = Math.round(directDist * campusCircuity);
+      const walkTotalMins = Math.max(1, Math.round(walkTotalMeters / walkSpeedMpm));
+      options.push({
+        id: 'walk_only',
+        type: 'walk',
+        title: 'Direct Campus Walkway',
+        subtitle: `${walkTotalMeters}m pedestrian path via campus gardens`,
+        totalDuration: walkTotalMins,
+        totalWalkMeters: walkTotalMeters,
+        fare: 'FREE',
+        transfersCount: 0,
+        badgeText: 'PEDESTRIAN DIRECT',
+        badgeClass: 'jp-badge-walk',
+        isPureWalk: true,
+        freshnessText: 'Pedestrian Navigation',
+        freshnessClass: 'badge-op',
+        legs: [
+          {
+            type: 'walk',
+            label: `Walk from ${origPoint.name} to ${destPoint.name}`,
+            distMeters: walkTotalMeters,
+            durationMins: walkTotalMins,
+            fromName: origPoint.name,
+            toName: destPoint.name,
+            coords: [[origPoint.lat, origPoint.lng], [destPoint.lat, destPoint.lng]]
+          }
+        ],
+        steps: [
+          { icon: '🟢', nodeClass: 'origin', title: `Start at ${origPoint.name}`, desc: 'Begin journey on campus walkway' },
+          { icon: '🚶', nodeClass: 'walk', title: `Walk along campus pathways`, desc: `Direct pedestrian walk: ~${walkTotalMeters}m (${walkTotalMins} min) at leisurely pace` },
+          { icon: '🔴', nodeClass: 'dest', title: `Arrive at ${destPoint.name}`, desc: `Destination reached in ${walkTotalMins} min total` }
+        ]
+      });
+
+      // 2. Direct Single-Shuttle Options
+      const directCandidates = [];
+      campusRoutes.forEach(route => {
+        let bestPair = null;
+
+        route.stopIds.forEach((bId, bIdx) => {
+          const stopBoard = campusStops.find(s => s.id === bId);
+          if (!stopBoard) return;
+          const walk1Dist = Math.round(getDistanceMeters(origPoint.lat, origPoint.lng, stopBoard.lat, stopBoard.lng) * campusCircuity);
+          if (walk1Dist > 650) return;
+
+          route.stopIds.forEach((dId, dIdx) => {
+            if (bIdx >= dIdx) return;
+            const stopDrop = campusStops.find(s => s.id === dId);
+            if (!stopDrop) return;
+            const walk2Dist = Math.round(getDistanceMeters(stopDrop.lat, stopDrop.lng, destPoint.lat, destPoint.lng) * campusCircuity);
+            if (walk2Dist > 650) return;
+
+            const walk1Mins = Math.max(1, Math.round(walk1Dist / walkSpeedMpm));
+            const walk2Mins = Math.max(1, Math.round(walk2Dist / walkSpeedMpm));
+
+            const sh = activeShuttles[route.id];
+            let waitMins = 4;
+            let isTelemetryLive = false;
+            let telemetryDetail = '';
+
+            if (isSimulationRunning && sh) {
+              const etaObj = calculateETA(sh.lat, sh.lng, stopBoard.lat, stopBoard.lng, sh.speed);
+              waitMins = Math.max(1, Math.min(10, etaObj.etaMinutes));
+              isTelemetryLive = true;
+              telemetryDetail = `Live Bus position (${sh.speed.toFixed(1)} km/h)`;
+            } else {
+              waitMins = route.id === 'vit_general_bus_101' ? 4 : route.id === 'vit_general_bus_102' ? 6 : 8;
+              isTelemetryLive = false;
+              telemetryDetail = `Timetable headway estimate (${route.frequency})`;
+            }
+
+            const stopHops = dIdx - bIdx;
+            const transitMins = Math.max(2, Math.round(stopHops * 2.3));
+            const totalDur = walk1Mins + waitMins + transitMins + walk2Mins;
+            const totalWalk = walk1Dist + walk2Dist;
+
+            if (!bestPair || totalDur < bestPair.totalDur) {
+              bestPair = {
+                route,
+                stopBoard,
+                stopDrop,
+                bIdx,
+                dIdx,
+                stopHops,
+                walk1Dist,
+                walk1Mins,
+                walk2Dist,
+                walk2Mins,
+                waitMins,
+                transitMins,
+                totalDur,
+                totalWalk,
+                isTelemetryLive,
+                telemetryDetail
+              };
+            }
+          });
+        });
+
+        if (bestPair) {
+          const bp = bestPair;
+          const intermediateStops = bp.route.stopIds.slice(bp.bIdx, bp.dIdx + 1).map(id => campusStops.find(s => s.id === id)?.name).filter(Boolean);
+          const transitCoords = bp.route.coordinates.slice(bp.bIdx, bp.dIdx + 1);
+
+          directCandidates.push({
+            id: `direct_${bp.route.id}`,
+            type: 'direct_transit',
+            title: `${bp.route.shortName}`,
+            subtitle: `Board at ${bp.stopBoard.name} → Drop at ${bp.stopDrop.name}`,
+            route: bp.route,
+            totalDuration: bp.totalDur,
+            totalWalkMeters: bp.totalWalk,
+            fare: bp.route.fare,
+            transfersCount: 0,
+            badgeText: 'DIRECT SHUTTLE',
+            badgeClass: 'jp-badge-rec',
+            freshnessText: bp.isTelemetryLive ? '[LIVE FLEET TELEMETRY]' : '[SCHEDULE ESTIMATE]',
+            isLive: bp.isTelemetryLive,
+            legs: [
+              {
+                type: 'walk',
+                label: `Walk to ${bp.stopBoard.name}`,
+                distMeters: bp.walk1Dist,
+                durationMins: bp.walk1Mins,
+                fromName: origPoint.name,
+                toName: bp.stopBoard.name,
+                coords: [[origPoint.lat, origPoint.lng], [bp.stopBoard.lat, bp.stopBoard.lng]]
+              },
+              {
+                type: 'transit',
+                label: `Ride ${bp.route.name}`,
+                route: bp.route,
+                durationMins: bp.transitMins,
+                waitMins: bp.waitMins,
+                stopHops: bp.stopHops,
+                boardStop: bp.stopBoard,
+                dropStop: bp.stopDrop,
+                intermediateStops,
+                coords: transitCoords
+              },
+              {
+                type: 'walk',
+                label: `Walk to ${destPoint.name}`,
+                distMeters: bp.walk2Dist,
+                durationMins: bp.walk2Mins,
+                fromName: bp.stopDrop.name,
+                toName: destPoint.name,
+                coords: [[bp.stopDrop.lat, bp.stopDrop.lng], [destPoint.lat, destPoint.lng]]
+              }
+            ],
+            steps: [
+              { icon: '🟢', nodeClass: 'origin', title: `Start at ${origPoint.name}`, desc: `Head out towards ${bp.stopBoard.name}` },
+              { icon: '🚶', nodeClass: 'walk', title: `Walk to ${bp.stopBoard.name}`, desc: `Distance: ~${bp.walk1Dist}m (~${bp.walk1Mins} min walk)` },
+              { icon: '🚏', nodeClass: 'bus', title: `Board ${bp.route.name}`, desc: `Wait: ~${bp.waitMins} min • Fare: ${bp.route.fare} • ${bp.freshnessText}` },
+              { icon: '🚌', nodeClass: 'bus', title: `Ride ${bp.route.shortName} (${bp.stopHops} stops)`, desc: `Via ${intermediateStops.slice(1, -1).join(' → ') || 'Express Link'} (~${bp.transitMins} min)` },
+              { icon: '🚏', nodeClass: 'bus', title: `Arrive at ${bp.stopDrop.name}`, desc: 'Disembark from shuttle' },
+              { icon: '🚶', nodeClass: 'walk', title: `Walk to ${destPoint.name}`, desc: `Final leg: ~${bp.walk2Dist}m (~${bp.walk2Mins} min walk)` },
+              { icon: '🔴', nodeClass: 'dest', title: `Arrive at ${destPoint.name}`, desc: `Total estimated time: ${bp.totalDur} min` }
+            ]
+          });
+        }
+      });
+
+      // 3. One-Transfer Journey Options
+      const transferCandidates = [];
+      for (let i = 0; i < campusRoutes.length; i++) {
+        for (let j = 0; j < campusRoutes.length; j++) {
+          if (i === j) continue;
+          const r1 = campusRoutes[i];
+          const r2 = campusRoutes[j];
+
+          const sharedStopIds = r1.stopIds.filter(id => r2.stopIds.includes(id));
+          if (sharedStopIds.length === 0) continue;
+
+          sharedStopIds.forEach(transferStopId => {
+            const stopTransfer = campusStops.find(s => s.id === transferStopId);
+            if (!stopTransfer) return;
+
+            const t1Idx = r1.stopIds.indexOf(transferStopId);
+            const t2Idx = r2.stopIds.indexOf(transferStopId);
+
+            r1.stopIds.forEach((bId, bIdx) => {
+              if (bIdx >= t1Idx) return;
+              const stopBoard = campusStops.find(s => s.id === bId);
+              if (!stopBoard) return;
+              const walk1Dist = Math.round(getDistanceMeters(origPoint.lat, origPoint.lng, stopBoard.lat, stopBoard.lng) * campusCircuity);
+              if (walk1Dist > 550) return;
+
+              r2.stopIds.forEach((dId, dIdx) => {
+                if (dIdx <= t2Idx) return;
+                const stopDrop = campusStops.find(s => s.id === dId);
+                if (!stopDrop) return;
+                const walk2Dist = Math.round(getDistanceMeters(stopDrop.lat, stopDrop.lng, destPoint.lat, destPoint.lng) * campusCircuity);
+                if (walk2Dist > 550) return;
+
+                const walk1Mins = Math.max(1, Math.round(walk1Dist / walkSpeedMpm));
+                const walk2Mins = Math.max(1, Math.round(walk2Dist / walkSpeedMpm));
+                const wait1Mins = 3;
+                const transit1Mins = Math.max(2, Math.round((t1Idx - bIdx) * 2.2));
+                const transferWaitMins = 3;
+                const transit2Mins = Math.max(2, Math.round((dIdx - t2Idx) * 2.2));
+                const totalDur = walk1Mins + wait1Mins + transit1Mins + transferWaitMins + transit2Mins + walk2Mins;
+                const totalWalk = walk1Dist + walk2Dist;
+
+                transferCandidates.push({
+                  id: `transfer_${r1.id}_${r2.id}`,
+                  type: 'transfer_transit',
+                  title: `${r1.shortName} ➔ ${r2.shortName}`,
+                  subtitle: `Transfer at ${stopTransfer.name}`,
+                  route1: r1,
+                  route2: r2,
+                  totalDuration: totalDur,
+                  totalWalkMeters: totalWalk,
+                  fare: r1.fare === 'FREE' && r2.fare === 'FREE' ? 'FREE' : '₹20 + ₹20',
+                  transfersCount: 1,
+                  badgeText: '1 TRANSFER',
+                  badgeClass: 'jp-badge-transfer',
+                  freshnessText: '[SCHEDULE ESTIMATE]',
+                  isLive: false,
+                  legs: [
+                    {
+                      type: 'walk',
+                      label: `Walk to ${stopBoard.name}`,
+                      distMeters: walk1Dist,
+                      durationMins: walk1Mins,
+                      fromName: origPoint.name,
+                      toName: stopBoard.name,
+                      coords: [[origPoint.lat, origPoint.lng], [stopBoard.lat, stopBoard.lng]]
+                    },
+                    {
+                      type: 'transit',
+                      label: `Ride ${r1.name}`,
+                      route: r1,
+                      durationMins: transit1Mins,
+                      boardStop: stopBoard,
+                      dropStop: stopTransfer,
+                      coords: r1.coordinates.slice(bIdx, t1Idx + 1)
+                    },
+                    {
+                      type: 'transfer',
+                      label: `Transfer at ${stopTransfer.name}`,
+                      durationMins: transferWaitMins,
+                      stop: stopTransfer
+                    },
+                    {
+                      type: 'transit',
+                      label: `Ride ${r2.name}`,
+                      route: r2,
+                      durationMins: transit2Mins,
+                      boardStop: stopTransfer,
+                      dropStop: stopDrop,
+                      coords: r2.coordinates.slice(t2Idx, dIdx + 1)
+                    },
+                    {
+                      type: 'walk',
+                      label: `Walk to ${destPoint.name}`,
+                      distMeters: walk2Dist,
+                      durationMins: walk2Mins,
+                      fromName: stopDrop.name,
+                      toName: destPoint.name,
+                      coords: [[stopDrop.lat, stopDrop.lng], [destPoint.lat, destPoint.lng]]
+                    }
+                  ],
+                  steps: [
+                    { icon: '🟢', nodeClass: 'origin', title: `Start at ${origPoint.name}`, desc: `Walk to boarding stop ${stopBoard.name}` },
+                    { icon: '🚶', nodeClass: 'walk', title: `Walk to ${stopBoard.name}`, desc: `~${walk1Dist}m (~${walk1Mins} min walk)` },
+                    { icon: '🚏', nodeClass: 'bus', title: `Board ${r1.name}`, desc: `Wait: ~${wait1Mins} min • Fare: ${r1.fare}` },
+                    { icon: '🚌', nodeClass: 'bus', title: `Ride ${r1.shortName} to ${stopTransfer.name}`, desc: `~${transit1Mins} min ride` },
+                    { icon: '🔄', nodeClass: 'bus', title: `Transfer at ${stopTransfer.name}`, desc: `Switch from ${r1.shortName} to ${r2.shortName} (~${transferWaitMins} min transfer buffer)` },
+                    { icon: '🚌', nodeClass: 'bus', title: `Ride ${r2.shortName} to ${stopDrop.name}`, desc: `~${transit2Mins} min ride` },
+                    { icon: '🚏', nodeClass: 'bus', title: `Arrive at ${stopDrop.name}`, desc: 'Disembark from second shuttle' },
+                    { icon: '🚶', nodeClass: 'walk', title: `Walk to ${destPoint.name}`, desc: `Final walk: ~${walk2Dist}m (~${walk2Mins} min)` },
+                    { icon: '🔴', nodeClass: 'dest', title: `Arrive at ${destPoint.name}`, desc: `Total duration: ${totalDur} min` }
+                  ]
+                });
+              });
+            });
+          });
+        }
+      }
+
+      directCandidates.forEach(dc => options.push(dc));
+      transferCandidates.sort((a, b) => a.totalDuration - b.totalDuration);
+      transferCandidates.slice(0, 2).forEach(tc => options.push(tc));
+
+      // Sorting
+      const pref = journeyPlannerState.preference;
+      if (pref === 'fastest') {
+        options.sort((a, b) => a.totalDuration - b.totalDuration || a.totalWalkMeters - b.totalWalkMeters);
+      } else if (pref === 'least_walking') {
+        options.sort((a, b) => a.totalWalkMeters - b.totalWalkMeters || a.totalDuration - b.totalDuration);
+      } else if (pref === 'fewest_transfers') {
+        options.sort((a, b) => a.transfersCount - b.transfersCount || a.totalDuration - b.totalDuration);
+      }
+
+      options.forEach((opt, idx) => {
+        opt.isRecommended = idx === 0;
+      });
+
+      journeyPlannerState.currentOptions = options;
+      journeyPlannerState.selectedOptionIndex = 0;
+
+      if (freshnessBadge) {
+        if (isSimulationRunning) {
+          freshnessBadge.textContent = '● LIVE FLEET TELEMETRY';
+          freshnessBadge.style.color = 'var(--emerald-light)';
+          freshnessBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+          freshnessBadge.style.borderColor = 'rgba(16, 185, 129, 0.35)';
+        } else {
+          freshnessBadge.textContent = '⏱️ SCHEDULE ESTIMATE';
+          freshnessBadge.style.color = '#fbbf24';
+          freshnessBadge.style.background = 'rgba(245, 158, 11, 0.15)';
+          freshnessBadge.style.borderColor = 'rgba(245, 158, 11, 0.35)';
+        }
+      }
+
+      if (resultsList) {
+        resultsList.innerHTML = options.map((opt, idx) => `
+          <div class="jp-result-card ${opt.isRecommended ? 'recommended' : ''}" onclick="selectJourneyOption(${idx})" role="button" tabindex="0">
+            <div class="jp-res-top">
+              <div class="jp-res-duration">
+                <span>${opt.totalDuration}</span><small>min</small>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="jp-result-badge ${opt.badgeClass}">${opt.badgeText}</span>
+                ${opt.isRecommended ? '<span class="jp-result-badge jp-badge-rec">⭐ BEST MATCH</span>' : ''}
+              </div>
+            </div>
+            <div style="font-size:0.86rem;font-weight:700;color:var(--text);margin-bottom:3px;">
+              ${escapeHtml(opt.title)}
+            </div>
+            <div class="jp-res-summary">
+              ${escapeHtml(opt.subtitle)}
+            </div>
+            <div class="jp-res-legs">
+              <span class="jp-leg-pill">🚶 ${opt.totalWalkMeters}m walk</span>
+              <span class="jp-leg-pill">💳 ${opt.fare}</span>
+              <span class="jp-leg-pill" style="font-size:0.65rem;color:var(--text-secondary);">${opt.freshnessText}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      if (resultsCont) resultsCont.style.display = 'block';
+    }
+
+    function selectJourneyOption(index) {
+      playBeep();
+      journeyPlannerState.selectedOptionIndex = index;
+      const opt = journeyPlannerState.currentOptions[index];
+      if (!opt) return;
+
+      const resultsCont = document.getElementById('jp-results-container');
+      const detailCont = document.getElementById('jp-detail-container');
+      const detailTitle = document.getElementById('jp-detail-title');
+      const summaryCard = document.getElementById('jp-detail-summary-card');
+      const timelineSteps = document.getElementById('jp-timeline-steps');
+
+      if (resultsCont) resultsCont.style.display = 'none';
+      if (detailCont) detailCont.style.display = 'block';
+      if (detailTitle) detailTitle.textContent = opt.title;
+
+      if (summaryCard) {
+        summaryCard.innerHTML = `
+          <div style="background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <span style="font-size:1.3rem;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);">${opt.totalDuration} min</span>
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:4px;">total journey time</span>
+              </div>
+              <span class="jp-result-badge ${opt.badgeClass}">${opt.badgeText}</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:8px;font-size:0.72rem;color:var(--text-secondary);">
+              <span>🚶 Total Walk: <strong>${opt.totalWalkMeters}m</strong></span>
+              <span>•</span>
+              <span>💳 Fare: <strong>${opt.fare}</strong></span>
+              <span>•</span>
+              <span>🔄 Transfers: <strong>${opt.transfersCount}</strong></span>
+            </div>
+          </div>
+        `;
+      }
+
+      if (timelineSteps) {
+        timelineSteps.innerHTML = opt.steps.map((step, sIdx) => `
+          <div class="jp-step ${step.nodeClass}">
+            ${sIdx < opt.steps.length - 1 ? '<div class="jp-step-line"></div>' : ''}
+            <div class="jp-step-node ${step.nodeClass}">${step.icon}</div>
+            <div class="jp-step-content">
+              <div class="jp-step-title">${escapeHtml(step.title)}</div>
+              <div class="jp-step-desc">${escapeHtml(step.desc)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function backToJourneyResults() {
+      playBeep();
+      const resultsCont = document.getElementById('jp-results-container');
+      const detailCont = document.getElementById('jp-detail-container');
+      if (detailCont) detailCont.style.display = 'none';
+      if (resultsCont) resultsCont.style.display = 'block';
+    }
+
+    function inspectActiveJourneyOnMap() {
+      inspectJourneyOnMap(journeyPlannerState.selectedOptionIndex);
+    }
+
+    function inspectJourneyOnMap(index) {
+      playChime();
+      const opt = journeyPlannerState.currentOptions[index];
+      if (!opt) return;
+
+      journeyPlannerState.selectedOptionIndex = index;
+      journeyPlannerState.activeJourney = opt;
+
+      document.getElementById('journey-planner-modal')?.classList.remove('active');
+      switchTab('map');
+
+      if (!journeyMapLayerGroup) {
+        journeyMapLayerGroup = L.layerGroup().addTo(map);
+      } else {
+        journeyMapLayerGroup.clearLayers();
+      }
+
+      const allBounds = [];
+
+      opt.legs.forEach(leg => {
+        if (leg.type === 'walk') {
+          const poly = L.polyline(leg.coords, {
+            color: '#10b981',
+            weight: 5,
+            opacity: 0.85,
+            dashArray: '5, 8'
+          });
+          journeyMapLayerGroup.addLayer(poly);
+          leg.coords.forEach(c => allBounds.push(c));
+        } else if (leg.type === 'transit') {
+          const poly = L.polyline(leg.coords, {
+            color: leg.route?.color || '#2563eb',
+            weight: 6,
+            opacity: 0.95
+          });
+          journeyMapLayerGroup.addLayer(poly);
+          leg.coords.forEach(c => allBounds.push(c));
+        }
+      });
+
+      const origPoint = resolveJourneyPoint(journeyPlannerState.originId);
+      const destPoint = resolveJourneyPoint(journeyPlannerState.destId);
+
+      if (origPoint) {
+        const origIcon = L.divIcon({
+          className: '',
+          html: `<div style="background:#10b981;color:white;font-weight:800;font-size:10px;padding:4px 8px;border-radius:12px;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:3px;">
+            <span>🟢</span><span>${origPoint.name.split('(')[0]}</span>
+          </div>`,
+          iconSize: [0, 0]
+        });
+        journeyMapLayerGroup.addLayer(L.marker([origPoint.lat, origPoint.lng], { icon: origIcon }));
+        allBounds.push([origPoint.lat, origPoint.lng]);
+      }
+
+      if (destPoint) {
+        const destIcon = L.divIcon({
+          className: '',
+          html: `<div style="background:#ef4444;color:white;font-weight:800;font-size:10px;padding:4px 8px;border-radius:12px;border:2px solid white;box-shadow:0 3px 10px rgba(0,0,0,0.4);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:3px;">
+            <span>🏁</span><span>${destPoint.name.split('(')[0]}</span>
+          </div>`,
+          iconSize: [0, 0]
+        });
+        journeyMapLayerGroup.addLayer(L.marker([destPoint.lat, destPoint.lng], { icon: destIcon }));
+        allBounds.push([destPoint.lat, destPoint.lng]);
+      }
+
+      if (allBounds.length > 0) {
+        map.fitBounds(allBounds, { padding: [55, 55], maxZoom: 18 });
+      }
+
+      const hud = document.getElementById('journey-map-hud');
+      const hudTitle = document.getElementById('hud-journey-title');
+      const hudSub = document.getElementById('hud-journey-subtitle');
+      const hudFare = document.getElementById('hud-journey-fare');
+      const hudPills = document.getElementById('hud-steps-pills');
+
+      if (hud) {
+        hud.classList.add('active');
+        if (hudTitle) hudTitle.textContent = `${opt.title}`;
+        if (hudSub) hudSub.textContent = `Total: ~${opt.totalDuration} min • ${opt.totalWalkMeters}m walk • ${opt.freshnessText}`;
+        if (hudFare) hudFare.textContent = opt.fare;
+
+        if (hudPills) {
+          hudPills.innerHTML = opt.legs.map((leg, lIdx) => `
+            <div style="background:var(--surface-hover);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:0.68rem;font-weight:600;white-space:nowrap;display:flex;align-items:center;gap:4px;cursor:pointer;" onclick="panMapToLeg(${lIdx})">
+              <span>${leg.type === 'walk' ? '🚶' : '🚌'}</span>
+              <span>${escapeHtml(leg.label)}</span>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    function panMapToLeg(legIdx) {
+      const opt = journeyPlannerState.activeJourney;
+      if (!opt || !opt.legs[legIdx]) return;
+      const leg = opt.legs[legIdx];
+      if (leg.coords && leg.coords.length > 0) {
+        map.fitBounds(leg.coords, { padding: [40, 40], maxZoom: 18 });
+      }
+    }
+
+    function closeJourneyMapHUD() {
+      playBeep();
+      if (journeyMapLayerGroup) journeyMapLayerGroup.clearLayers();
+      document.getElementById('journey-map-hud')?.classList.remove('active');
+      journeyPlannerState.activeJourney = null;
+    }
+
+    function openJourneyBreakdownModal() {
+      playBeep();
+      if (!journeyPlannerState.activeJourney && journeyPlannerState.currentOptions.length > 0) {
+        journeyPlannerState.activeJourney = journeyPlannerState.currentOptions[journeyPlannerState.selectedOptionIndex];
+      }
+      const modal = document.getElementById('journey-planner-modal');
+      if (modal) {
+        modal.classList.add('active');
+        selectJourneyOption(journeyPlannerState.selectedOptionIndex);
+      }
+    }
+
+    // ── SAVED JOURNEYS (FAVOURITE TRIPS) ──
+    function saveCurrentJourney() {
+      playChime();
+      const origPoint = resolveJourneyPoint(journeyPlannerState.originId);
+      const destPoint = resolveJourneyPoint(journeyPlannerState.destId);
+      if (!origPoint || !destPoint) return;
+
+      const trip = {
+        origId: journeyPlannerState.originId,
+        origName: origPoint.name.split('(')[0].trim(),
+        destId: journeyPlannerState.destId,
+        destName: destPoint.name.split('(')[0].trim(),
+        pref: journeyPlannerState.preference
+      };
+
+      savedJourneysList = savedJourneysList.filter(t => !(t.origId === trip.origId && t.destId === trip.destId));
+      savedJourneysList.unshift(trip);
+      if (savedJourneysList.length > 6) savedJourneysList = savedJourneysList.slice(0, 6);
+
+      localStorage.setItem('vit_shuttle_saved_journeys', JSON.stringify(savedJourneysList));
+      renderSavedJourneys();
+
+      const btn = document.getElementById('jp-save-trip-btn');
+      if (btn) {
+        btn.textContent = '⭐ Saved';
+        setTimeout(() => { if (btn) btn.textContent = '⭐'; }, 1500);
+      }
+    }
+
+    function renderSavedJourneys() {
+      const bar = document.getElementById('jp-saved-trips-bar');
+      const list = document.getElementById('jp-saved-trips-list');
+      if (!bar || !list) return;
+
+      if (!savedJourneysList || savedJourneysList.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'block';
+      list.innerHTML = savedJourneysList.map((t, idx) => `
+        <div style="background:var(--surface-hover);border:1px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;font-size:0.68rem;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:4px;cursor:pointer;" onclick="loadSavedJourney(${idx})">
+          <span>⭐</span>
+          <span>${escapeHtml(t.origName)} → ${escapeHtml(t.destName)}</span>
+        </div>
+      `).join('');
+    }
+
+    function loadSavedJourney(idx) {
+      playBeep();
+      const t = savedJourneysList[idx];
+      if (!t) return;
+      openJourneyPlanner(t.destId, t.origId);
+      if (t.pref) setJourneyPreference(t.pref);
+    }
+
+    function clearAllSavedJourneys() {
+      playBeep();
+      savedJourneysList = [];
+      localStorage.removeItem('vit_shuttle_saved_journeys');
+      renderSavedJourneys();
+    }
+
+    function planJourneyFromCurrentStop() {
+      if (!currentDetailStop) return;
+      closeStopDetailDrawer();
+      openJourneyPlanner(null, currentDetailStop.id);
+    }
+
     updateMarker(activeShuttles['vit_general_bus_101']);
     updateMarker(activeShuttles['vit_general_bus_102']);
     updateMarker(activeShuttles['vit_faculty_shuttle_201']);
     updateBottomTray(activeShuttles['vit_general_bus_101']);
     startSimulator();
     initDashboard();
+    populateJourneySelects();
     switchTab('home');
     initAuth();
   </script>
