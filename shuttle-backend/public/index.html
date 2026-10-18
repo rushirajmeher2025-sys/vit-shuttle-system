@@ -2915,30 +2915,77 @@
        PHASE 4 — SMART JOURNEY PLANNER STYLES
     ══════════════════════════════════════════════════════ */
     .jp-banner-card {
-      background: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(139,92,246,0.08) 100%);
-      border: 1px solid rgba(37,99,235,0.3);
+      background: linear-gradient(135deg, rgba(37,99,235,0.14) 0%, rgba(139,92,246,0.1) 100%);
+      border: 1.5px solid rgba(37,99,235,0.3);
       border-radius: var(--radius-lg);
       padding: 14px 16px;
       margin-bottom: 20px;
       cursor: pointer;
       transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
     .jp-banner-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(37,99,235,0.22);
+      box-shadow: 0 6px 20px rgba(37,99,235,0.25);
       border-color: var(--primary);
+    }
+    .jp-banner-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
     }
     .jp-banner-icon {
       width: 42px;
       height: 42px;
       border-radius: var(--radius-md);
       background: var(--primary-subtle);
-      border: 1px solid rgba(37,99,235,0.3);
+      border: 1px solid rgba(37,99,235,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
       flex-shrink: 0;
+    }
+    .jp-banner-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+    .jp-banner-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      line-height: 1.25;
+    }
+    .jp-banner-btn {
+      width: 100%;
+      justify-content: center;
+      padding: 10px 14px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: var(--radius-md);
+    }
+
+    @media (min-width: 600px) {
+      .jp-banner-card {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .jp-banner-header {
+        flex: 1;
+        align-items: center;
+      }
+      .jp-banner-btn {
+        width: auto;
+        flex-shrink: 0;
+      }
     }
 
     /* Full Planner Modal Card */
@@ -3274,6 +3321,241 @@
     }
     .journey-map-hud.active {
       display: block;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       📱 COMPREHENSIVE MOBILE & MULTI-RATIO RESPONSIVE SYSTEM
+    ══════════════════════════════════════════════════════ */
+    /* Map Marker Base Styling */
+    .campus-stop-marker {
+      font-size: 9.5px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 12px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+      white-space: nowrap;
+      transform: translate(-50%, -24px);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      backdrop-filter: blur(8px);
+    }
+    .campus-poi-marker {
+      background: var(--surface-card);
+      color: var(--text);
+      font-size: 9px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      white-space: nowrap;
+      transform: translate(-50%, -20px);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: transform 0.15s ease;
+    }
+
+    /* Active HUD State: Cleanly hide standard bottom-tray and stop banner */
+    body.has-active-hud .bottom-tray {
+      display: none !important;
+    }
+    body.has-active-hud #stop-banner {
+      display: none !important;
+    }
+
+    @media (max-width: 640px) {
+      /* 1. Dashboard Greeting & Header: Prevent 3-line squishing */
+      .dash-brand-bar {
+        padding: 4px 0 10px;
+        gap: 6px;
+      }
+      .dash-brand-title {
+        font-size: 0.96rem;
+      }
+      .dash-brand-logo {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+      }
+      .dash-telemetry-badge {
+        padding: 3px 8px;
+        font-size: 0.62rem;
+      }
+
+      .dash-header {
+        padding: 10px 12px;
+        margin-bottom: 14px;
+        gap: 8px;
+      }
+      .dash-avatar {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+      }
+      .dash-greeting {
+        font-size: 0.96rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100vw - 195px);
+      }
+      .dash-sub {
+        font-size: 0.65rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: calc(100vw - 195px);
+      }
+      .dash-actions {
+        gap: 4px;
+      }
+      .dash-actions .btn-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+      }
+      .dash-actions .dash-profile-btn {
+        display: none !important; /* Hide redundant profile icon on phone */
+      }
+
+      /* 2. Map View Top Bar: Prevent multi-line explosions */
+      .top-bar {
+        top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        left: 8px !important;
+        right: 8px !important;
+        gap: 6px !important;
+      }
+      .nav-pill {
+        padding: 5px 10px !important;
+        gap: 6px !important;
+      }
+      .nav-pill .role-tabs {
+        display: none !important; /* Hide role tabs on phone top bar to prevent 2-line clump */
+      }
+      .session-chip {
+        padding: 4px 8px !important;
+        font-size: 0.68rem !important;
+        max-width: 125px !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+      }
+      .brand span {
+        font-size: 0.88rem !important;
+      }
+      .brand-icon {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 13px !important;
+      }
+
+      .map-search-row {
+        gap: 6px !important;
+      }
+      .map-search-input {
+        padding: 7px 10px 7px 32px !important;
+        font-size: 0.78rem !important;
+      }
+      .map-view-toggle-btn {
+        padding: 6px 10px !important;
+        font-size: 0.72rem !important;
+      }
+
+      .stop-banner {
+        padding: 6px 10px !important;
+        font-size: 0.72rem !important;
+      }
+      .stop-banner .btn {
+        padding: 3px 8px !important;
+        font-size: 0.7rem !important;
+      }
+
+      /* 3. Map Floating Controls: Eliminate overlap with search & filter bars */
+      .map-controls {
+        top: auto !important;
+        bottom: 235px !important;
+        right: 10px !important;
+        gap: 5px !important;
+        z-index: 1000 !important;
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-xl) !important;
+        padding: 4px !important;
+        box-shadow: var(--shadow-md) !important;
+        backdrop-filter: blur(16px) !important;
+      }
+      .map-controls .btn-icon {
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 14px !important;
+        border-radius: 50% !important;
+      }
+      body.has-active-hud .map-controls {
+        bottom: 180px !important;
+      }
+
+      /* 4. Map Markers: Clean circular pins on phone instead of 30 overlapping text banners */
+      .marker-label-text {
+        display: none !important;
+      }
+      .campus-stop-marker {
+        padding: 3px 6px !important;
+        font-size: 11px !important;
+        transform: translate(-50%, -15px) !important;
+        border-radius: 50% !important;
+        width: 26px !important;
+        height: 26px !important;
+        justify-content: center !important;
+      }
+      .campus-poi-marker {
+        padding: 2px 4px !important;
+        font-size: 11px !important;
+        transform: translate(-50%, -14px) !important;
+        border-radius: 50% !important;
+        width: 24px !important;
+        height: 24px !important;
+        justify-content: center !important;
+      }
+
+      /* 5. Active Journey Map HUD on phone */
+      .journey-map-hud {
+        bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+        left: 8px !important;
+        right: 8px !important;
+        padding: 11px 13px !important;
+      }
+
+      /* 6. Bottom Tray on phone */
+      .bottom-tray {
+        bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+        left: 8px !important;
+        right: 8px !important;
+        padding: 10px 12px !important;
+      }
+
+      /* 7. Journey Planner Modal on phone */
+      .jp-card {
+        padding: 16px 14px !important;
+        width: 95% !important;
+        max-height: 86vh !important;
+        border-radius: var(--radius-lg) !important;
+        gap: 12px !important;
+      }
+      .jp-title {
+        font-size: 1.05rem !important;
+      }
+      .jp-select {
+        font-size: 0.78rem !important;
+        padding: 8px 10px !important;
+      }
     }
 
     /* ══════════════════════════════════════════════════════
@@ -3954,7 +4236,7 @@
       <div class="dash-header">
         <div class="dash-profile-wrap" onclick="switchTab('profile')" role="button" tabindex="0" title="View Student Profile & Pass">
           <div class="dash-avatar" id="dash-avatar-letter">R</div>
-          <div>
+          <div style="min-width:0;">
             <div class="dash-greeting" id="dash-greeting-text">Good evening, Student</div>
             <div class="dash-sub">
               <span style="color:var(--emerald);">●</span>
@@ -3973,7 +4255,7 @@
             <span id="dash-theme-icon">☀️</span>
           </button>
           <!-- Profile Quick Trigger -->
-          <button class="btn btn-icon" type="button" onclick="openProfileModal()" aria-label="Account Settings" title="Student Profile">
+          <button class="btn btn-icon dash-profile-btn" id="dash-profile-trigger" type="button" onclick="openProfileModal()" aria-label="Account Settings" title="Student Profile">
             <span>👤</span>
           </button>
         </div>
@@ -4004,24 +4286,22 @@
 
       <!-- 2.5 Smart Journey Planner Hero Banner -->
       <div class="jp-banner-card" onclick="openJourneyPlanner()" role="button" tabindex="0">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="jp-banner-icon">🧭</div>
-            <div>
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:1.02rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px;">
-                <span>Smart Campus Journey Planner</span>
-                <span class="badge" style="background:var(--primary);color:white;font-size:0.6rem;padding:2px 6px;">PHASE 4</span>
-              </div>
-              <div class="jp-sub">
-                Find the fastest shuttle + walking route with live arrival times and transfer options.
-              </div>
+        <div class="jp-banner-header">
+          <div class="jp-banner-icon">🧭</div>
+          <div class="jp-banner-title-wrap">
+            <div class="jp-banner-title">
+              <span>Smart Campus Journey Planner</span>
+              <span class="badge" style="background:var(--primary);color:white;font-size:0.6rem;padding:2px 6px;">PHASE 4</span>
+            </div>
+            <div class="jp-sub">
+              Find the fastest shuttle + walking route with live arrival times and transfer options.
             </div>
           </div>
-          <button class="btn btn-primary jp-banner-btn" type="button" onclick="event.stopPropagation(); openJourneyPlanner()" style="flex-shrink:0;">
-            <span>Plan Route</span>
-            <span>→</span>
-          </button>
         </div>
+        <button class="btn btn-primary jp-banner-btn" type="button" onclick="event.stopPropagation(); openJourneyPlanner()">
+          <span>Plan Route</span>
+          <span>→</span>
+        </button>
       </div>
 
       <!-- 3. Quick Destinations -->
@@ -4881,6 +5161,7 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
+        closeJourneyMapHUD();
         toggleMapListMode(false);
         closeStopDetailDrawer();
         initDashboard();
@@ -5032,9 +5313,9 @@
 
         const stopIcon = L.divIcon({
           className: '',
-          html: `<div class="campus-stop-marker" style="background:#0f172a;color:#f8fafc;font-size:9.5px;font-family:'Inter',sans-serif;font-weight:700;padding:3px 9px;border-radius:12px;border:1.5px solid ${dotColor};box-shadow:0 3px 10px rgba(0,0,0,0.4);white-space:nowrap;transform:translate(-50%,-24px);display:flex;align-items:center;gap:4px;cursor:pointer;transition:transform 0.15s ease;">
-            <span>${badgeIcon}</span><span>${stop.name}</span>
-            <div style="width:6px;height:6px;background:${dotColor};border:1.5px solid white;border-radius:50%;margin-left:2px;"></div>
+          html: `<div class="campus-stop-marker" style="background:#0f172a;color:#f8fafc;border:1.5px solid ${dotColor};">
+            <span>${badgeIcon}</span><span class="marker-label-text">${escapeHtml(stop.name)}</span>
+            <div style="width:6px;height:6px;background:${dotColor};border:1.5px solid white;border-radius:50%;margin-left:2px;flex-shrink:0;"></div>
           </div>`,
           iconSize: [0, 0]
         });
@@ -5050,8 +5331,8 @@
         if (!b.lat || !b.lng) return;
         const bIcon = L.divIcon({
           className: '',
-          html: `<div style="background:var(--surface-card);color:var(--text);font-size:9px;font-family:'Inter',sans-serif;font-weight:600;padding:2px 7px;border-radius:6px;border:1px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.25);white-space:nowrap;transform:translate(-50%,-20px);display:flex;align-items:center;gap:3px;cursor:pointer;backdrop-filter:blur(8px);">
-            <span>${b.icon}</span><span style="max-width:110px;overflow:hidden;text-overflow:ellipsis;">${b.name.split('(')[0]}</span>
+          html: `<div class="campus-poi-marker">
+            <span>${b.icon}</span><span class="marker-label-text">${escapeHtml(b.name.split('(')[0].trim())}</span>
           </div>`,
           iconSize: [0, 0]
         });
@@ -7105,6 +7386,8 @@
       const hudFare = document.getElementById('hud-journey-fare');
       const hudPills = document.getElementById('hud-steps-pills');
 
+      document.body.classList.add('has-active-hud');
+
       if (hud) {
         hud.classList.add('active');
         if (hudTitle) hudTitle.textContent = `${opt.title}`;
@@ -7133,6 +7416,7 @@
 
     function closeJourneyMapHUD() {
       playBeep();
+      document.body.classList.remove('has-active-hud');
       if (journeyMapLayerGroup) journeyMapLayerGroup.clearLayers();
       document.getElementById('journey-map-hud')?.classList.remove('active');
       journeyPlannerState.activeJourney = null;
