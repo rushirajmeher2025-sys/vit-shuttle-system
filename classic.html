@@ -4558,41 +4558,52 @@
     }
     initTheme();
 
-    // ── 🔊 WEB AUDIO SYNTHESIZER (SOUND EFFECTS) ──
-    let audioCtx = null;
-    function getAudioCtx() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      return audioCtx;
+    // ── 📳 PREMIUM HAPTIC VIBRATION FEEDBACK ENGINE ──
+    // Replaces speaker sounds with tactile physical device vibrations
+    function triggerHaptic(type = 'light') {
+      if (!('vibrate' in navigator)) return;
+      try {
+        switch (type) {
+          case 'selection':
+          case 'tick':
+            navigator.vibrate(8); // Ultra-light subtle tick
+            break;
+          case 'light':
+          case 'tap':
+            navigator.vibrate(14); // Crisp tactile tap for buttons/tabs
+            break;
+          case 'medium':
+          case 'action':
+            navigator.vibrate(24); // Solid confirmation pulse
+            break;
+          case 'success':
+          case 'chime':
+            navigator.vibrate([18, 45, 24]); // Multi-pulse premium success pattern
+            break;
+          case 'heavy':
+          case 'alert':
+            navigator.vibrate(40); // Prominent pulse
+            break;
+          default:
+            navigator.vibrate(14);
+        }
+      } catch (e) {}
     }
 
-    function playBeep(freq = 580, type = 'sine', duration = 0.08) {
-      try {
-        const ctx = getAudioCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-      } catch(e) {}
+    // Transparent drop-in aliases so all interactions trigger haptic feedback
+    function playBeep() {
+      triggerHaptic('light');
     }
 
     function playChime() {
-      playBeep(523.25, 'triangle', 0.1);
-      setTimeout(() => playBeep(659.25, 'triangle', 0.1), 80);
-      setTimeout(() => playBeep(783.99, 'sine', 0.18), 160);
+      triggerHaptic('success');
     }
 
-    // Global tactile click sound on all interactive buttons & controls
+    // Global tactile haptic feedback on all interactive touch elements
     document.addEventListener('click', (e) => {
-      const target = e.target.closest('button, .btn, .role-card, .role-tab, .shuttle-tab, .map-btn, .stop-box, .g-account, .card-google-btn, .btn-icon, .auth-tab, [role="button"], .theme-toggle-btn');
+      const target = e.target.closest('button, .btn, .role-card, .role-tab, .shuttle-tab, .map-btn, .stop-box, .g-account, .card-google-btn, .btn-icon, .auth-tab, [role="button"], .theme-toggle-btn, .filter-pill, .fav-chip, .shortcut-card, .bnav-item');
       if (target) {
-        playBeep();
+        triggerHaptic('light');
       }
     }, true);
 
