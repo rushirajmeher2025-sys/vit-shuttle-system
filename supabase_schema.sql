@@ -75,65 +75,69 @@ CREATE POLICY "Allow all access for crowding_reports"
 DELETE FROM public.stops;
 DELETE FROM public.routes;
 
--- Insert standard campus stops
+-- Insert standard campus stops with verified satellite coordinates
 INSERT INTO public.stops (name, lat, lng) VALUES
-    -- Men's Hostels Shuttle Stops
-    ('Vajpayee / Q & R-Block Cluster', 12.9723, 79.1627),
-    ('L, M, N, P Block Cluster', 12.9712, 79.1612),
-    ('MH Food Court & All Maart Area', 12.9701, 79.1601),
-    ('GD Naidu Block / A-G Blocks', 12.9692, 79.1588),
-    ('TT / Central Library Junction', 12.9691, 79.1560),
-    
-    -- Women's Hostel Shuttle Stops
-    ('Main Ladies'' Hostel (LH) Gate', 12.9675, 79.1595),
-    ('LH G Block', 12.9668, 79.1602),
-    ('Periyar EVR Central Library', 12.9688, 79.1561),
-    ('SMV / MB Block Portico', 12.9698, 79.1552),
-    
-    -- Faculty Shuttle Stops & Shared Academic Stops
-    ('Main Gate 1 Entrance', 12.9682, 79.1542),
-    ('Main Gate 2 Entrance', 12.9665, 79.1551),
-    ('Dr. M.G.R. Central Admin Block', 12.9688, 79.1550),
-    ('Staff & Faculty Quarters Zone', 12.9658, 79.1578),
-    ('TT (Technology Tower)', 12.9695, 79.1563),
-    ('SJT (Silver Jubilee Tower)', 12.9708, 79.1558),
-    ('Gandhi Block / Netaji Block', 12.9715, 79.1548);
+    ('Q-Block / P&N Block Cluster', 12.973810, 79.164065),
+    ('K & L Block Cluster', 12.972722, 79.161581),
+    ('DC Cafe & Dining', 12.969718, 79.158588),
+    ('Men''s Hostel Office & F/G', 12.972619, 79.159068),
+    ('Periyar EVR Central Library', 12.968807, 79.156940),
+    ('VIT Main Gate (Gate 1)', 12.968634, 79.156367),
+    ('G-Block Ladies'' Hostel', 12.968256, 79.159605),
+    ('Ladies'' Hostel near SJT', 12.971659, 79.162310),
+    ('SJT (Silver Jubilee Tower)', 12.971847, 79.163585),
+    ('PRP Block', 12.972287, 79.166090),
+    ('Gandhi Block / East Campus', 12.972703, 79.167738),
+    ('S & T Block Cluster', 12.973834, 79.165005),
+    ('P & N Block', 12.974397, 79.164205),
+    ('M-Block', 12.973066, 79.163866),
+    ('F-Block Hostels', 12.973675, 79.158419),
+    ('G-Block Hostels', 12.973744, 79.159754);
 
 -- Insert official VIT shuttle routes
 INSERT INTO public.routes (route_name, color, points) VALUES
     (
         'Men''s Hostels Express Route (Bus #101)', 
-        '#0284c7', 
+        '#2563eb', 
         '[
-            {"lat": 12.9723, "lng": 79.1627},
-            {"lat": 12.9712, "lng": 79.1612},
-            {"lat": 12.9701, "lng": 79.1601},
-            {"lat": 12.9692, "lng": 79.1588},
-            {"lat": 12.9691, "lng": 79.1560},
-            {"lat": 12.9708, "lng": 79.1558}
+            {"lat": 12.968634, "lng": 79.156367},
+            {"lat": 12.968807, "lng": 79.156940},
+            {"lat": 12.969718, "lng": 79.158588},
+            {"lat": 12.972619, "lng": 79.159068},
+            {"lat": 12.973675, "lng": 79.158419},
+            {"lat": 12.973744, "lng": 79.159754},
+            {"lat": 12.972722, "lng": 79.161581},
+            {"lat": 12.971847, "lng": 79.163585},
+            {"lat": 12.973066, "lng": 79.163866},
+            {"lat": 12.973810, "lng": 79.164065},
+            {"lat": 12.974397, "lng": 79.164205},
+            {"lat": 12.973834, "lng": 79.165005},
+            {"lat": 12.972287, "lng": 79.166090},
+            {"lat": 12.972703, "lng": 79.167738}
         ]'::jsonb
     ),
     (
         'Women''s Hostel Express Route (Bus #102)', 
         '#ec4899', 
         '[
-            {"lat": 12.9675, "lng": 79.1595},
-            {"lat": 12.9668, "lng": 79.1602},
-            {"lat": 12.9688, "lng": 79.1561},
-            {"lat": 12.9698, "lng": 79.1552},
-            {"lat": 12.9708, "lng": 79.1558}
+            {"lat": 12.968256, "lng": 79.159605},
+            {"lat": 12.969718, "lng": 79.158588},
+            {"lat": 12.968807, "lng": 79.156940},
+            {"lat": 12.968634, "lng": 79.156367},
+            {"lat": 12.971659, "lng": 79.162310},
+            {"lat": 12.971847, "lng": 79.163585}
         ]'::jsonb
     ),
     (
         'Faculty Exclusive Route (Shuttle #201)', 
         '#059669', 
         '[
-            {"lat": 12.9682, "lng": 79.1542},
-            {"lat": 12.9665, "lng": 79.1551},
-            {"lat": 12.9688, "lng": 79.1550},
-            {"lat": 12.9658, "lng": 79.1578},
-            {"lat": 12.9695, "lng": 79.1563},
-            {"lat": 12.9708, "lng": 79.1558},
-            {"lat": 12.9715, "lng": 79.1548}
+            {"lat": 12.968634, "lng": 79.156367},
+            {"lat": 12.968807, "lng": 79.156940},
+            {"lat": 12.969718, "lng": 79.158588},
+            {"lat": 12.971659, "lng": 79.162310},
+            {"lat": 12.971847, "lng": 79.163585},
+            {"lat": 12.972287, "lng": 79.166090},
+            {"lat": 12.972703, "lng": 79.167738}
         ]'::jsonb
     );

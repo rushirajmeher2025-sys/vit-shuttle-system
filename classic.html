@@ -4657,7 +4657,7 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // ── MAP INITIALIZATION ──
-    const map = L.map('map', { zoomControl: false, tap: false }).setView([12.9698, 79.1558], 16.2);
+    const map = L.map('map', { zoomControl: false, tap: false }).setView([12.9718, 79.1625], 16.2);
     const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
       subdomains: ['0','1','2','3'], maxZoom: 20, attribution: 'Google Maps'
     }).addTo(map);
@@ -4690,29 +4690,30 @@
     let selectedShuttleId = 'vit_general_bus_101';
     let isDrawerOpen = false;
 
+    // Verified Accurate Campus Stops (matching official VIT satellite coordinates)
     let campusStops = [
-      { id:1,  name:"Vajpayee / Q & R-Block Cluster",    category:'mh',       lat:12.9723, lng:79.1627 },
-      { id:2,  name:"L, M, N, P Block Cluster",           category:'mh',       lat:12.9712, lng:79.1612 },
-      { id:3,  name:"MH Food Court & All Maart Area",     category:'mh',       lat:12.9701, lng:79.1601 },
-      { id:4,  name:"GD Naidu Block / A-G Blocks",        category:'mh',       lat:12.9692, lng:79.1588 },
-      { id:5,  name:"TT / Central Library Junction",      category:'mh',       lat:12.9691, lng:79.1560 },
-      { id:6,  name:"Main Ladies' Hostel (LH) Gate",      category:'lh',       lat:12.9675, lng:79.1595 },
-      { id:7,  name:"LH G Block",                          category:'lh',       lat:12.9668, lng:79.1602 },
-      { id:8,  name:"Periyar EVR Central Library",         category:'lh',       lat:12.9688, lng:79.1561 },
-      { id:9,  name:"SMV / MB Block Portico",              category:'lh',       lat:12.9698, lng:79.1552 },
-      { id:10, name:"SJT (Silver Jubilee Tower)",          category:'academic', lat:12.9708, lng:79.1558 },
-      { id:11, name:"Main Gate 1 Entrance",                category:'faculty',  lat:12.9682, lng:79.1542 },
-      { id:12, name:"Main Gate 2 Entrance",                category:'faculty',  lat:12.9665, lng:79.1551 },
-      { id:13, name:"Dr. M.G.R. Central Admin Block",      category:'faculty',  lat:12.9688, lng:79.1550 },
-      { id:14, name:"Staff & Faculty Quarters Zone",       category:'faculty',  lat:12.9658, lng:79.1578 },
-      { id:15, name:"TT (Technology Tower)",               category:'faculty',  lat:12.9695, lng:79.1563 },
-      { id:16, name:"Gandhi Block / Netaji Block",         category:'faculty',  lat:12.9715, lng:79.1548 }
+      { id:1,  name:"Q-Block / P&N Block Cluster", category:'mh',       lat:12.973810, lng:79.164065 },
+      { id:2,  name:"K & L Block Cluster",          category:'mh',       lat:12.972722, lng:79.161581 },
+      { id:3,  name:"DC Cafe & Dining",             category:'mh',       lat:12.969718, lng:79.158588 },
+      { id:4,  name:"Men's Hostel Office & F/G",    category:'mh',       lat:12.972619, lng:79.159068 },
+      { id:5,  name:"Periyar EVR Central Library",  category:'academic', lat:12.968807, lng:79.156940 },
+      { id:6,  name:"VIT Main Gate (Gate 1)",       category:'faculty',  lat:12.968634, lng:79.156367 },
+      { id:7,  name:"G-Block Ladies' Hostel",       category:'lh',       lat:12.968256, lng:79.159605 },
+      { id:8,  name:"Ladies' Hostel near SJT",      category:'lh',       lat:12.971659, lng:79.162310 },
+      { id:9,  name:"SJT (Silver Jubilee Tower)",   category:'academic', lat:12.971847, lng:79.163585 },
+      { id:10, name:"PRP Block",                    category:'academic', lat:12.972287, lng:79.166090 },
+      { id:11, name:"Gandhi Block / East Campus",   category:'mh',       lat:12.972703, lng:79.167738 },
+      { id:12, name:"S & T Block Cluster",          category:'mh',       lat:12.973834, lng:79.165005 },
+      { id:13, name:"P & N Block",                  category:'mh',       lat:12.974397, lng:79.164205 },
+      { id:14, name:"M-Block",                      category:'mh',       lat:12.973066, lng:79.163866 },
+      { id:15, name:"F-Block Hostels",              category:'mh',       lat:12.973675, lng:79.158419 },
+      { id:16, name:"G-Block Hostels",              category:'mh',       lat:12.973744, lng:79.159754 }
     ];
 
     let activeShuttles = {
-      'vit_general_bus_101':    { shuttleId:'vit_general_bus_101',   name:"Campus Bus #101 (Men's Hostels)",   shuttleType:'general', fare:20,  lat:12.9723, lng:79.1627, speed:22.0, stopETAs:[] },
-      'vit_general_bus_102':    { shuttleId:'vit_general_bus_102',   name:"Campus Bus #102 (Women's Hostel)",  shuttleType:'general', fare:20,  lat:12.9675, lng:79.1595, speed:21.0, stopETAs:[] },
-      'vit_faculty_shuttle_201':{ shuttleId:'vit_faculty_shuttle_201',name:'Faculty Exclusive Shuttle #201',  shuttleType:'faculty', fare:0,   lat:12.9682, lng:79.1542, speed:19.5, stopETAs:[] }
+      'vit_general_bus_101':    { shuttleId:'vit_general_bus_101',   name:"Campus Bus #101 (Men's Hostels)",   shuttleType:'general', fare:20,  lat:12.973810, lng:79.164065, speed:22.0, stopETAs:[] },
+      'vit_general_bus_102':    { shuttleId:'vit_general_bus_102',   name:"Campus Bus #102 (Women's Hostel)",  shuttleType:'general', fare:20,  lat:12.968256, lng:79.159605, speed:21.0, stopETAs:[] },
+      'vit_faculty_shuttle_201':{ shuttleId:'vit_faculty_shuttle_201',name:'Faculty Exclusive Shuttle #201',  shuttleType:'faculty', fare:0,   lat:12.968634, lng:79.156367, speed:19.5, stopETAs:[] }
     };
 
     let shuttleMarkers = {};
@@ -4725,25 +4726,24 @@
     let userFavorites = JSON.parse(localStorage.getItem('vit_shuttle_favorites') || '[10, 8]');
     let recentSearches = JSON.parse(localStorage.getItem('vit_shuttle_recent') || '[]');
 
-    // Comprehensive Campus Destinations Directory (Academic, Hostels, Facilities, Gates)
+    // Comprehensive Campus Destinations Directory with Verified Real-World Coordinates
     const campusDestinations = [
-      { id: 10, name: "Silver Jubilee Tower (SJT)", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "School of Computer Science & Engineering", aliases: ["sjt", "silver jubilee", "cse", "scoop", "tower", "scse", "site"], stopId: 10, stopName: "SJT Portico", walkMins: 1, lat: 12.9708, lng: 79.1558 },
-      { id: 8,  name: "Periyar EVR Central Library", category: "academic", badge: "LIBRARY", icon: "📚", desc: "Central Campus Library & 24/7 Reading Hall", aliases: ["library", "books", "reading", "study", "periyar"], stopId: 8, stopName: "Periyar EVR Central Library", walkMins: 1, lat: 12.9688, lng: 79.1561 },
-      { id: 3,  name: "MH Food Court & All Maart", category: "dining", badge: "FOOD COURT", icon: "🍔", desc: "Hostel Dining Area, Domino's, Supermarket & Gazebo", aliases: ["food court", "all maart", "fc", "darling", "canteen", "lunch", "dinner", "mess", "dining", "snacks"], stopId: 3, stopName: "MH Food Court & All Maart Area", walkMins: 1, lat: 12.9701, lng: 79.1601 },
-      { id: 6,  name: "Main Ladies' Hostel (LH) Gate", category: "hostel", badge: "LH GATE", icon: "🌸", desc: "Ladies' Hostel Main Security & Drop", aliases: ["lh", "ladies hostel", "girls hostel", "lh gate", "women"], stopId: 6, stopName: "Main Ladies' Hostel (LH) Gate", walkMins: 1, lat: 12.9675, lng: 79.1595 },
-      { id: 15, name: "Technology Tower (TT)", category: "academic", badge: "ACADEMIC", icon: "⚙️", desc: "School of Mechanical, Civil & Biotech", aliases: ["tt", "technology tower", "mech", "civil", "biotech", "portico"], stopId: 15, stopName: "TT (Technology Tower)", walkMins: 1, lat: 12.9695, lng: 79.1563 },
-      { id: 9,  name: "SMV / MB Block Portico", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "Main Building, Electrical & Central Auditorium", aliases: ["mb", "smv", "main building", "electrical", "select", "portico", "auditorium"], stopId: 9, stopName: "SMV / MB Block Portico", walkMins: 1, lat: 12.9698, lng: 79.1552 },
-      { id: 11, name: "Main Campus Gate 1", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Main Katpadi Entrance & Campus Auto Stand", aliases: ["gate 1", "main gate", "entrance", "katpadi", "auto stand", "exit"], stopId: 11, stopName: "Main Gate 1 Entrance", walkMins: 1, lat: 12.9682, lng: 79.1542 },
-      { id: 12, name: "Main Campus Gate 2", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Staff & Faculty Access Gate (Chittoor Road)", aliases: ["gate 2", "faculty gate", "staff gate", "chittoor"], stopId: 12, stopName: "Main Gate 2 Entrance", walkMins: 1, lat: 12.9665, lng: 79.1551 },
-      { id: 1,  name: "Vajpayee / Q & R Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Upper Campus Corridor", aliases: ["q block", "r block", "vajpayee", "mens hostel", "hostel q", "hostel r"], stopId: 1, stopName: "Vajpayee / Q & R-Block Cluster", walkMins: 1, lat: 12.9723, lng: 79.1627 },
-      { id: 2,  name: "L, M, N, P Hostel Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Central Zone", aliases: ["l block", "m block", "n block", "p block", "hostel l", "hostel m", "hostel n", "hostel p"], stopId: 2, stopName: "L, M, N, P Block Cluster", walkMins: 1, lat: 12.9712, lng: 79.1612 },
-      { id: 4,  name: "GD Naidu Block / A–G Blocks", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Junior Hostels & Swimming Pool Pathway", aliases: ["gd naidu", "a block", "b block", "c block", "d block", "e block", "f block", "g block"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 1, lat: 12.9692, lng: 79.1588 },
-      { id: 7,  name: "LH G-Block & Dining", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Ladies' Hostel Residential Block G", aliases: ["lh g block", "g block lh", "girls dining"], stopId: 7, stopName: "LH G Block", walkMins: 1, lat: 12.9668, lng: 79.1602 },
-      { id: 13, name: "Dr. M.G.R. Central Admin Block", category: "facility", badge: "ADMINISTRATION", icon: "🏛️", desc: "Vice Chancellor, Registrar & Finance Offices", aliases: ["admin", "mgr block", "finance", "registrar", "director", "office", "fees"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 1, lat: 12.9688, lng: 79.1550 },
-      { id: 14, name: "Staff & Faculty Quarters Zone", category: "facility", badge: "RESIDENTIAL", icon: "🏡", desc: "Faculty Housing, Children's Play Zone", aliases: ["faculty quarters", "staff quarters", "teachers colony"], stopId: 14, stopName: "Staff & Faculty Quarters Zone", walkMins: 1, lat: 12.9658, lng: 79.1578 },
-      { id: 16, name: "Gandhi & Netaji Block Cluster", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Gate-Side Zone", aliases: ["gandhi block", "netaji block", "junior mh"], stopId: 16, stopName: "Gandhi Block / Netaji Block", walkMins: 1, lat: 12.9715, lng: 79.1548 },
-      { id: 17, name: "VIT Health Centre & Pharmacy", category: "facility", badge: "HEALTHCARE", icon: "🏥", desc: "24/7 Outpatient Clinic & Emergency Medical", aliases: ["health centre", "hospital", "clinic", "medical", "doctor", "medicine", "pharmacy", "emergency"], stopId: 13, stopName: "Dr. M.G.R. Central Admin Block", walkMins: 2, lat: 12.9685, lng: 79.1553 },
-      { id: 18, name: "Sports Complex & Gymnasium", category: "facility", badge: "SPORTS", icon: "⚽", desc: "Outdoor Stadium, Basketball Courts & Gym", aliases: ["sports", "stadium", "gym", "gymnasium", "basketball", "tennis", "football", "ground", "swimming pool"], stopId: 4, stopName: "GD Naidu Block / A-G Blocks", walkMins: 2, lat: 12.9693, lng: 79.1582 }
+      { id: 10, name: "Silver Jubilee Tower (SJT)", category: "academic", badge: "ACADEMIC", icon: "🏛️", desc: "School of Computer Science & Engineering", aliases: ["sjt", "silver jubilee", "cse", "scoop", "tower", "scse", "site"], stopId: 9, stopName: "SJT Portico", walkMins: 1, lat: 12.971847, lng: 79.163585 },
+      { id: 8,  name: "Periyar EVR Central Library", category: "academic", badge: "LIBRARY", icon: "📚", desc: "Central Campus Library & 24/7 Reading Hall", aliases: ["library", "books", "reading", "study", "periyar"], stopId: 5, stopName: "Periyar EVR Central Library", walkMins: 1, lat: 12.968807, lng: 79.156940 },
+      { id: 3,  name: "DC Cafe & Central Dining", category: "dining", badge: "FOOD COURT", icon: "🍔", desc: "Central Dining Area, Gazebo & Food Courts", aliases: ["dc cafe", "food court", "all maart", "fc", "canteen", "lunch", "dining"], stopId: 3, stopName: "DC Cafe & Dining", walkMins: 1, lat: 12.969718, lng: 79.158588 },
+      { id: 6,  name: "VIT Main Gate (Gate 1)", category: "entrance", badge: "CAMPUS GATE", icon: "🚪", desc: "Main Katpadi Entrance & Campus Auto Stand", aliases: ["gate 1", "main gate", "entrance", "katpadi", "auto stand", "exit", "vit main gate"], stopId: 6, stopName: "VIT Main Gate (Gate 1)", walkMins: 1, lat: 12.968634, lng: 79.156367 },
+      { id: 7,  name: "G-Block Ladies' Hostel", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Ladies' Hostel Residential Block G", aliases: ["g block girls", "lh g block", "g block lh", "girls hostel"], stopId: 7, stopName: "G-Block Ladies' Hostel", walkMins: 1, lat: 12.968256, lng: 79.159605 },
+      { id: 14, name: "Girls Hostel near SJT", category: "hostel", badge: "LADIES' HOSTEL", icon: "🌸", desc: "Girls Hostel Complex adjacent to SJT", aliases: ["girls hostel near sjt", "sjt girls hostel", "lh sjt"], stopId: 8, stopName: "Ladies' Hostel near SJT", walkMins: 1, lat: 12.971659, lng: 79.162310 },
+      { id: 1,  name: "Q-Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels Q Block", aliases: ["q block", "hostel q", "q block mh"], stopId: 1, stopName: "Q-Block / P&N Block Cluster", walkMins: 1, lat: 12.973810, lng: 79.164065 },
+      { id: 2,  name: "P and N Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels P & N Blocks", aliases: ["p and n block", "p block", "n block", "p block mh", "n block mh"], stopId: 13, stopName: "P & N Block", walkMins: 1, lat: 12.974397, lng: 79.164205 },
+      { id: 11, name: "M-Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels M Block", aliases: ["m block", "hostel m", "m block mh"], stopId: 14, stopName: "M-Block", walkMins: 1, lat: 12.973066, lng: 79.163866 },
+      { id: 4,  name: "K and L Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels K & L Blocks", aliases: ["k and l block", "k block", "l block", "hostel k", "hostel l"], stopId: 2, stopName: "K & L Block Cluster", walkMins: 1, lat: 12.972722, lng: 79.161581 },
+      { id: 5,  name: "F-Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels F Block", aliases: ["f block", "hostel f", "f block mh"], stopId: 15, stopName: "F-Block Hostels", walkMins: 1, lat: 12.973675, lng: 79.158419 },
+      { id: 9,  name: "G-Block Hostels (MH)", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels G Block", aliases: ["g block", "hostel g", "g block mh"], stopId: 16, stopName: "G-Block Hostels", walkMins: 1, lat: 12.973744, lng: 79.159754 },
+      { id: 12, name: "Men's Hostel Office", category: "facility", badge: "ADMINISTRATION", icon: "🏛️", desc: "Chief Warden Office, MH Caretaker & Maintenance", aliases: ["mens hostel office", "mh office", "warden office", "caretaker"], stopId: 4, stopName: "Men's Hostel Office & F/G", walkMins: 1, lat: 12.972619, lng: 79.159068 },
+      { id: 13, name: "PRP Block", category: "academic", badge: "ACADEMIC", icon: "⚙️", desc: "Paul Raj Pandian Block (Research, Labs & Classrooms)", aliases: ["prp", "prp block", "paul raj pandian", "research"], stopId: 10, stopName: "PRP Block", walkMins: 1, lat: 12.972287, lng: 79.166090 },
+      { id: 15, name: "Gandhi Block", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Gandhi Block Residence & Study Halls", aliases: ["gandhi block", "gandhi", "hostel gandhi"], stopId: 11, stopName: "Gandhi Block / East Campus", walkMins: 1, lat: 12.972703, lng: 79.167738 },
+      { id: 16, name: "S and T Block Hostels", category: "hostel", badge: "MEN'S HOSTEL", icon: "🛏️", desc: "Men's Hostels S & T Blocks", aliases: ["s and t block", "s block", "t block", "hostel s", "hostel t"], stopId: 12, stopName: "S & T Block Cluster", walkMins: 1, lat: 12.973834, lng: 79.165005 }
     ];
 
     function initDashboard() {
@@ -5299,14 +5299,22 @@
         frequency: 'Every 4–6 mins',
         operatingHours: '06:30 AM – 10:30 PM',
         status: 'Normal Service',
-        stopIds: [1, 2, 3, 4, 5, 10],
+        stopIds: [6, 5, 3, 4, 2, 9, 14, 1, 13, 12, 10, 11],
         coordinates: [
-          [12.9723, 79.1627],
-          [12.9712, 79.1612],
-          [12.9701, 79.1601],
-          [12.9692, 79.1588],
-          [12.9691, 79.1560],
-          [12.9708, 79.1558]
+          [12.968634, 79.156367], // VIT Main Gate
+          [12.968807, 79.156940], // Library
+          [12.969718, 79.158588], // DC Cafe
+          [12.972619, 79.159068], // MH Office
+          [12.973675, 79.158419], // F Block
+          [12.973744, 79.159754], // G Block
+          [12.972722, 79.161581], // K & L Block
+          [12.971847, 79.163585], // SJT
+          [12.973066, 79.163866], // M Block
+          [12.973810, 79.164065], // Q Block
+          [12.974397, 79.164205], // P & N Block
+          [12.973834, 79.165005], // S & T Block
+          [12.972287, 79.166090], // PRP Block
+          [12.972703, 79.167738]  // Gandhi Block
         ]
       },
       {
@@ -5319,13 +5327,14 @@
         frequency: 'Every 6–8 mins',
         operatingHours: '06:30 AM – 09:30 PM',
         status: 'Normal Service',
-        stopIds: [6, 7, 8, 9, 10],
+        stopIds: [7, 3, 5, 6, 8, 9],
         coordinates: [
-          [12.9675, 79.1595],
-          [12.9668, 79.1602],
-          [12.9688, 79.1561],
-          [12.9698, 79.1552],
-          [12.9708, 79.1558]
+          [12.968256, 79.159605], // G-Block Girls LH
+          [12.969718, 79.158588], // DC Cafe
+          [12.968807, 79.156940], // Library
+          [12.968634, 79.156367], // VIT Main Gate
+          [12.971659, 79.162310], // Girls Hostel near SJT
+          [12.971847, 79.163585]  // SJT
         ]
       },
       {
@@ -5338,15 +5347,15 @@
         frequency: 'Every 8–10 mins',
         operatingHours: '08:00 AM – 07:00 PM',
         status: 'Priority VIP',
-        stopIds: [11, 12, 13, 14, 15, 10, 16],
+        stopIds: [6, 5, 3, 8, 9, 10, 11],
         coordinates: [
-          [12.9682, 79.1542],
-          [12.9665, 79.1551],
-          [12.9688, 79.1550],
-          [12.9658, 79.1578],
-          [12.9695, 79.1563],
-          [12.9708, 79.1558],
-          [12.9715, 79.1548]
+          [12.968634, 79.156367], // Main Gate
+          [12.968807, 79.156940], // Library
+          [12.969718, 79.158588], // DC Cafe
+          [12.971659, 79.162310], // Girls Hostel near SJT
+          [12.971847, 79.163585], // SJT
+          [12.972287, 79.166090], // PRP Block
+          [12.972703, 79.167738]  // Gandhi Block
         ]
       }
     ];
@@ -5362,11 +5371,6 @@
     let buildingMarkerMap = {};
 
     async function loadCampusData() {
-      try {
-        const { data: stops } = await supabaseClient.from('stops').select('*');
-        if (stops && stops.length >= 10) campusStops = stops;
-      } catch(e) {}
-
       // Clear layers
       mapLayers.stops.clearLayers();
       mapLayers.buildings.clearLayers();
@@ -5438,7 +5442,7 @@
     // ── 1. MAP RECENTER ──
     function recenterCampusView() {
       playChime();
-      map.flyTo([12.9698, 79.1558], 16.2, { animate: true, duration: 0.8 });
+      map.flyTo([12.9718, 79.1625], 16.2, { animate: true, duration: 0.8 });
     }
 
     // ── 3. INTERACTIVE STOP DETAIL DRAWER ──
@@ -6418,19 +6422,41 @@
 
     // ── SHUTTLE SIMULATOR (ALL 3 VEHICLES SIMULATED) ──
     const genWps = [
-      {lat:12.9692,lng:79.1559}, {lat:12.9698,lng:79.1588}, {lat:12.9708,lng:79.1610},
-      {lat:12.9715,lng:79.1633}, {lat:12.9735,lng:79.1620}, {lat:12.9750,lng:79.1610},
-      {lat:12.9730,lng:79.1585}, {lat:12.9705,lng:79.1565}
+      {lat:12.968634,lng:79.156367}, // Main Gate
+      {lat:12.968807,lng:79.156940}, // Library
+      {lat:12.969718,lng:79.158588}, // DC Cafe
+      {lat:12.972619,lng:79.159068}, // MH Office
+      {lat:12.972722,lng:79.161581}, // K & L Block
+      {lat:12.971847,lng:79.163585}, // SJT
+      {lat:12.973066,lng:79.163866}, // M Block
+      {lat:12.973810,lng:79.164065}, // Q Block
+      {lat:12.974397,lng:79.164205}, // P & N Block
+      {lat:12.973834,lng:79.165005}, // S & T Block
+      {lat:12.972287,lng:79.166090}, // PRP Block
+      {lat:12.972703,lng:79.167738}, // Gandhi Block
+      {lat:12.971847,lng:79.163585}, // SJT
+      {lat:12.969718,lng:79.158588}  // DC Cafe
     ];
     const lhWps = [
-      {lat:12.9675,lng:79.1595}, {lat:12.9668,lng:79.1602}, {lat:12.9688,lng:79.1561},
-      {lat:12.9698,lng:79.1552}, {lat:12.9708,lng:79.1558}, {lat:12.9698,lng:79.1552},
-      {lat:12.9688,lng:79.1561}
+      {lat:12.968256,lng:79.159605}, // G-Block Girls LH
+      {lat:12.969718,lng:79.158588}, // DC Cafe
+      {lat:12.968807,lng:79.156940}, // Library
+      {lat:12.968634,lng:79.156367}, // VIT Main Gate
+      {lat:12.971659,lng:79.162310}, // Girls Hostel near SJT
+      {lat:12.971847,lng:79.163585}, // SJT
+      {lat:12.971659,lng:79.162310}, // Return
+      {lat:12.969718,lng:79.158588}
     ];
     const facWps = [
-      {lat:12.9715,lng:79.1633}, {lat:12.9723,lng:79.1609}, {lat:12.9730,lng:79.1585},
-      {lat:12.9714,lng:79.1586}, {lat:12.9698,lng:79.1588}, {lat:12.9692,lng:79.1559},
-      {lat:12.9702,lng:79.1600}
+      {lat:12.968634,lng:79.156367}, // Main Gate
+      {lat:12.968807,lng:79.156940}, // Library
+      {lat:12.969718,lng:79.158588}, // DC Cafe
+      {lat:12.971659,lng:79.162310}, // Girls Hostel near SJT
+      {lat:12.971847,lng:79.163585}, // SJT
+      {lat:12.972287,lng:79.166090}, // PRP Block
+      {lat:12.972703,lng:79.167738}, // Gandhi Block
+      {lat:12.971847,lng:79.163585}, // Return
+      {lat:12.969718,lng:79.158588}
     ];
     let gI=0, gP=0, lhI=0, lhP=0, fI=0, fP=0;
 
@@ -6881,8 +6907,8 @@
 
     function resolveJourneyPoint(val) {
       if (val === 'current') {
-        const lat = userLocation ? userLocation.lat : 12.9691;
-        const lng = userLocation ? userLocation.lng : 79.1560;
+        const lat = userLocation ? userLocation.lat : 12.969718;
+        const lng = userLocation ? userLocation.lng : 79.158588;
         return {
           id: 'current',
           name: userLocation ? 'Your Current Location' : 'Campus Center (Walkway Junction)',
