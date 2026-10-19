@@ -17,53 +17,59 @@
 
   <style>
     /* ══════════════════════════════════════════════════════
-       🎨 DESIGN TOKENS (VIT Visual Identity & Design System)
+       🎨 SLEEK GLASSMORPHISM & MODERN MATERIAL DESIGN TOKENS
     ══════════════════════════════════════════════════════ */
     :root, [data-theme="dark"] {
-      --bg:               #090d16;
-      --bg-page:          #0f172a;
-      --surface:          rgba(15, 23, 42, 0.92);
-      --surface-elevated: #1e293b;
-      --surface-card:     #131d31;
-      --surface-hover:    #1e2d4a;
-      --surface-active:   #273a5e;
-      --border:           rgba(255, 255, 255, 0.11);
-      --border-subtle:    rgba(255, 255, 255, 0.06);
-      --border-focus:     #38bdf8;
+      --bg:               #0B0F17;
+      --bg-page:          #0B0F17;
+      --surface:          rgba(11, 15, 23, 0.88);
+      --surface-elevated: #121A2B;
+      --surface-card:     rgba(18, 26, 43, 0.75);
+      --surface-hover:    rgba(30, 45, 74, 0.65);
+      --surface-active:   rgba(39, 58, 94, 0.85);
+      --border:           rgba(255, 255, 255, 0.08);
+      --border-subtle:    rgba(255, 255, 255, 0.05);
+      --border-focus:     #00F2FE;
 
-      --text:             #f8fafc;
-      --text-secondary:   #94a3b8;
-      --text-muted:       #64748b;
+      --text:             #FFFFFF;
+      --text-secondary:   #94A3B8;
+      --text-muted:       #64748B;
 
-      /* VIT-inspired palette: Royal Blue, Campus Gold, Faculty Emerald */
-      --primary:          #2563eb;
-      --primary-hover:    #1d4ed8;
-      --primary-light:    #38bdf8;
-      --primary-subtle:   rgba(37, 99, 235, 0.16);
+      /* Neon Cyan / Teal Accents */
+      --neon-cyan:        #00F2FE;
+      --neon-teal:        #4FACFE;
+      --primary:          #00F2FE;
+      --primary-hover:    #4FACFE;
+      --primary-light:    #38BDF8;
+      --primary-subtle:   rgba(0, 242, 254, 0.14);
+      --primary-glow:     0 0 20px rgba(0, 242, 254, 0.35);
 
-      --gold:             #d97706;
-      --gold-hover:       #b45309;
-      --gold-light:       #fbbf24;
-      --gold-subtle:      rgba(245, 158, 11, 0.16);
+      /* Warm Gradient Accents */
+      --warm-red:         #FF0844;
+      --warm-coral:       #FFB199;
+      --warm-gradient:    linear-gradient(135deg, #FF0844 0%, #FFB199 100%);
+      --cyan-gradient:    linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+      --gold-gradient:    linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
 
-      --emerald:          #059669;
-      --emerald-hover:    #047857;
-      --emerald-light:    #34d399;
-      --emerald-subtle:   rgba(16, 185, 129, 0.16);
+      --gold:             #F59E0B;
+      --gold-light:       #FBBF24;
+      --emerald:          #10B981;
+      --emerald-light:    #34D399;
+      --rose:             #FF0844;
 
-      --rose:             #e11d48;
-      --rose-subtle:      rgba(225, 29, 72, 0.16);
+      --radius-sm:        10px;
+      --radius-md:        16px;
+      --radius-lg:        20px;
+      --radius-xl:        24px;
+      --radius-pill:      9999px;
 
-      --radius-sm:        8px;
-      --radius-md:        12px;
-      --radius-lg:        18px;
-      --radius-xl:        22px;
+      --glass-blur:       blur(20px) saturate(180%);
+      --shadow-sm:        0 2px 8px rgba(0, 0, 0, 0.4);
+      --shadow-md:        0 8px 24px rgba(0, 0, 0, 0.55);
+      --shadow-lg:        0 16px 40px rgba(0, 0, 0, 0.7);
+      --shadow-glow:      0 0 24px rgba(0, 242, 254, 0.25);
 
-      --shadow-sm:        0 1px 3px rgba(0, 0, 0, 0.35);
-      --shadow-md:        0 6px 18px rgba(0, 0, 0, 0.45);
-      --shadow-lg:        0 14px 34px rgba(0, 0, 0, 0.55);
-
-      --map-tiles-filter: brightness(0.85) contrast(1.1) invert(0.9) hue-rotate(180deg);
+      --map-tiles-filter: brightness(0.78) contrast(1.2) invert(0.92) hue-rotate(185deg);
     }
 
     [data-theme="light"] {
@@ -71,43 +77,51 @@
       --bg-page:          #f8fafc;
       --surface:          rgba(255, 255, 255, 0.94);
       --surface-elevated: #ffffff;
-      --surface-card:     #ffffff;
+      --surface-card:     rgba(255, 255, 255, 0.85);
       --surface-hover:    #f1f5f9;
       --surface-active:   #e2e8f0;
       --border:           rgba(15, 23, 42, 0.12);
       --border-subtle:    rgba(15, 23, 42, 0.06);
-      --border-focus:     #1d4ed8;
+      --border-focus:     #0284c7;
 
       --text:             #0f172a;
       --text-secondary:   #475569;
       --text-muted:       #64748b;
 
-      --primary:          #1d4ed8;
-      --primary-hover:    #1e40af;
-      --primary-light:    #0284c7;
-      --primary-subtle:   rgba(29, 78, 216, 0.08);
+      --primary:          #0284c7;
+      --primary-hover:    #0369a1;
+      --primary-light:    #38bdf8;
+      --primary-subtle:   rgba(2, 132, 199, 0.12);
+      --primary-glow:     0 0 16px rgba(2, 132, 199, 0.25);
+
+      --warm-red:         #e11d48;
+      --warm-coral:       #fb7185;
+      --warm-gradient:    linear-gradient(135deg, #e11d48 0%, #fb7185 100%);
+      --cyan-gradient:    linear-gradient(135deg, #0284c7 0%, #38bdf8 100%);
+      --gold-gradient:    linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
 
       --gold:             #b45309;
-      --gold-hover:       #92400e;
       --gold-light:       #d97706;
-      --gold-subtle:      rgba(180, 83, 9, 0.08);
-
-      --emerald:          #047857;
-      --emerald-hover:    #065f46;
-      --emerald-light:    #059669;
-      --emerald-subtle:   rgba(4, 120, 87, 0.08);
-
+      --emerald:          #059669;
+      --emerald-light:    #10b981;
       --rose:             #be123c;
-      --rose-subtle:      rgba(190, 18, 60, 0.08);
 
+      --radius-sm:        10px;
+      --radius-md:        16px;
+      --radius-lg:        20px;
+      --radius-xl:        24px;
+      --radius-pill:      9999px;
+
+      --glass-blur:       blur(20px) saturate(180%);
       --shadow-sm:        0 1px 3px rgba(0, 0, 0, 0.06);
       --shadow-md:        0 4px 14px rgba(0, 0, 0, 0.08);
       --shadow-lg:        0 12px 28px rgba(0, 0, 0, 0.12);
+      --shadow-glow:      0 0 20px rgba(2, 132, 199, 0.15);
 
       --map-tiles-filter: none;
     }
 
-    /* ══════════════════════════════════════════════════════
+/* ══════════════════════════════════════════════════════
        BASE & RESET
     ══════════════════════════════════════════════════════ */
     * {
@@ -3769,7 +3783,395 @@
         scroll-behavior: auto !important;
       }
     }
-  </style>
+  
+
+    /* ══════════════════════════════════════════════════════
+       MODERN CAMPUS TRANSIT UI ENHANCEMENTS
+    ══════════════════════════════════════════════════════ */
+    /* Real-Time Ride Tracking Top Status Banner */
+    .tracking-status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 16px;
+      margin: 8px auto;
+      max-width: 600px;
+      width: calc(100% - 24px);
+      background: rgba(18, 26, 43, 0.82) !important;
+      border: 1px solid rgba(0, 242, 254, 0.28) !important;
+      border-radius: var(--radius-pill) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 18px rgba(0, 242, 254, 0.18) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      z-index: 999;
+      animation: floatBanner 3s ease-in-out infinite alternate;
+    }
+    @keyframes floatBanner {
+      0% { transform: translateY(0px); }
+      100% { transform: translateY(-2px); }
+    }
+    .tsb-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .tsb-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .tsb-label {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .tsb-val {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.1;
+    }
+    .tsb-divider {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    /* Floating 4-Icon Bottom Navigation */
+    .bottom-nav-bar {
+      position: fixed;
+      bottom: 16px !important;
+      left: 16px !important;
+      right: 16px !important;
+      max-width: 440px !important;
+      margin: 0 auto !important;
+      height: 64px !important;
+      background: rgba(11, 15, 23, 0.88) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+      border-radius: var(--radius-pill) !important;
+      backdrop-filter: var(--glass-blur) !important;
+      -webkit-backdrop-filter: var(--glass-blur) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-around !important;
+      z-index: 1000 !important;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 242, 254, 0.12) !important;
+      padding: 0 8px !important;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .bnav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px 14px;
+      border-radius: var(--radius-pill);
+      transition: color 0.18s ease, transform 0.14s ease, background 0.18s ease;
+      position: relative;
+    }
+    .bnav-item:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .bnav-item.active {
+      color: var(--neon-cyan) !important;
+      font-weight: 800;
+      background: rgba(0, 242, 254, 0.08);
+    }
+    .bnav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 14px;
+      height: 3px;
+      border-radius: 999px;
+      background: var(--neon-cyan);
+      box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    .bnav-icon {
+      font-size: 19px;
+    }
+
+    /* Optical Laser Scanning Line on QR Code */
+    @keyframes laserScan {
+      0% { top: 4%; opacity: 0.7; }
+      50% { top: 92%; opacity: 1; }
+      100% { top: 4%; opacity: 0.7; }
+    }
+    .laser-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00F2FE, #4FACFE, transparent);
+      box-shadow: 0 0 10px #00F2FE, 0 0 18px #00F2FE;
+      animation: laserScan 2.4s ease-in-out infinite;
+      z-index: 5;
+    }
+
+    /* Quick Action Buttons Grid on Dashboard */
+    .quick-action-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+    .qa-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: var(--shadow-sm);
+    }
+    .qa-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(0, 242, 254, 0.4);
+      background: var(--surface-hover);
+      box-shadow: 0 8px 24px rgba(0, 242, 254, 0.12);
+    }
+    .qa-planner {
+      border: 1.5px solid rgba(0, 242, 254, 0.35);
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.08) 0%, rgba(79, 172, 254, 0.05) 100%);
+    }
+    .qa-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .qa-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .qa-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .qa-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+    .qa-arrow {
+      color: var(--primary);
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .qa-subgrid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    /* Dashboard In-Page Tab Views (Tickets & Alerts) */
+    .tab-view-container {
+      display: none;
+      padding-bottom: 90px;
+      animation: fadeInView 0.25s ease forwards;
+    }
+    .tab-view-container.active {
+      display: block;
+    }
+    @keyframes fadeInView {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* High-Definition Verified Ticket Card */
+    .verified-ticket-card {
+      max-width: 420px;
+      margin: 0 auto 24px;
+      background: var(--surface-card);
+      border: 1px solid rgba(0, 242, 254, 0.3);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 28px rgba(0, 242, 254, 0.15);
+      position: relative;
+    }
+    .vt-head {
+      background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%);
+      color: #07101E;
+      padding: 16px 20px;
+      text-align: center;
+    }
+    .vt-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-family: 'Space Grotesk', sans-serif;
+      letter-spacing: 0.5px;
+    }
+    .vt-body {
+      padding: 22px 20px;
+      text-align: center;
+    }
+    .vt-qr-container {
+      width: 150px;
+      height: 150px;
+      margin: 14px auto;
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 10px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .vt-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.16);
+      color: var(--emerald-light);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-top: 8px;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .vt-fare-badge {
+      display: inline-block;
+      background: #FFFFFF;
+      color: #07101E;
+      padding: 3px 12px;
+      border-radius: var(--radius-pill);
+      font-size: 0.72rem;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    /* Saved Trips & History Section */
+    .history-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      transition: background 0.15s ease;
+    }
+    .history-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-focus);
+    }
+    .history-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 242, 254, 0.12);
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .history-route {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .history-meta {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .history-price {
+      font-size: 0.78rem;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      margin-left: auto;
+    }
+
+    /* Live Transit Alert Feed Cards */
+    .alert-feed-card {
+      display: flex;
+      gap: 14px;
+      padding: 16px;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      transition: transform 0.15s ease;
+    }
+    .alert-feed-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+    .afc-icon-wrap {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .afc-content {
+      flex: 1;
+    }
+    .afc-tag {
+      font-size: 0.65rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 4px;
+    }
+    .afc-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .afc-desc {
+      font-size: 0.74rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    .afc-time {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+</style>
 </head>
 <body class="tab-home">
 
@@ -3938,6 +4340,42 @@
        TOP BAR NAVIGATION & MAP FILTERS
   ══════════════════════════════ -->
   <div class="top-bar">
+
+    <!-- Real-time Ride & Transit Tracking Top Status Banner -->
+    <div class="tracking-status-banner card" id="tracking-status-banner">
+      <div class="tsb-item">
+        <span class="tsb-icon">🚌</span>
+        <div>
+          <div class="tsb-label">SHUTTLE ID</div>
+          <div class="tsb-val" id="tsb-shuttle-id">MH Bus #101</div>
+        </div>
+      </div>
+      <div class="tsb-divider"></div>
+      <div class="tsb-item">
+        <span class="tsb-icon">📍</span>
+        <div>
+          <div class="tsb-label">NEXT STOP</div>
+          <div class="tsb-val" id="tsb-next-stop">MB - Main Bldg</div>
+        </div>
+      </div>
+      <div class="tsb-divider"></div>
+      <div class="tsb-item">
+        <span class="tsb-icon">⚡</span>
+        <div>
+          <div class="tsb-label">SPEED</div>
+          <div class="tsb-val" id="tsb-speed">22 KM/H</div>
+        </div>
+      </div>
+      <div class="tsb-divider"></div>
+      <div class="tsb-item">
+        <span class="tsb-icon">⏱️</span>
+        <div>
+          <div class="tsb-label">LIVE ETA</div>
+          <div class="tsb-val" id="tsb-eta" style="color:var(--neon-cyan);">3 MIN</div>
+        </div>
+      </div>
+    </div>
+  
     <div class="nav-pill card">
       <div class="brand" onclick="showPortalOverlay()" role="button" tabindex="0" title="Switch Portal">
         <div class="brand-icon">🚌</div>
@@ -4020,6 +4458,7 @@
         </button>
       </div>
       <div class="dir-steps-list" id="dir-steps-list"></div>
+      </div>
     </div>
   </div>
 
@@ -4411,7 +4850,8 @@
        📱 STUDENT DASHBOARD (PHASE 2)
   ══════════════════════════════ -->
   <div id="dashboard-view-wrapper" class="dashboard-view-wrapper active">
-    <div id="student-dashboard" class="dashboard-container">
+    <div id="tab-view-home" class="tab-view-container active">
+<div id="student-dashboard" class="dashboard-container">
       <!-- 1. Header: Brand Bar -->
       <div class="dash-brand-bar">
         <div class="dash-brand" onclick="switchTab('profile')" role="button" tabindex="0" title="About VIT Shuttle System">
@@ -4432,10 +4872,10 @@
         <div class="dash-profile-wrap" onclick="switchTab('profile')" role="button" tabindex="0" title="View Student Profile & Pass">
           <div class="dash-avatar" id="dash-avatar-letter">R</div>
           <div style="min-width:0;">
-            <div class="dash-greeting" id="dash-greeting-text">Good evening, Student</div>
+            <div class="dash-greeting" id="dash-greeting-text">Good evening, Student - Rushi, 21BCE1042</div>
             <div class="dash-sub">
               <span style="color:var(--emerald);">●</span>
-              <span id="dash-role-badge">Student Transit Pass Active (₹20)</span>
+              <span id="dash-role-badge">PASS ACTIVE • #VIT-21BCE1042</span>
             </div>
           </div>
         </div>
@@ -4476,6 +4916,34 @@
         <!-- Autocomplete Dropdown & Recent Searches -->
         <div id="search-dropdown" class="search-dropdown">
           <div id="search-results-content"></div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons: Grid for Quick Destinations, Smart Journey Planner, and Track Shuttle -->
+      <div class="quick-action-grid">
+        <button class="qa-card qa-planner" type="button" onclick="openJourneyPlanner()" aria-label="Smart Campus Journey Planner">
+          <div class="qa-icon" style="background:rgba(0, 242, 254, 0.15); color:var(--neon-cyan);">🧭</div>
+          <div class="qa-info">
+            <div class="qa-title">Smart Campus Journey Planner <span class="badge" style="background:var(--primary);color:white;font-size:0.6rem;padding:2px 6px;">PHASE 4</span></div>
+            <div class="qa-sub">Multi-modal shuttle &amp; walking directions with live arrival times</div>
+          </div>
+          <span class="qa-arrow">→</span>
+        </button>
+        <div class="qa-subgrid">
+          <button class="qa-card" type="button" onclick="document.getElementById('shortcuts-grid')?.scrollIntoView({behavior:'smooth'})" aria-label="Quick Destinations">
+            <div class="qa-icon" style="background:rgba(255, 177, 153, 0.15); color:var(--neon-coral);">⚡</div>
+            <div class="qa-info">
+              <div class="qa-title">Quick Destinations</div>
+              <div class="qa-sub">Top 6 campus locations</div>
+            </div>
+          </button>
+          <button class="qa-card" type="button" onclick="switchTab('routes')" aria-label="Track Shuttle">
+            <div class="qa-icon" style="background:rgba(79, 172, 254, 0.15); color:var(--neon-blue);">🚌</div>
+            <div class="qa-info">
+              <div class="qa-title">Track Shuttle</div>
+              <div class="qa-sub">Live route &amp; map</div>
+            </div>
+          </button>
         </div>
       </div>
 
@@ -4579,9 +5047,203 @@
             <div class="announcement-time">Policy Reminder • Continuous</div>
           </div>
         </div>
+      </div><!-- /announcements-card -->
+    </div><!-- /student-dashboard -->
+    </div><!-- /tab-view-home -->
+
+    <!-- SCREEN 5: DIGITAL TICKET / PASS & SAVED TRIPS VIEW -->
+    <div id="tab-view-tickets" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:20px;">
+      <div style="text-align:center; margin-bottom:20px;">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,242,254,0.12); color:var(--neon-cyan); padding:4px 14px; border-radius:var(--radius-pill); font-size:0.75rem; font-weight:700; border:1px solid rgba(0,242,254,0.25); margin-bottom:8px;">
+          <span>●</span>
+          <span>CAMPUS TRANSIT PASS • NFC & QR VERIFIED</span>
+        </div>
+        <h2 style="font-size:1.5rem; font-weight:800; color:var(--text); letter-spacing:-0.5px;">Digital Transit Pass</h2>
+        <p style="font-size:0.78rem; color:var(--text-secondary);">Single ride access across all 3 Vellore campus transit corridors</p>
+      </div>
+
+      <!-- Verified High-Definition Pass Card -->
+      <div class="verified-ticket-card" id="verified-ticket-card">
+        <div class="vt-head">
+          <div style="font-size:0.68rem; font-weight:800; letter-spacing:1px; opacity:0.85;">VIT VELLORE TRANSIT SERVICES</div>
+          <div class="vt-title">STUDENT TRANSIT PASS</div>
+          <div class="vt-fare-badge">FARE: ₹20.00 PAID</div>
+        </div>
+        <div class="vt-body">
+          <div style="font-size:0.92rem; font-weight:700; color:var(--text);">Rushi Raj Meher • 21BCE1042</div>
+          <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Pass ID: #VIT-PASS-2026-9481 • Verified Student</div>
+          
+          <!-- QR Code Container with Optical Laser Scanning Line -->
+          <div class="vt-qr-container">
+            <div class="laser-line"></div>
+            <!-- High Definition SVG QR Code Pattern -->
+            <svg style="width:100%; height:100%;" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="100" height="100" fill="white"/>
+              <!-- Corner markers -->
+              <rect x="6" y="6" width="26" height="26" rx="4" fill="#07101E"/>
+              <rect x="10" y="10" width="18" height="18" rx="2" fill="white"/>
+              <rect x="14" y="14" width="10" height="10" fill="#00F2FE"/>
+
+              <rect x="68" y="6" width="26" height="26" rx="4" fill="#07101E"/>
+              <rect x="72" y="10" width="18" height="18" rx="2" fill="white"/>
+              <rect x="76" y="14" width="10" height="10" fill="#00F2FE"/>
+
+              <rect x="6" y="68" width="26" height="26" rx="4" fill="#07101E"/>
+              <rect x="10" y="72" width="18" height="18" rx="2" fill="white"/>
+              <rect x="14" y="76" width="10" height="10" fill="#00F2FE"/>
+
+              <!-- Central transit logo icon -->
+              <circle cx="50" cy="50" r="14" fill="#07101E"/>
+              <text x="50" y="55" font-size="12" text-anchor="middle" fill="#00F2FE">🚌</text>
+
+              <!-- QR data grid matrices -->
+              <rect x="36" y="8" width="6" height="6" fill="#07101E"/>
+              <rect x="46" y="14" width="6" height="6" fill="#07101E"/>
+              <rect x="56" y="8" width="6" height="6" fill="#07101E"/>
+              <rect x="36" y="24" width="6" height="6" fill="#07101E"/>
+              <rect x="56" y="24" width="6" height="6" fill="#07101E"/>
+
+              <rect x="8" y="38" width="6" height="6" fill="#07101E"/>
+              <rect x="20" y="44" width="6" height="6" fill="#07101E"/>
+              <rect x="8" y="54" width="6" height="6" fill="#07101E"/>
+
+              <rect x="68" y="38" width="6" height="6" fill="#07101E"/>
+              <rect x="80" y="44" width="6" height="6" fill="#07101E"/>
+              <rect x="86" y="54" width="6" height="6" fill="#07101E"/>
+
+              <rect x="36" y="68" width="6" height="6" fill="#07101E"/>
+              <rect x="46" y="78" width="6" height="6" fill="#07101E"/>
+              <rect x="56" y="68" width="6" height="6" fill="#07101E"/>
+              <rect x="68" y="78" width="6" height="6" fill="#07101E"/>
+              <rect x="80" y="68" width="6" height="6" fill="#07101E"/>
+            </svg>
+          </div>
+
+          <!-- Active Status Badge with Countdown -->
+          <div class="vt-status-pill">
+            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor;"></span>
+            <span id="ticket-timer-display">Valid for 14m 58s</span>
+          </div>
+
+          <div style="display:flex; justify-content:center; gap:16px; margin-top:16px; font-size:0.75rem; color:var(--text-secondary); border-top:1px dashed var(--border); padding-top:14px;">
+            <div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">VEHICLE</div>
+              <div style="font-weight:700; color:var(--text);">All 3 Loops</div>
+            </div>
+            <div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">SCANNER</div>
+              <div style="font-weight:700; color:var(--text);">Auto-Validating</div>
+            </div>
+            <div>
+              <div style="font-size:0.65rem; color:var(--text-muted);">ZONE</div>
+              <div style="font-weight:700; color:var(--text);">Vellore Campus</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved Trips & History Section -->
+      <div style="margin-top:28px;">
+        <div class="section-title">
+          <span>🕒 Saved Trips & History</span>
+          <span class="section-link" onclick="clearTripHistory()">Clear History</span>
+        </div>
+        <div id="trip-history-container">
+          <div class="history-card">
+            <div class="history-icon">🎓</div>
+            <div>
+              <div class="history-route">SJT Tower ➔ Men's Hostel Office</div>
+              <div class="history-meta">Completed • 12 mins • Today, 11:24 AM</div>
+            </div>
+            <div class="history-price">₹20.00</div>
+          </div>
+          <div class="history-card">
+            <div class="history-icon">☕</div>
+            <div>
+              <div class="history-route">PRP Block ➔ DC Cafe</div>
+              <div class="history-meta">Completed • 8 mins • Today, 09:15 AM</div>
+            </div>
+            <div class="history-price">₹20.00</div>
+          </div>
+          <div class="history-card">
+            <div class="history-icon">🏛️</div>
+            <div>
+              <div class="history-route">Q Block ➔ VIT Main Gate</div>
+              <div class="history-meta">Completed • 15 mins • Yesterday, 05:40 PM</div>
+            </div>
+            <div class="history-price">₹20.00</div>
+          </div>
+          <div class="history-card">
+            <div class="history-icon">📚</div>
+            <div>
+              <div class="history-route">Technology Tower ➔ Central Library</div>
+              <div class="history-meta">Completed • 6 mins • Yesterday, 02:10 PM</div>
+            </div>
+            <div class="history-price">₹20.00</div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- SCREEN 5 (Part B): CAMPUS TRANSIT ALERTS & ANNOUNCEMENTS VIEW -->
+    <div id="tab-view-alerts" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:20px;">
+      <div style="margin-bottom:20px;">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,8,68,0.12); color:var(--warm-coral); padding:4px 14px; border-radius:var(--radius-pill); font-size:0.75rem; font-weight:700; border:1px solid rgba(255,8,68,0.25); margin-bottom:8px;">
+          <span>📢</span>
+          <span>LIVE CAMPUS TRANSIT BULLETINS</span>
+        </div>
+        <h2 style="font-size:1.5rem; font-weight:800; color:var(--text); letter-spacing:-0.5px;">Campus Transit Alerts</h2>
+        <p style="font-size:0.78rem; color:var(--text-secondary);">Real-time dispatch status, corridor diversions, and transit priority updates</p>
+      </div>
+
+      <div id="alerts-feed-container">
+        <!-- Alert 1 -->
+        <div class="alert-feed-card" style="border-left: 3px solid var(--neon-cyan);">
+          <div class="afc-icon-wrap" style="background:rgba(0,242,254,0.12); color:var(--neon-cyan);">⚡</div>
+          <div class="afc-content">
+            <span class="afc-tag" style="background:rgba(0,242,254,0.14); color:var(--neon-cyan);">Peak Hour Fleet Boost</span>
+            <div class="afc-title">Route 1 (MH Express) Frequency Doubled</div>
+            <div class="afc-desc">Route 1 operating with 2 extra fleet units at 3-minute headways between SJT Tower and Men's Hostel blocks to clear peak evening instructional rush.</div>
+            <div class="afc-time">Active Now • High Priority Dispatch</div>
+          </div>
+        </div>
+
+        <!-- Alert 2 -->
+        <div class="alert-feed-card" style="border-left: 3px solid var(--warm-red);">
+          <div class="afc-icon-wrap" style="background:rgba(255,8,68,0.12); color:var(--warm-red);">🚧</div>
+          <div class="afc-content">
+            <span class="afc-tag" style="background:rgba(255,8,68,0.14); color:var(--warm-coral);">Route Diversion</span>
+            <div class="afc-title">TT Portico Walkway Civil Maintenance</div>
+            <div class="afc-desc">Civil maintenance near Technology Tower portico; shuttles temporarily re-routed via Foodys Road junction with direct boarding at K Block.</div>
+            <div class="afc-time">In Effect Today • Estimated 2 Hours Remaining</div>
+          </div>
+        </div>
+
+        <!-- Alert 3 -->
+        <div class="alert-feed-card" style="border-left: 3px solid var(--gold);">
+          <div class="afc-icon-wrap" style="background:rgba(245,158,11,0.12); color:var(--gold);">⭐</div>
+          <div class="afc-content">
+            <span class="afc-tag" style="background:rgba(245,158,11,0.14); color:var(--gold-light);">Priority Policy</span>
+            <div class="afc-title">Faculty VIP Priority Boarding Clearance</div>
+            <div class="afc-desc">Academic faculty members holding verified VIP passes receive priority front-door boarding at SJT & PRP faculty gates across all hours.</div>
+            <div class="afc-time">Standard Operating Policy • Campus Transit</div>
+          </div>
+        </div>
+
+        <!-- Alert 4 -->
+        <div class="alert-feed-card" style="border-left: 3px solid #38BDF8;">
+          <div class="afc-icon-wrap" style="background:rgba(56,189,248,0.12); color:#38BDF8;">🌧️</div>
+          <div class="afc-content">
+            <span class="afc-tag" style="background:rgba(56,189,248,0.14); color:#38BDF8;">Weather Protocol</span>
+            <div class="afc-title">Inclement Weather Safe Speed Protocol</div>
+            <div class="afc-desc">All 3 campus fleet loops operate at 20 km/h safe speed with continuous pickups along sheltered walkways during rain and wet pavement conditions.</div>
+            <div class="afc-time">Automatic Transit Safety Protocol</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dashboard-view-wrapper -->
 
   <!-- ══════════════════════════════
        NOTIFICATIONS MODAL
@@ -4641,21 +5303,17 @@
       <span class="bnav-icon">🏠</span>
       <span>Home</span>
     </button>
-    <button class="bnav-item" id="bnav-map" type="button" onclick="switchTab('map')" aria-label="Interactive Campus Map">
-      <span class="bnav-icon">🗺️</span>
-      <span>Map</span>
-    </button>
-    <button class="bnav-item" id="bnav-routes" type="button" onclick="switchTab('routes')" aria-label="Campus Routes and Timetables">
+    <button class="bnav-item" id="bnav-routes" type="button" onclick="switchTab('routes')" aria-label="Real-time Ride and Transit Tracking">
       <span class="bnav-icon">🚌</span>
       <span>Routes</span>
     </button>
-    <button class="bnav-item" id="bnav-pass" type="button" onclick="switchTab('pass')" aria-label="Digital Transit QR Boarding Pass">
+    <button class="bnav-item" id="bnav-tickets" type="button" onclick="switchTab('tickets')" aria-label="Digital Transit Pass and History">
       <span class="bnav-icon">🎫</span>
-      <span>Pass</span>
+      <span>Tickets</span>
     </button>
-    <button class="bnav-item" id="bnav-profile" type="button" onclick="switchTab('profile')" aria-label="Student Account and Profile">
-      <span class="bnav-icon">👤</span>
-      <span>Profile</span>
+    <button class="bnav-item" id="bnav-alerts" type="button" onclick="switchTab('alerts')" aria-label="Campus Transit Alerts and Announcements">
+      <span class="bnav-icon">🔔</span>
+      <span>Alerts</span>
     </button>
   </nav>
 
@@ -4898,8 +5556,17 @@
       else if (hr >= 17) greetingTime = 'Good evening';
 
       const studentName = currentUser?.name ? currentUser.name.split(' ')[0] : 'Rushi';
+      const studentId = currentUser?.regId || '21BCE1042';
       const greetEl = document.getElementById('dash-greeting-text');
-      if (greetEl) greetEl.textContent = `${greetingTime}, ${studentName}`;
+      if (greetEl) {
+        if (currentRole === 'faculty') {
+          greetEl.textContent = `${greetingTime}, Faculty - Prof. ${studentName}`;
+        } else if (currentRole === 'driver') {
+          greetEl.textContent = `${greetingTime}, Transit Driver - ${studentName}`;
+        } else {
+          greetEl.textContent = `${greetingTime}, Student - ${studentName}, ${studentId}`;
+        }
+      }
 
       const avatarLetterEl = document.getElementById('dash-avatar-letter');
       if (avatarLetterEl) {
@@ -4912,9 +5579,9 @@
 
       const roleBadgeEl = document.getElementById('dash-role-badge');
       if (roleBadgeEl) {
-        if (currentRole === 'faculty') roleBadgeEl.textContent = 'Faculty VIP Transit Active (₹0 Free)';
-        else if (currentRole === 'driver') roleBadgeEl.textContent = 'Driver Telemetry Console Active';
-        else roleBadgeEl.textContent = 'Student Transit Pass Active (₹20)';
+        if (currentRole === 'faculty') roleBadgeEl.textContent = 'FACULTY VIP • PASS ACTIVE (FREE)';
+        else if (currentRole === 'driver') roleBadgeEl.textContent = 'TELEMETRY CONSOLE • ONLINE';
+        else roleBadgeEl.textContent = `PASS ACTIVE • #VIT-${studentId}`;
       }
 
       // Profile modal elements
@@ -5361,26 +6028,33 @@
     // 10. MOBILE & DESKTOP NAVIGATION
     function switchTab(tab) {
       playBeep();
+      triggerHapticFeedback('selection');
       currentTab = tab;
 
-      // Update body tab class for declarative CSS visibility
-      ['home', 'map', 'routes', 'pass', 'profile'].forEach(t => {
+      // Update body tab class
+      ['home', 'routes', 'tickets', 'alerts', 'map', 'pass', 'profile'].forEach(t => {
         document.body.classList.toggle(`tab-${t}`, t === tab);
       });
 
-      // Update bottom nav bar
-      ['home', 'map', 'routes', 'pass', 'profile'].forEach(t => {
+      // Update bottom nav bar (4 icons)
+      ['home', 'routes', 'tickets', 'alerts'].forEach(t => {
         const btn = document.getElementById(`bnav-${t}`);
         if (btn) btn.classList.toggle('active', t === tab);
       });
 
       const dashWrapper = document.getElementById('dashboard-view-wrapper');
+      const tabHome = document.getElementById('tab-view-home');
+      const tabTickets = document.getElementById('tab-view-tickets');
+      const tabAlerts = document.getElementById('tab-view-alerts');
       const topBar = document.querySelector('.top-bar');
       const mapControls = document.querySelector('.map-controls');
       const bottomTray = document.querySelector('.bottom-tray');
 
       if (tab === 'home') {
         if (dashWrapper) dashWrapper.classList.add('active');
+        if (tabHome) tabHome.style.display = 'block';
+        if (tabTickets) tabTickets.style.display = 'none';
+        if (tabAlerts) tabAlerts.style.display = 'none';
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
@@ -5389,25 +6063,96 @@
         toggleMapListMode(false);
         closeStopDetailDrawer();
         initDashboard();
-      } else if (tab === 'map') {
+      } else if (tab === 'routes' || tab === 'map') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (topBar) topBar.style.display = 'flex';
         if (mapControls) mapControls.style.display = 'flex';
         if (bottomTray) bottomTray.style.display = 'block';
         toggleMapListMode(false);
+        updateTrackingBanner();
         setTimeout(() => map.invalidateSize(), 150);
-      } else if (tab === 'routes') {
-        if (dashWrapper) dashWrapper.classList.remove('active');
-        if (topBar) topBar.style.display = 'flex';
-        if (mapControls) mapControls.style.display = 'flex';
+      } else if (tab === 'tickets' || tab === 'pass') {
+        if (dashWrapper) dashWrapper.classList.add('active');
+        if (tabHome) tabHome.style.display = 'none';
+        if (tabTickets) tabTickets.style.display = 'block';
+        if (tabAlerts) tabAlerts.style.display = 'none';
+        if (topBar) topBar.style.display = 'none';
+        if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
-        closeStopDetailDrawer();
-        toggleMapListMode(true);
-      } else if (tab === 'pass') {
-        openTicketModal(currentRole === 'faculty' ? 'faculty' : 'general');
-      } else if (tab === 'profile') {
-        openProfileModal();
+        startTicketCountdown();
+      } else if (tab === 'alerts') {
+        if (dashWrapper) dashWrapper.classList.add('active');
+        if (tabHome) tabHome.style.display = 'none';
+        if (tabTickets) tabTickets.style.display = 'none';
+        if (tabAlerts) tabAlerts.style.display = 'block';
+        if (topBar) topBar.style.display = 'none';
+        if (mapControls) mapControls.style.display = 'none';
+        if (bottomTray) bottomTray.style.display = 'none';
       }
+    }
+
+    // Call Driver Action
+    function callDriver() {
+      playBeep();
+      triggerHapticFeedback('medium');
+      const shuttle = (typeof activeShuttles !== 'undefined' && activeShuttles[selectedShuttleId]) 
+        ? activeShuttles[selectedShuttleId] 
+        : { name: 'MH Bus #101', driverName: 'Rajesh Kumar', driverPhone: '+91 98401 23456' };
+      const dName = shuttle.driverName || 'Rajesh Kumar';
+      const dPhone = shuttle.driverPhone || '+91 98401 23456';
+      
+      const proceed = confirm(`📞 Call Driver for ${shuttle.name}?\n\nDriver: ${dName}\nVehicle Badge: BUS-101-DRV\nDirect Line: ${dPhone}\n\nClick OK to dial now.`);
+      if (proceed) {
+        window.location.href = `tel:${dPhone.replace(/[^0-9+]/g, '')}`;
+      }
+    }
+
+    // 15-Minute Live Ticket Countdown Timer
+    let ticketTimeRemaining = 14 * 60 + 58;
+    let ticketTimerInterval = null;
+
+    function startTicketCountdown() {
+      if (ticketTimerInterval) clearInterval(ticketTimerInterval);
+      ticketTimerInterval = setInterval(() => {
+        if (ticketTimeRemaining > 0) {
+          ticketTimeRemaining--;
+          const m = Math.floor(ticketTimeRemaining / 60);
+          const s = ticketTimeRemaining % 60;
+          const str = `Valid for ${m}m ${s < 10 ? '0' : ''}${s}s`;
+          const el = document.getElementById('ticket-timer-display');
+          if (el) el.textContent = str;
+        }
+      }, 1000);
+    }
+
+    function clearTripHistory() {
+      playBeep();
+      const cont = document.getElementById('trip-history-container');
+      if (cont) {
+        cont.innerHTML = '<div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.8rem;">No recent trip history.</div>';
+      }
+    }
+
+    // Update Real-Time Tracking Top Status Banner
+    function updateTrackingBanner() {
+      const shuttle = (typeof activeShuttles !== 'undefined' && activeShuttles[selectedShuttleId]) ? activeShuttles[selectedShuttleId] : null;
+      if (!shuttle) return;
+
+      const sidEl = document.getElementById('tsb-shuttle-id');
+      const nextEl = document.getElementById('tsb-next-stop');
+      const spdEl = document.getElementById('tsb-speed');
+      const etaEl = document.getElementById('tsb-eta');
+
+      if (sidEl) {
+        if (shuttle.id === 'vit_faculty_shuttle_201') sidEl.textContent = 'Fac VIP #201';
+        else if (shuttle.id === 'vit_general_bus_102') sidEl.textContent = 'LH Bus #102';
+        else sidEl.textContent = 'MH Bus #101';
+      }
+
+      const next = (shuttle.nextStops && shuttle.nextStops[0]) ? shuttle.nextStops[0] : null;
+      if (nextEl) nextEl.textContent = next ? next.stopName : 'MB - Main Bldg';
+      if (spdEl) spdEl.textContent = `${shuttle.speed || 22} KM/H`;
+      if (etaEl) etaEl.textContent = next ? `${next.etaMinutes} MIN` : '3 MIN';
     }
 
     // 8. NOTIFICATIONS & PROFILE MODALS
@@ -6450,7 +7195,7 @@
 
       const ar = document.getElementById('action-row-content');
       if (!isFac) {
-        ar.innerHTML = `<button class="action-btn-main blue btn" onclick="openTicketModal('general')">🎫 Book Digital Pass (₹20)</button>`;
+        ar.innerHTML = `<button class="action-btn-main blue btn" onclick="openTicketModal('general')">🎫 Book Digital Pass (₹20)</button><button class="btn btn-outline" style="border-radius:var(--radius-pill); border-color:rgba(0,242,254,0.4); color:var(--neon-cyan); padding:0 14px; font-size:0.75rem; font-weight:700;" type="button" onclick="callDriver()">📞 Call Driver</button>`;
       } else if (currentRole==='faculty') {
         ar.innerHTML = `<button class="action-btn-main green btn" onclick="openTicketModal('faculty')">⭐ Show Faculty VIP Pass (FREE)</button>`;
       } else {
