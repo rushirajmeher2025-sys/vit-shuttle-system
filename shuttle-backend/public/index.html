@@ -3495,12 +3495,17 @@
       display: none !important;
     }
 
-    /* Tab-based mutual exclusion: Map-specific floating UI strictly belongs to Map/Routes tab */
-    body:not(.tab-map):not(.tab-routes) .map-controls,
-    body:not(.tab-map):not(.tab-routes) .top-bar,
-    body:not(.tab-map):not(.tab-routes) .bottom-tray,
-    body:not(.tab-map):not(.tab-routes) #route-legend-card,
-    body:not(.tab-map):not(.tab-routes) #journey-map-hud {
+    /* Tab-based mutual exclusion: Map-specific floating UI strictly belongs to Map tab */
+    body:not(.tab-map) .map-controls,
+    body:not(.tab-map) .bottom-tray,
+    body:not(.tab-map) #route-legend-card,
+    body:not(.tab-map) #journey-map-hud {
+      display: none !important;
+    }
+    body.tab-home .top-bar,
+    body.tab-tickets .top-bar,
+    body.tab-pass .top-bar,
+    body.tab-alerts .top-bar {
       display: none !important;
     }
 
@@ -3846,16 +3851,16 @@
       flex-shrink: 0;
     }
 
-    /* Floating 4-Icon Bottom Navigation */
+    /* Floating Modern Bottom Navigation (Home, Map, Routes, Pass, Alerts) */
     .bottom-nav-bar {
       position: fixed;
-      bottom: 16px !important;
-      left: 16px !important;
-      right: 16px !important;
-      max-width: 440px !important;
+      bottom: 12px !important;
+      left: 10px !important;
+      right: 10px !important;
+      max-width: 520px !important;
       margin: 0 auto !important;
       height: 64px !important;
-      background: rgba(11, 15, 23, 0.88) !important;
+      background: rgba(11, 15, 23, 0.94) !important;
       border: 1px solid rgba(255, 255, 255, 0.12) !important;
       border-radius: var(--radius-pill) !important;
       backdrop-filter: var(--glass-blur) !important;
@@ -3863,9 +3868,9 @@
       display: flex !important;
       align-items: center !important;
       justify-content: space-around !important;
-      z-index: 1000 !important;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 242, 254, 0.12) !important;
-      padding: 0 8px !important;
+      z-index: 1100 !important;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(0, 242, 254, 0.15) !important;
+      padding: 0 6px !important;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     .bnav-item {
@@ -4710,7 +4715,7 @@
           <div style="font-family:'Space Grotesk',sans-serif;font-size:1.25rem;font-weight:700;color:var(--text);">Campus Transit Directory</div>
           <div style="font-size:0.78rem;color:var(--text-secondary);">Comprehensive corridors, timetables & stops</div>
         </div>
-        <button class="btn btn-primary btn-sm" type="button" onclick="toggleMapListMode()">🗺️ Back to Map</button>
+        <button class="btn btn-primary btn-sm" type="button" onclick="switchTab('map')">🗺️ Back to Map</button>
       </div>
       <div class="role-tabs" style="width:100%;max-width:320px;margin-bottom:14px;">
         <button id="tab-list-routes" class="role-tab active-student" type="button" onclick="switchListDirectoryTab('routes')">🚌 3 Corridors</button>
@@ -4937,7 +4942,7 @@
               <div class="qa-sub">Top 6 campus locations</div>
             </div>
           </button>
-          <button class="qa-card" type="button" onclick="switchTab('routes')" aria-label="Track Shuttle">
+          <button class="qa-card" type="button" onclick="switchTab('map')" aria-label="Track Shuttle">
             <div class="qa-icon" style="background:rgba(79, 172, 254, 0.15); color:var(--neon-blue);">🚌</div>
             <div class="qa-info">
               <div class="qa-title">Track Shuttle</div>
@@ -5052,7 +5057,8 @@
     </div><!-- /tab-view-home -->
 
     <!-- SCREEN 5: DIGITAL TICKET / PASS & SAVED TRIPS VIEW -->
-    <div id="tab-view-tickets" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:20px;">
+    <div id="tab-view-tickets" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:16px;">
+      <button class="btn btn-outline btn-sm" type="button" onclick="switchTab('home')" style="border-radius:var(--radius-pill);margin-bottom:14px;padding:6px 14px;font-size:0.75rem;">← Back to Home</button>
       <div style="text-align:center; margin-bottom:20px;">
         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,242,254,0.12); color:var(--neon-cyan); padding:4px 14px; border-radius:var(--radius-pill); font-size:0.75rem; font-weight:700; border:1px solid rgba(0,242,254,0.25); margin-bottom:8px;">
           <span>●</span>
@@ -5186,7 +5192,8 @@
     </div>
 
     <!-- SCREEN 5 (Part B): CAMPUS TRANSIT ALERTS & ANNOUNCEMENTS VIEW -->
-    <div id="tab-view-alerts" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:20px;">
+    <div id="tab-view-alerts" class="tab-view-container dashboard-container" style="display:none; max-width:640px; margin:0 auto; padding-top:16px;">
+      <button class="btn btn-outline btn-sm" type="button" onclick="switchTab('home')" style="border-radius:var(--radius-pill);margin-bottom:14px;padding:6px 14px;font-size:0.75rem;">← Back to Home</button>
       <div style="margin-bottom:20px;">
         <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(255,8,68,0.12); color:var(--warm-coral); padding:4px 14px; border-radius:var(--radius-pill); font-size:0.75rem; font-weight:700; border:1px solid rgba(255,8,68,0.25); margin-bottom:8px;">
           <span>📢</span>
@@ -5303,13 +5310,17 @@
       <span class="bnav-icon">🏠</span>
       <span>Home</span>
     </button>
-    <button class="bnav-item" id="bnav-routes" type="button" onclick="switchTab('routes')" aria-label="Real-time Ride and Transit Tracking">
+    <button class="bnav-item" id="bnav-map" type="button" onclick="switchTab('map')" aria-label="Interactive Campus Map">
+      <span class="bnav-icon">🗺️</span>
+      <span>Map</span>
+    </button>
+    <button class="bnav-item" id="bnav-routes" type="button" onclick="switchTab('routes')" aria-label="Campus Routes and Timetables">
       <span class="bnav-icon">🚌</span>
       <span>Routes</span>
     </button>
     <button class="bnav-item" id="bnav-tickets" type="button" onclick="switchTab('tickets')" aria-label="Digital Transit Pass and History">
       <span class="bnav-icon">🎫</span>
-      <span>Tickets</span>
+      <span>Pass</span>
     </button>
     <button class="bnav-item" id="bnav-alerts" type="button" onclick="switchTab('alerts')" aria-label="Campus Transit Alerts and Announcements">
       <span class="bnav-icon">🔔</span>
@@ -6029,21 +6040,23 @@
     function switchTab(tab) {
       playBeep();
       triggerHapticFeedback('selection');
+
+      // Canonical mapping: 'pass' maps to 'tickets'
+      if (tab === 'pass') tab = 'tickets';
+
       currentTab = tab;
 
-      const isMapOrRoutes = (tab === 'routes' || tab === 'map');
-
       // Update body tab class
-      ['home', 'routes', 'tickets', 'alerts', 'map', 'pass', 'profile'].forEach(t => {
-        const isActive = (t === tab) || (isMapOrRoutes && (t === 'routes' || t === 'map'));
-        document.body.classList.toggle(`tab-${t}`, isActive);
+      ['home', 'map', 'routes', 'tickets', 'pass', 'alerts', 'profile'].forEach(t => {
+        const isMatch = (t === tab) || (tab === 'tickets' && t === 'pass');
+        document.body.classList.toggle(`tab-${t}`, isMatch);
       });
 
-      // Update bottom nav bar (4 icons)
-      ['home', 'routes', 'tickets', 'alerts'].forEach(t => {
+      // Update bottom nav bar (Home, Map, Routes, Pass/Tickets, Alerts)
+      ['home', 'map', 'routes', 'tickets', 'alerts'].forEach(t => {
         const btn = document.getElementById(`bnav-${t}`);
-        const isActive = (t === tab) || (isMapOrRoutes && t === 'routes');
-        if (btn) btn.classList.toggle('active', isActive);
+        const isMatch = (t === tab) || (tab === 'tickets' && t === 'tickets');
+        if (btn) btn.classList.toggle('active', isMatch);
       });
 
       const dashWrapper = document.getElementById('dashboard-view-wrapper');
@@ -6067,7 +6080,8 @@
         toggleMapListMode(false);
         closeStopDetailDrawer();
         initDashboard();
-      } else if (isMapOrRoutes) {
+        if (dashWrapper) dashWrapper.scrollTop = 0;
+      } else if (tab === 'map') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (topBar) {
           topBar.style.display = 'flex';
@@ -6083,10 +6097,23 @@
         }
         toggleMapListMode(false);
         updateTrackingBanner();
+        closeJourneyMapHUD();
         setTimeout(() => {
           if (map) map.invalidateSize();
         }, 100);
-      } else if (tab === 'tickets' || tab === 'pass') {
+      } else if (tab === 'routes') {
+        if (dashWrapper) dashWrapper.classList.remove('active');
+        if (topBar) {
+          topBar.style.display = 'flex';
+          topBar.style.visibility = 'visible';
+        }
+        if (mapControls) mapControls.style.display = 'none';
+        if (bottomTray) bottomTray.style.display = 'none';
+        closeStopDetailDrawer();
+        closeJourneyMapHUD();
+        toggleMapListMode(true);
+        renderListViewContent();
+      } else if (tab === 'tickets') {
         if (dashWrapper) dashWrapper.classList.add('active');
         if (tabHome) tabHome.style.display = 'none';
         if (tabTickets) tabTickets.style.display = 'block';
@@ -6094,7 +6121,10 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
+        closeJourneyMapHUD();
+        toggleMapListMode(false);
         startTicketCountdown();
+        if (dashWrapper) dashWrapper.scrollTop = 0;
       } else if (tab === 'alerts') {
         if (dashWrapper) dashWrapper.classList.add('active');
         if (tabHome) tabHome.style.display = 'none';
@@ -6103,6 +6133,11 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
+        closeJourneyMapHUD();
+        toggleMapListMode(false);
+        if (dashWrapper) dashWrapper.scrollTop = 0;
+      } else if (tab === 'profile') {
+        openProfileModal();
       }
     }
 
@@ -6792,12 +6827,12 @@
     }
 
     function inspectRouteOnMap(routeId) {
-      toggleMapListMode(false);
+      switchTab('map');
       setMapFilter(routeId);
     }
 
     function inspectStopOnMap(stopId) {
-      toggleMapListMode(false);
+      switchTab('map');
       const s = campusStops.find(stop => stop.id === stopId);
       if (s) {
         map.flyTo([s.lat, s.lng], 17.5, { duration: 0.8 });
@@ -8521,7 +8556,7 @@
       journeyPlannerState.activeJourney = opt;
 
       document.getElementById('journey-planner-modal')?.classList.remove('active');
-      switchTab('routes');
+      switchTab('map');
 
       if (!journeyMapLayerGroup) {
         journeyMapLayerGroup = L.layerGroup().addTo(map);
