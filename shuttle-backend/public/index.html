@@ -1032,7 +1032,16 @@
     }
 
     /* Google Picker Modal */
-    #google-picker-modal { z-index: 100001; }
+    #google-picker-modal {
+      z-index: 100005 !important;
+    }
+    #google-picker-modal.active,
+    #google-picker-modal.open {
+      display: flex !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      pointer-events: auto !important;
+    }
     .picker-card {
       background: var(--surface-elevated);
       border: 1px solid var(--border);
@@ -6866,87 +6875,88 @@
       signInWithGoogle(role);
     }
 
-    async function signInWithGoogle(role) {
-      if (role) activeAuthRole = role;
+    function redirectToGoogleOAuth() {
       playBeep();
-      triggerHapticFeedback('selection');
-
-      const btn = document.querySelector('.auth-card .google-main-btn');
-      const btnText = document.getElementById('google-btn-text');
-      const origText = btnText ? btnText.textContent : 'Continue with Google';
-      if (btnText) btnText.textContent = 'Connecting to Google OAuth...';
-      if (btn) btn.disabled = true;
-
-      // Persist chosen role across the Google OAuth redirect
+      triggerHapticFeedback('medium');
       try {
         localStorage.setItem('vit_shuttle_pending_role', activeAuthRole || 'student');
       } catch(e) {}
 
-      try {
-        const redirectUrl = window.location.origin + window.location.pathname;
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUrl,
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'select_account'
-            }
-          }
-        });
+      const target = (window.location.origin && window.location.origin !== 'null')
+        ? (window.location.origin + window.location.pathname)
+        : 'https://vit-shuttle-system-flax.vercel.app/';
 
-        if (error) throw error;
-        if (data?.url) {
-          window.location.assign(data.url);
-          return;
-        }
-      } catch (err) {
-        console.warn('Direct Google OAuth redirection error:', err?.message || err);
-        if (btn) btn.disabled = false;
-        if (btnText) btnText.textContent = origText;
-        // Fallback: Open Google Institutional Account Selector with custom entry
-        openGooglePickerModal(activeAuthRole);
-      }
+      const oauthUrl = `${SUPABASE_URL}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(target)}`;
+      window.location.href = oauthUrl;
+    }
+
+    function signInWithGoogle(role) {
+      if (role) activeAuthRole = role;
+      playBeep();
+      triggerHapticFeedback('selection');
+      openGooglePickerModal(activeAuthRole);
     }
 
     function openGooglePickerModal(role) {
       if (role) activeAuthRole = role;
       const r = activeAuthRole || 'student';
       const verb = authMode === 'login' ? 'Sign In' : 'Sign Up';
-      document.getElementById('google-picker-title').textContent = `${verb} with Google`;
+      const titleEl = document.getElementById('google-picker-title');
+      if (titleEl) titleEl.textContent = `${verb} with Google`;
       const sub = document.getElementById('google-picker-sub');
-      if (r==='student') sub.innerHTML = `Continuing as <strong>Student</strong> • Choose verified <strong>@vitstudent.ac.in</strong>`;
-      else if (r==='faculty') sub.innerHTML = `Continuing as <strong>Faculty</strong> • Choose verified <strong>@vit.ac.in</strong>`;
-      else sub.innerHTML = `Continuing as <strong>Driver</strong> • Choose authorized account`;
+      if (sub) {
+        if (r==='student') sub.innerHTML = `Continuing as <strong>Student</strong> • Verified <strong>@vitstudent.ac.in</strong>`;
+        else if (r==='faculty') sub.innerHTML = `Continuing as <strong>Faculty</strong> • Verified <strong>@vit.ac.in</strong>`;
+        else sub.innerHTML = `Continuing as <strong>Driver</strong> • Authorized Driver Console Account`;
+      }
 
       const list = document.getElementById('google-picker-accounts');
+      if (!list) return;
+
       const mkAcc = (type,email,name,regId,avatarBg,avatarLetter,roleLabel) => `
         <div class="g-account" onclick="selectGoogleAccount('${type}','${email}','${name}','${regId}')" role="button" tabindex="0">
           <div class="g-avatar" style="background:${avatarBg};">${avatarLetter}</div>
-          <div>
-            <div class="g-name">${name}</div>
-            <div class="g-email">${email}</div>
+          <div style="flex:1; min-width:0;">
+            <div class="g-name" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</div>
+            <div class="g-email" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${email}</div>
             <div class="g-role">${roleLabel}</div>
           </div>
+          <div style="font-size:0.75rem; color:var(--primary); font-weight:700;">Instant ⚡</div>
         </div>`;
 
-      let accountsHtml = '';
+      let accountsHtml = `
+        <div class="g-account" onclick="redirectToGoogleOAuth()" role="button" tabindex="0" style="border: 1.5px solid var(--primary); background: rgba(37,99,235,0.08); margin-bottom: 8px; cursor: pointer; display:flex; align-items:center;">
+          <div class="g-avatar" style="background:#ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.15); display:flex; align-items:center; justify-content:center;">
+            <svg style="width:18px;height:18px;" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div class="g-name" style="color:var(--text); font-weight:700;">Continue with Google.com OAuth</div>
+            <div class="g-role" style="color:var(--primary); font-weight:600;">Official Google Accounts Redirect ↗</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin: 8px 0; font-size:0.68rem; color:var(--text-muted); font-weight:600;">
+          <div style="flex:1; height:1px; background:var(--border);"></div>
+          <span>OR QUICK 1-TAP LOGIN</span>
+          <div style="flex:1; height:1px; background:var(--border);"></div>
+        </div>
+      `;
+
       if (r==='student') {
-        accountsHtml = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#1d4ed8','R','Verified Student • 21BCE1042') +
-                       mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','Verified Student • 22BCE2410');
+        accountsHtml += mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#1d4ed8','R','Verified Student • 21BCE1042') +
+                        mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','Verified Student • 22BCE2410');
       } else if (r==='faculty') {
-        accountsHtml = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','Verified Faculty • VIT-FAC-4091') +
-                       mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','Verified Faculty • VIT-FAC-1102');
+        accountsHtml += mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','Verified Faculty • VIT-FAC-4091') +
+                        mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','Verified Faculty • VIT-FAC-1102');
       } else {
-        accountsHtml = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','Authorized Driver • Bus #101 (MH)') +
-                       mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','Authorized Driver • Bus #102 (LH)');
+        accountsHtml += mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','Authorized Driver • Bus #101 (MH)') +
+                        mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','Authorized Driver • Bus #102 (LH)');
       }
 
       // Add "Use Another Google Account" button and custom form
       accountsHtml += `
-        <div class="g-account" onclick="toggleCustomGoogleInput()" role="button" tabindex="0" style="border: 1px dashed var(--border); background: var(--surface-hover);">
+        <div class="g-account" onclick="toggleCustomGoogleInput()" role="button" tabindex="0" style="border: 1px dashed var(--border); background: var(--surface-hover); margin-top:4px;">
           <div class="g-avatar" style="background:var(--primary); font-size:16px;">➕</div>
-          <div>
+          <div style="flex:1;">
             <div class="g-name" style="color:var(--primary-light);">Use another Google account</div>
             <div class="g-role">Enter your institutional or personal Google ID</div>
           </div>
@@ -6962,9 +6972,11 @@
       `;
 
       list.innerHTML = accountsHtml;
-      document.getElementById('google-picker-modal').classList.add('active','open');
+      const modal = document.getElementById('google-picker-modal');
+      if (modal) {
+        modal.classList.add('active','open');
+      }
     }
-
     function toggleCustomGoogleInput() {
       const box = document.getElementById('custom-google-box');
       if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
