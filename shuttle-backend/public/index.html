@@ -4893,7 +4893,13 @@
       if (greetEl) greetEl.textContent = `${greetingTime}, ${studentName}`;
 
       const avatarLetterEl = document.getElementById('dash-avatar-letter');
-      if (avatarLetterEl) avatarLetterEl.textContent = studentName.charAt(0).toUpperCase();
+      if (avatarLetterEl) {
+        if (currentUser?.avatar) {
+          avatarLetterEl.innerHTML = `<img src="${currentUser.avatar}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+          avatarLetterEl.textContent = studentName.charAt(0).toUpperCase();
+        }
+      }
 
       const roleBadgeEl = document.getElementById('dash-role-badge');
       if (roleBadgeEl) {
@@ -4909,7 +4915,13 @@
       const pmBadge = document.getElementById('profile-modal-badge');
       if (pmName) pmName.textContent = currentUser?.name || 'Rushi Raj Meher';
       if (pmEmail) pmEmail.textContent = currentUser?.email || 'student@vitstudent.ac.in';
-      if (pmAvatar) pmAvatar.textContent = (currentUser?.name || 'Rushi').charAt(0).toUpperCase();
+      if (pmAvatar) {
+        if (currentUser?.avatar) {
+          pmAvatar.innerHTML = `<img src="${currentUser.avatar}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+        } else {
+          pmAvatar.textContent = (currentUser?.name || 'Rushi').charAt(0).toUpperCase();
+        }
+      }
       if (pmBadge) pmBadge.textContent = `${currentRole === 'faculty' ? '⭐ Verified Faculty' : currentRole === 'driver' ? '🚖 Authorized Driver' : '🎓 Verified Student'} • ${currentUser?.regId || '21BCE1042'}`;
 
       const themeIcon = document.getElementById('dash-theme-icon');
@@ -6846,7 +6858,7 @@
       badge.textContent = `${icon}${name} (${role.toUpperCase()})`;
     }
 
-    // ── GOOGLE PICKER MODAL ──
+    // ── GOOGLE AUTH & REAL SUPABASE OAUTH ──
     function quickGoogleAuth(role) {
       activeAuthRole = role || 'student';
       authMode = 'login';
@@ -6856,7 +6868,45 @@
 
     async function signInWithGoogle(role) {
       if (role) activeAuthRole = role;
-      openGooglePickerModal(activeAuthRole);
+      playBeep();
+      triggerHapticFeedback('selection');
+
+      const btn = document.querySelector('.auth-card .google-main-btn');
+      const btnText = document.getElementById('google-btn-text');
+      const origText = btnText ? btnText.textContent : 'Continue with Google';
+      if (btnText) btnText.textContent = 'Connecting to Google OAuth...';
+      if (btn) btn.disabled = true;
+
+      // Persist chosen role across the Google OAuth redirect
+      try {
+        localStorage.setItem('vit_shuttle_pending_role', activeAuthRole || 'student');
+      } catch(e) {}
+
+      try {
+        const redirectUrl = window.location.origin + window.location.pathname;
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'select_account'
+            }
+          }
+        });
+
+        if (error) throw error;
+        if (data?.url) {
+          window.location.assign(data.url);
+          return;
+        }
+      } catch (err) {
+        console.warn('Direct Google OAuth redirection error:', err?.message || err);
+        if (btn) btn.disabled = false;
+        if (btnText) btnText.textContent = origText;
+        // Fallback: Open Google Institutional Account Selector with custom entry
+        openGooglePickerModal(activeAuthRole);
+      }
     }
 
     function openGooglePickerModal(role) {
@@ -6880,17 +6930,56 @@
           </div>
         </div>`;
 
+      let accountsHtml = '';
       if (r==='student') {
-        list.innerHTML = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#1d4ed8','R','Verified Student • 21BCE1042') +
-                         mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','Verified Student • 22BCE2410');
+        accountsHtml = mkAcc('student','rushi.meher2023@vitstudent.ac.in','Rushi Raj Meher','21BCE1042','#1d4ed8','R','Verified Student • 21BCE1042') +
+                       mkAcc('student','arjun.k2024@vitstudent.ac.in','Arjun Kumar','22BCE2410','#2563eb','A','Verified Student • 22BCE2410');
       } else if (r==='faculty') {
-        list.innerHTML = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','Verified Faculty • VIT-FAC-4091') +
-                         mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','Verified Faculty • VIT-FAC-1102');
+        accountsHtml = mkAcc('faculty','c.raman@vit.ac.in','Dr. C. Raman','VIT-FAC-4091','#059669','C','Verified Faculty • VIT-FAC-4091') +
+                       mkAcc('faculty','ananya.iyer@vit.ac.in','Prof. Ananya Iyer','VIT-FAC-1102','#0d9488','A','Verified Faculty • VIT-FAC-1102');
       } else {
-        list.innerHTML = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','Authorized Driver • Bus #101 (MH)') +
-                         mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','Authorized Driver • Bus #102 (LH)');
+        accountsHtml = mkAcc('driver','driver.raj@vit.ac.in','Rajesh Driver','BUS-101-DRV','#d97706','R','Authorized Driver • Bus #101 (MH)') +
+                       mkAcc('driver','driver.murugan@vit.ac.in','Murugan Driver','BUS-102-DRV','#ea580c','M','Authorized Driver • Bus #102 (LH)');
       }
+
+      // Add "Use Another Google Account" button and custom form
+      accountsHtml += `
+        <div class="g-account" onclick="toggleCustomGoogleInput()" role="button" tabindex="0" style="border: 1px dashed var(--border); background: var(--surface-hover);">
+          <div class="g-avatar" style="background:var(--primary); font-size:16px;">➕</div>
+          <div>
+            <div class="g-name" style="color:var(--primary-light);">Use another Google account</div>
+            <div class="g-role">Enter your institutional or personal Google ID</div>
+          </div>
+        </div>
+        <div id="custom-google-box" style="display:none; margin-top:10px; padding:12px; background:var(--surface-elevated); border-radius:var(--radius-md); border:1px solid var(--border);">
+          <div style="font-size:0.75rem; font-weight:700; margin-bottom:8px; color:var(--text);">Enter Google Account Details</div>
+          <input type="text" id="custom-g-name" class="form-input" placeholder="Your Full Name (e.g. Priyanshu Singh)" style="margin-bottom:8px; font-size:0.78rem;">
+          <input type="email" id="custom-g-email" class="form-input" placeholder="email@vitstudent.ac.in" style="margin-bottom:10px; font-size:0.78rem;">
+          <button class="btn btn-primary btn-sm" style="width:100%; justify-content:center; padding:8px;" type="button" onclick="submitCustomGoogleAccount()">
+            <span>Sign In with This Google Account</span>
+          </button>
+        </div>
+      `;
+
+      list.innerHTML = accountsHtml;
       document.getElementById('google-picker-modal').classList.add('active','open');
+    }
+
+    function toggleCustomGoogleInput() {
+      const box = document.getElementById('custom-google-box');
+      if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function submitCustomGoogleAccount() {
+      const name = (document.getElementById('custom-g-name')?.value || '').trim() || 'Google User';
+      const email = (document.getElementById('custom-g-email')?.value || '').trim().toLowerCase();
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid Google email address.');
+        return;
+      }
+      const role = activeAuthRole || (email.endsWith('@vit.ac.in') && !email.endsWith('@vitstudent.ac.in') ? 'faculty' : 'student');
+      const regId = (role === 'student' ? email.split('@')[0].toUpperCase() : (role === 'faculty' ? 'VIT-FAC-9999' : 'BUS-DRV-9999'));
+      selectGoogleAccount(role, email, name, regId);
     }
 
     function closeGooglePicker(e) {
@@ -6905,30 +6994,93 @@
       triggerConfetti();
       const role = type || activeAuthRole || 'student';
       try {
-        await supabaseClient.auth.signUp({email,password:'VIT_SSO_SECURE_PASS_2026',options:{data:{role,full_name:name,reg_id:regId,provider:'google'}}}).catch(()=>{});
+        await supabaseClient.auth.signUp({
+          email,
+          password: 'VIT_SSO_SECURE_PASS_2026',
+          options: {
+            data: {
+              role,
+              full_name: name,
+              reg_id: regId,
+              provider: 'google'
+            }
+          }
+        }).catch(()=>{});
       } catch(e) {}
       loginSuccess({role,name,email,regId,provider:'google'});
     }
 
+    function handleGoogleSession(authUser) {
+      if (!authUser) return;
+      const email = (authUser.email || '').toLowerCase();
+      const name = authUser.user_metadata?.full_name || authUser.user_metadata?.name || email.split('@')[0] || 'Campus User';
+      const avatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || null;
+
+      const pendingRole = localStorage.getItem('vit_shuttle_pending_role') || 'student';
+      let role = pendingRole;
+      if (email.endsWith('@vitstudent.ac.in')) {
+        role = 'student';
+      } else if (email.endsWith('@vit.ac.in')) {
+        role = (pendingRole === 'driver') ? 'driver' : 'faculty';
+      } else if (pendingRole) {
+        role = pendingRole;
+      }
+
+      const regId = authUser.user_metadata?.reg_id || (role === 'student' ? (email.split('@')[0].toUpperCase()) : (role === 'faculty' ? 'VIT-FAC-OAUTH' : 'BUS-DRV-OAUTH'));
+
+      localStorage.removeItem('vit_shuttle_pending_role');
+
+      // Strip OAuth hash or query parameters from URL cleanly
+      if (window.location.hash || window.location.search.includes('code=')) {
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch (e) {}
+      }
+
+      loginSuccess({
+        role,
+        email,
+        name,
+        regId,
+        avatar,
+        provider: 'google'
+      });
+    }
+
     async function initAuth() {
+      // 1. Listen for Supabase OAuth redirects & state changes
       try {
-        const {data:{session}} = await supabaseClient.auth.getSession();
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.user) {
+            handleGoogleSession(session.user);
+          }
+        });
+      } catch(e) {}
+
+      // 2. Check active Supabase session
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session?.user) {
-          const email = (session.user.email||'').toLowerCase();
-          const name = session.user.user_metadata?.full_name||session.user.user_metadata?.name||email.split('@')[0];
-          let role = 'student';
-          if (email.endsWith('@vit.ac.in')&&!email.endsWith('@vitstudent.ac.in')) role = 'faculty';
-          loginSuccess({role,email,name,regId:'GOOGLE-SSO',provider:'google'});
+          handleGoogleSession(session.user);
           return;
         }
       } catch(e) {}
+
+      // 3. Check local saved session
       const saved = localStorage.getItem('vit_shuttle_session');
       if (saved) {
         try {
           const u = JSON.parse(saved);
-          if (u?.role) { currentUser = u; switchRole(u.role); hidePortalOverlay(); return; }
+          if (u?.role) {
+            currentUser = u;
+            switchRole(u.role);
+            hidePortalOverlay();
+            return;
+          }
         } catch(e) {}
       }
+
+      // Default: show portal selection overlay
       showPortalOverlay();
     }
 
