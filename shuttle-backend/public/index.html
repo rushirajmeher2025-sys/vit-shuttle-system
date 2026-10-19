@@ -5401,6 +5401,20 @@
       triggerHaptic('success');
     }
 
+    function playBoop() {
+      triggerHaptic('tap');
+    }
+
+    function triggerHapticFeedback(type = 'light') {
+      triggerHaptic(type);
+    }
+
+    window.triggerHapticFeedback = triggerHapticFeedback;
+    window.triggerHaptic = triggerHaptic;
+    window.playBeep = playBeep;
+    window.playChime = playChime;
+    window.playBoop = playBoop;
+
     // Global tactile haptic feedback on all interactive touch elements
     document.addEventListener('click', (e) => {
       const target = e.target.closest('button, .btn, .role-card, .role-tab, .shuttle-tab, .map-btn, .stop-box, .g-account, .card-google-btn, .btn-icon, .auth-tab, [role="button"], .theme-toggle-btn, .filter-pill, .fav-chip, .shortcut-card, .bnav-item');
@@ -6038,8 +6052,7 @@
 
     // 10. MOBILE & DESKTOP NAVIGATION
     function switchTab(tab) {
-      playBeep();
-      triggerHapticFeedback('selection');
+      try { playBeep(); } catch (e) {}
 
       // Canonical mapping: 'pass' maps to 'tickets'
       if (tab === 'pass') tab = 'tickets';
@@ -6075,11 +6088,11 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
-        closeJourneyMapHUD();
+        try { closeJourneyMapHUD(); } catch (e) {}
         document.body.classList.remove('has-drawer-open');
-        toggleMapListMode(false);
-        closeStopDetailDrawer();
-        initDashboard();
+        try { toggleMapListMode(false); } catch (e) {}
+        try { closeStopDetailDrawer(); } catch (e) {}
+        try { initDashboard(); } catch (e) {}
         if (dashWrapper) dashWrapper.scrollTop = 0;
       } else if (tab === 'map') {
         if (dashWrapper) dashWrapper.classList.remove('active');
@@ -6095,11 +6108,11 @@
           bottomTray.style.display = 'block';
           bottomTray.style.visibility = 'visible';
         }
-        toggleMapListMode(false);
-        updateTrackingBanner();
-        closeJourneyMapHUD();
+        try { toggleMapListMode(false); } catch (e) {}
+        try { updateTrackingBanner(); } catch (e) {}
+        try { closeJourneyMapHUD(); } catch (e) {}
         setTimeout(() => {
-          if (map) map.invalidateSize();
+          try { if (map) map.invalidateSize(); } catch (e) {}
         }, 100);
       } else if (tab === 'routes') {
         if (dashWrapper) dashWrapper.classList.remove('active');
@@ -6109,10 +6122,10 @@
         }
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
-        closeStopDetailDrawer();
-        closeJourneyMapHUD();
-        toggleMapListMode(true);
-        renderListViewContent();
+        try { closeStopDetailDrawer(); } catch (e) {}
+        try { closeJourneyMapHUD(); } catch (e) {}
+        try { toggleMapListMode(true); } catch (e) {}
+        try { renderListViewContent(); } catch (e) {}
       } else if (tab === 'tickets') {
         if (dashWrapper) dashWrapper.classList.add('active');
         if (tabHome) tabHome.style.display = 'none';
@@ -6121,9 +6134,9 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
-        closeJourneyMapHUD();
-        toggleMapListMode(false);
-        startTicketCountdown();
+        try { closeJourneyMapHUD(); } catch (e) {}
+        try { toggleMapListMode(false); } catch (e) {}
+        try { startTicketCountdown(); } catch (e) {}
         if (dashWrapper) dashWrapper.scrollTop = 0;
       } else if (tab === 'alerts') {
         if (dashWrapper) dashWrapper.classList.add('active');
@@ -6133,11 +6146,11 @@
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
-        closeJourneyMapHUD();
-        toggleMapListMode(false);
+        try { closeJourneyMapHUD(); } catch (e) {}
+        try { toggleMapListMode(false); } catch (e) {}
         if (dashWrapper) dashWrapper.scrollTop = 0;
       } else if (tab === 'profile') {
-        openProfileModal();
+        try { openProfileModal(); } catch (e) {}
       }
     }
 
