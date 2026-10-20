@@ -10,6 +10,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // State for 5-minute batch logging
 let activeShuttlePositions = {};
 let recentCrowdingReports = [];
+let recentIncidents = [];
 
 const fs = require('fs');
 const path = require('path');
@@ -53,6 +54,25 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(500);
             res.end(JSON.stringify({ success: false, error: e.message }));
         }
+    } else if (req.method === 'GET' && parsedUrl === '/api/driver/incidents') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200);
+        res.end(JSON.stringify({ success: true, data: recentIncidents }));
+    } else if (req.method === 'GET' && parsedUrl === '/api/driver/shift-stats') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200);
+        res.end(JSON.stringify({
+            success: true,
+            data: {
+                activeDrivers: 3,
+                activeVehicles: ['vit_general_bus_101', 'vit_general_bus_102', 'vit_faculty_shuttle_201'],
+                totalTripsToday: 24,
+                onTimePerformance: '95.8%',
+                openIncidentsCount: recentIncidents.length
+            }
+        }));
     } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not Found' }));
@@ -242,6 +262,44 @@ wss.on('connection', (ws, req) => {
                 wss.clients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN && client.role !== 'driver') {
                         client.send(JSON.stringify(data));
+                    }
+                });
+            } else if (data.type === 'DRIVER_INCIDENT') {
+                const incident = {
+                    id: 'inc-' + Date.now(),
+                    shuttleId: data.shuttleId || 'vit_general_bus_101',
+                    driverName: data.driverName || 'Authorized Driver',
+                    category: data.category || 'delay',
+                    title: data.title || 'Operational Transit Disruption',
+                    description: data.description || '',
+                    delayMinutes: data.delayMinutes || 5,
+                    timestamp: new Date().toISOString()
+                };
+                recentIncidents.unshift(incident);
+                if (recentIncidents.length > 20) recentIncidents.pop();
+
+                console.log(`[Incident Alert] Reported by driver: ${incident.title} (${incident.delayMinutes}m delay)`);
+
+                // Broadcast incident alert to all connected passenger/student/web clients
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'CAMPUS_INCIDENT_ALERT',
+                            incident: incident
+                        }));
+                    }
+                });
+            } else if (data.type === 'DRIVER_TRIP_STATE') {
+                // Broadcast trip progression to listening clients
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN && client !== ws) {
+                        client.send(JSON.stringify({
+                            type: 'SHUTTLE_TRIP_UPDATE',
+                            shuttleId: data.shuttleId,
+                            tripState: data.tripState,
+                            stopName: data.stopName,
+                            timestamp: new Date().toISOString()
+                        }));
                     }
                 });
             }
