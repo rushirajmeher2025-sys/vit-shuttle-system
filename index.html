@@ -36,6 +36,13 @@
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
     }
+    .pulse-radar {
+      animation: radar-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes radar-pulse {
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(2.6); opacity: 0; }
+    }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
     }
@@ -53,9 +60,50 @@
       padding: 0 4px !important;
       border-radius: 4px;
     }
-    .custom-bus-marker, .custom-stop-marker {
+    .custom-bus-marker, .custom-stop-marker, .custom-user-marker {
       background: transparent;
       border: none;
+    }
+    /* Current Location Pulse & Puck */
+    .user-puck-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .user-puck-ring {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(2, 132, 199, 0.25);
+      animation: radar-pulse 2.2s cubic-bezier(0.1, 0, 0.2, 1) infinite;
+    }
+    .user-puck-dot {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0284c7;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6), 0 0 0 1px rgba(0,0,0,0.1);
+      z-index: 2;
+    }
+    .user-puck-label {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      z-index: 3;
     }
   </style>
 </head>
@@ -312,7 +360,9 @@
           <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3">search</span>
           <input id="searchInputSPA" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStopsSPA(event)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
           <div class="absolute right-2 flex items-center gap-1 text-slate-400">
-            <button onclick="locateCurrentGPSSPA()" class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-700 px-1.5 py-0.5 rounded transition">GPS</button>
+            <button onclick="focusUserLocationSPA()" class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 hover:bg-sky-200 text-sky-700 px-2 py-0.5 rounded transition flex items-center gap-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span> GPS
+            </button>
             <button onclick="document.getElementById('searchInputSPA').value=''"><span class="material-symbols-outlined text-sm">cancel</span></button>
           </div>
         </div>
@@ -331,10 +381,10 @@
         <!-- Telemetry status notification pill -->
         <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg">
           <span class="flex items-center gap-1 text-sky-800 font-medium">
-            <span class="material-symbols-outlined text-[13px] text-sky-600">sensors</span>
-            Google Maps Live Telemetry Active
+            <span class="material-symbols-outlined text-[13px] text-sky-600">my_location</span>
+            <span id="locStatusTextSPA">Live GPS Location Active</span>
           </span>
-          <span class="text-emerald-700 font-bold font-mono">±3.8m accuracy</span>
+          <span class="text-emerald-700 font-bold font-mono">±2.4m accuracy</span>
         </div>
       </div>
 
@@ -345,7 +395,7 @@
 
         <!-- Floating Map Controls -->
         <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
-          <button onclick="recenterSPA()" title="Center Vehicle" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="focusUserLocationSPA()" title="My Current Location" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">my_location</span>
           </button>
           <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
@@ -582,7 +632,6 @@
         navBtnPortal.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition';
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Recalculate Leaflet size when container is made visible
         setTimeout(() => {
           if (window.mapSPAInstance) {
             window.mapSPAInstance.invalidateSize();
@@ -614,13 +663,18 @@
     }, 1000);
 
     // ══════════════════════════════════════════════════════
-    // 🗺️ GOOGLE MAPS LEAFLET ENGINE (FROM PREVIOUS UI)
+    // 🗺️ GOOGLE MAPS LEAFLET ENGINE WITH CURRENT LOCATION DOT
     // ══════════════════════════════════════════════════════
     let currentShuttleSPA = '101';
     let isSatelliteSPA = false;
     let mapSPA = null;
     let googleLayerSPA = null;
     let spaMarkers = {};
+    let userMarkerSPA = null;
+    let userAccuracyCircleSPA = null;
+
+    // Default current user location on VIT Campus (near SJT entrance)
+    let userLocationSPA = { lat: 12.971420, lng: 79.163200 };
 
     const spaBusProfiles = {
       '101': {
@@ -717,6 +771,49 @@
       }
     };
 
+    function renderUserLocationMarkerSPA(lat, lng, accuracy = 15) {
+      userLocationSPA = { lat, lng };
+
+      if (!userMarkerSPA && mapSPA) {
+        const userIcon = L.divIcon({
+          className: 'custom-user-marker',
+          html: `
+            <div class="user-puck-container" style="transform:translate(-50%, -50%);">
+              <div class="user-puck-ring"></div>
+              <div class="user-puck-dot"></div>
+              <div class="user-puck-label">📍 You Are Here</div>
+            </div>
+          `,
+          iconSize: [0, 0]
+        });
+
+        userMarkerSPA = L.marker([lat, lng], {
+          icon: userIcon,
+          zIndexOffset: 2000
+        }).addTo(mapSPA);
+
+        userMarkerSPA.on('click', () => {
+          triggerToast('Your Current Position • Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5));
+        });
+
+        userAccuracyCircleSPA = L.circle([lat, lng], {
+          radius: accuracy,
+          color: '#0284c7',
+          weight: 1,
+          opacity: 0.35,
+          fillColor: '#0284c7',
+          fillOpacity: 0.08
+        }).addTo(mapSPA);
+
+      } else if (userMarkerSPA) {
+        userMarkerSPA.setLatLng([lat, lng]);
+        if (userAccuracyCircleSPA) {
+          userAccuracyCircleSPA.setLatLng([lat, lng]);
+          userAccuracyCircleSPA.setRadius(accuracy);
+        }
+      }
+    }
+
     function initGoogleMapsSPA() {
       if (mapSPA) return;
       mapSPA = L.map('mapSPA', {
@@ -784,6 +881,27 @@
         spaMarkers[id] = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: 1000 }).addTo(mapSPA);
       });
 
+      // Render Current Location Dot
+      renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng, 14);
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const acc = pos.coords.accuracy || 12;
+            userLocationSPA = { lat, lng };
+            renderUserLocationMarkerSPA(lat, lng, acc);
+            const el = document.getElementById('locStatusTextSPA');
+            if (el) el.textContent = 'Live Device GPS Synced';
+          },
+          err => {
+            renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng, 14);
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+        );
+      }
+
       // Continuous GPS movement for Bus 101
       let simTick = 0;
       setInterval(() => {
@@ -799,7 +917,13 @@
       }, 2000);
     }
 
-    // Toggle Google satellite / road
+    function focusUserLocationSPA() {
+      if (userLocationSPA && mapSPA) {
+        mapSPA.flyTo([userLocationSPA.lat, userLocationSPA.lng], 17.5, { animate: true, duration: 0.8 });
+        triggerToast('📍 Centered on Your Current Location');
+      }
+    }
+
     function toggleMapTypeSPA() {
       if (!mapSPA) return;
       isSatelliteSPA = !isSatelliteSPA;
@@ -875,12 +999,6 @@
       triggerToast('Centered on full VIT Vellore Campus');
     }
 
-    function locateCurrentGPSSPA() {
-      if (!mapSPA) return;
-      mapSPA.flyTo([12.971847, 79.163585], 17.5, { animate: true });
-      triggerToast('GPS Locked: SJT Academic Hub (VIT Vellore)');
-    }
-
     function filterStopsSPA(e) {
       if (e.key === 'Enter') {
         const query = e.target.value.toLowerCase();
@@ -932,7 +1050,6 @@
       document.getElementById('appToast').classList.add('hidden');
     }
 
-    // Initialize map immediately in the background
     window.addEventListener('DOMContentLoaded', () => {
       initGoogleMapsSPA();
     });

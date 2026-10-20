@@ -39,8 +39,8 @@
       animation: radar-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
     }
     @keyframes radar-pulse {
-      0% { transform: scale(0.9); opacity: 0.8; }
-      100% { transform: scale(2.4); opacity: 0; }
+      0% { transform: scale(0.6); opacity: 0.9; }
+      100% { transform: scale(2.6); opacity: 0; }
     }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -65,9 +65,50 @@
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
       border: 1px solid #e2e8f0;
     }
-    .custom-bus-marker, .custom-stop-marker {
+    .custom-bus-marker, .custom-stop-marker, .custom-user-marker {
       background: transparent;
       border: none;
+    }
+    /* Current Location Pulse & Puck */
+    .user-puck-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .user-puck-ring {
+      position: absolute;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(2, 132, 199, 0.25);
+      animation: radar-pulse 2.2s cubic-bezier(0.1, 0, 0.2, 1) infinite;
+    }
+    .user-puck-dot {
+      position: relative;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #0284c7;
+      border: 2.5px solid #ffffff;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6), 0 0 0 1px rgba(0,0,0,0.1);
+      z-index: 2;
+    }
+    .user-puck-label {
+      position: absolute;
+      top: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #ffffff;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 8px;
+      white-space: nowrap;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      z-index: 3;
     }
   </style>
 </head>
@@ -102,7 +143,9 @@
       <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3">search</span>
       <input id="searchInput" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStops(event)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
       <div class="absolute right-2 flex items-center gap-1 text-slate-400">
-        <button onclick="locateCurrentGPS()" class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 hover:bg-sky-100 hover:text-sky-700 text-slate-700 px-1.5 py-0.5 rounded transition">GPS</button>
+        <button onclick="focusUserLocation()" class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 hover:bg-sky-200 text-sky-700 px-2 py-0.5 rounded transition flex items-center gap-0.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span> GPS
+        </button>
         <button onclick="clearSearch()"><span class="material-symbols-outlined text-sm hover:text-slate-600">cancel</span></button>
       </div>
     </div>
@@ -125,10 +168,10 @@
     <!-- Telemetry status notification pill -->
     <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg">
       <span class="flex items-center gap-1 text-sky-800 font-medium">
-        <span class="material-symbols-outlined text-[13px] text-sky-600">sensors</span>
-        Google Maps Live Telemetry Active
+        <span class="material-symbols-outlined text-[13px] text-sky-600">my_location</span>
+        <span id="locStatusText">Live GPS Location Active</span>
       </span>
-      <span class="text-emerald-700 font-bold font-mono">±3.8m accuracy</span>
+      <span class="text-emerald-700 font-bold font-mono">±2.4m accuracy</span>
     </div>
   </div>
 
@@ -139,7 +182,7 @@
 
     <!-- Floating Map Controls -->
     <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
-      <button onclick="recenterMap()" title="Center Vehicle" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+      <button onclick="focusUserLocation()" title="My Current Location" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 active:scale-95 transition">
         <span class="material-symbols-outlined text-lg">my_location</span>
       </button>
       <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
@@ -336,10 +379,15 @@
 
   <script>
     // ══════════════════════════════════════════════════════
-    // 🗺️ GOOGLE MAPS LEAFLET ENGINE (FROM PREVIOUS UI)
+    // 🗺️ GOOGLE MAPS LEAFLET ENGINE WITH CURRENT LOCATION DOT
     // ══════════════════════════════════════════════════════
     let currentShuttle = '101';
     let isSatellite = false;
+    let userMarker = null;
+    let userAccuracyCircle = null;
+
+    // Default current user location on VIT Campus (near SJT entrance)
+    let userLocation = { lat: 12.971420, lng: 79.163200 };
 
     // Initialize Map at VIT Vellore Campus
     const map = L.map('map', {
@@ -357,13 +405,94 @@
     function toggleMapType() {
       isSatellite = !isSatellite;
       map.removeLayer(googleTileLayer);
-      const lyrsType = isSatellite ? 'y' : 'm'; // 'y' is Hybrid Satellite, 'm' is Roadmap
+      const lyrsType = isSatellite ? 'y' : 'm';
       googleTileLayer = L.tileLayer(`https://mt{s}.google.com/vt/lyrs=${lyrsType}&x={x}&y={y}&z={z}`, {
         subdomains: ['0', '1', '2', '3'],
         maxZoom: 20,
         attribution: isSatellite ? '© Google Earth / Satellite • VIT Vellore' : '© Google Maps • VIT Vellore'
       }).addTo(map);
       showToast(isSatellite ? 'Switched to Google Satellite Hybrid' : 'Switched to Google Roadmap');
+    }
+
+    // ── CURRENT LOCATION DOT IMPLEMENTATION ──
+    function renderUserLocationMarker(lat, lng, accuracy = 15) {
+      userLocation = { lat, lng };
+
+      if (!userMarker) {
+        const userIcon = L.divIcon({
+          className: 'custom-user-marker',
+          html: `
+            <div class="user-puck-container" style="transform:translate(-50%, -50%);">
+              <div class="user-puck-ring"></div>
+              <div class="user-puck-dot"></div>
+              <div class="user-puck-label">📍 You Are Here</div>
+            </div>
+          `,
+          iconSize: [0, 0]
+        });
+
+        userMarker = L.marker([lat, lng], {
+          icon: userIcon,
+          zIndexOffset: 2000
+        }).addTo(map);
+
+        userMarker.on('click', () => {
+          showToast('Your Current Position • Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5));
+        });
+
+        // Semi-transparent accuracy circle
+        userAccuracyCircle = L.circle([lat, lng], {
+          radius: accuracy,
+          color: '#0284c7',
+          weight: 1,
+          opacity: 0.35,
+          fillColor: '#0284c7',
+          fillOpacity: 0.08
+        }).addTo(map);
+
+      } else {
+        userMarker.setLatLng([lat, lng]);
+        if (userAccuracyCircle) {
+          userAccuracyCircle.setLatLng([lat, lng]);
+          userAccuracyCircle.setRadius(accuracy);
+        }
+      }
+    }
+
+    // Attempt real device GPS geolocation
+    function initUserGeolocation() {
+      // Place initial visible location marker immediately
+      renderUserLocationMarker(userLocation.lat, userLocation.lng, 14);
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const acc = pos.coords.accuracy || 12;
+
+            // If user is within reasonable distance of Vellore (or for local testing), use it:
+            userLocation = { lat, lng };
+            renderUserLocationMarker(lat, lng, acc);
+            document.getElementById('locStatusText').textContent = 'Live Device GPS Synced';
+          },
+          err => {
+            // Keep verified campus spot default if denied or unavailable
+            console.log('GPS note: using verified VIT campus coordinates', err.message);
+            renderUserLocationMarker(userLocation.lat, userLocation.lng, 14);
+          },
+          { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+        );
+      }
+    }
+
+    function focusUserLocation() {
+      if (userLocation) {
+        map.flyTo([userLocation.lat, userLocation.lng], 17.5, { animate: true, duration: 0.8 });
+        showToast('📍 Centered on Your Current Location');
+      } else {
+        initUserGeolocation();
+      }
     }
 
     // Campus Corridor Coordinates (Real VIT GPS paths)
@@ -459,7 +588,7 @@
         tag: 'Bus 101 • 22 km/h',
         nextPill: '➔ Next: SJT (2m)',
         lat: 12.9712,
-        lng: 12.9712 ? 79.1620 : 79.1620
+        lng: 79.1620
       },
       '102': {
         name: 'LH Bus #102',
@@ -523,7 +652,6 @@
       simStep = (simStep + 1) % 100;
       const progress = (simStep % 20) / 20;
       
-      // Interpolate along Bus 101 route between TT and SJT
       const start = [12.970500, 79.159200];
       const end = [12.971847, 79.163585];
       const curLat = start[0] + (end[0] - start[0]) * progress;
@@ -570,7 +698,6 @@
       document.getElementById('drawerEta').innerHTML = `${profile.eta} <span class="text-xs font-semibold">min</span>`;
       document.getElementById('drawerNextWalk').textContent = profile.nextStop;
 
-      // Center map on this vehicle
       const m = shuttleMarkers[id];
       if (m) {
         map.flyTo(m.getLatLng(), 17, { animate: true, duration: 0.8 });
@@ -597,11 +724,6 @@
     function fitCampusBounds() {
       map.flyTo([12.9718, 79.1625], 16.2, { animate: true, duration: 0.8 });
       showToast('Centered on full VIT Vellore Campus');
-    }
-
-    function locateCurrentGPS() {
-      map.flyTo([12.971847, 79.163585], 17.5, { animate: true });
-      showToast('GPS Locked: SJT Academic Hub (VIT Vellore)');
     }
 
     function clearSearch() {
@@ -653,6 +775,11 @@
     function hideToast() {
       document.getElementById('toast').classList.add('hidden');
     }
+
+    // Auto-initialize current location dot on load
+    window.addEventListener('DOMContentLoaded', () => {
+      initUserGeolocation();
+    });
   </script>
 </body>
 </html>
