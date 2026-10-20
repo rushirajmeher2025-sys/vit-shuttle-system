@@ -1277,6 +1277,95 @@
     }
 
     /* ══════════════════════════════════════════════════════
+       PHASE 7: FACULTY PORTAL & VISITOR GUIDE STYLES
+    ══════════════════════════════════════════════════════ */
+    .faculty-hero-banner {
+      display: none;
+      background: linear-gradient(135deg, rgba(5, 150, 105, 0.16) 0%, rgba(15, 23, 42, 0.95) 100%);
+      border: 1.5px solid rgba(5, 150, 105, 0.4);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 20px rgba(5, 150, 105, 0.12);
+    }
+    .faculty-hero-banner.active {
+      display: block;
+    }
+    .faculty-hero-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .faculty-vip-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(5, 150, 105, 0.2);
+      color: var(--emerald-light);
+      border: 1px solid rgba(5, 150, 105, 0.4);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+    .faculty-status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 480px) {
+      .faculty-status-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .faculty-stat-item {
+      background: var(--surface-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+    .faculty-stat-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .faculty-stat-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--emerald-light);
+      margin-top: 2px;
+    }
+    .faculty-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .badge-vip {
+      background: linear-gradient(135deg, rgba(5,150,105,0.2) 0%, rgba(245,158,11,0.2) 100%);
+      color: #34d399;
+      border: 1px solid rgba(5,150,105,0.4);
+    }
+    .visitor-guide-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      max-width: 520px;
+      width: 92%;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    /* ══════════════════════════════════════════════════════
        MODALS & DIALOGS
     ══════════════════════════════════════════════════════ */
     .modal-bg {
@@ -5061,6 +5150,9 @@
         <button class="guest-btn btn" type="button" onclick="continueAsGuest()">
           Instant Demo Access — Explore Map as Student
         </button>
+        <button class="btn btn-outline" style="width:100%; margin-top:8px; border-color:rgba(255,255,255,0.22); font-size:0.75rem; border-radius:var(--radius-pill);" type="button" onclick="openVisitorGuideModal()">
+          🏛️ Campus Visitor &amp; Parent Transit Guide
+        </button>
       </div>
 
       <!-- VIEW B: Auth Form -->
@@ -5463,6 +5555,7 @@
           <button class="jp-pref-chip active" id="jp-pref-fastest" type="button" onclick="setJourneyPreference('fastest')">⚡ Fastest Route</button>
           <button class="jp-pref-chip" id="jp-pref-least_walking" type="button" onclick="setJourneyPreference('least_walking')">🚶 Least Walking</button>
           <button class="jp-pref-chip" id="jp-pref-fewest_transfers" type="button" onclick="setJourneyPreference('fewest_transfers')">🚌 Direct / Fewest Transfers</button>
+          <button class="jp-pref-chip" id="jp-pref-accessible" type="button" onclick="setJourneyPreference('accessible')">♿ Step-Free Accessible</button>
         </div>
       </div>
 
@@ -5744,6 +5837,45 @@
           <!-- Profile Quick Trigger -->
           <button class="btn btn-icon dash-profile-btn" id="dash-profile-trigger" type="button" onclick="openProfileModal()" aria-label="Account Settings" title="Student Profile">
             <span>👤</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Phase 7: Dedicated Faculty VIP Corridor & Status Banner -->
+      <div id="faculty-vip-banner" class="faculty-hero-banner">
+        <div class="faculty-hero-top">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1.4rem;">⭐</span>
+            <div>
+              <div style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text);">Faculty VIP Transit Corridor</div>
+              <div style="font-size:0.72rem; color:var(--emerald-light); font-weight:700;">Complimentary Executive Transit • 100% FREE Access</div>
+            </div>
+          </div>
+          <span class="faculty-vip-pill">⭐ VIP EXCLUSIVE • VERIFIED</span>
+        </div>
+
+        <div class="faculty-status-grid">
+          <div class="faculty-stat-item">
+            <div class="faculty-stat-title">VIP Shuttle #201 Status</div>
+            <div class="faculty-stat-val" id="fac-shuttle-status">🟢 On Schedule (Loop A)</div>
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">Direct Express connecting MB ⇄ Library ➔ PRP ➔ TT</div>
+          </div>
+          <div class="faculty-stat-item">
+            <div class="faculty-stat-title">Next Reserved Departures</div>
+            <div class="faculty-stat-val" id="fac-next-departures">MB: ~3m • SJT: ~6m</div>
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:2px;">Reserved Bay: Main Building North Portico</div>
+          </div>
+        </div>
+
+        <div class="faculty-actions-row">
+          <button class="btn btn-sm btn-primary" style="background:linear-gradient(135deg, #059669 0%, #047857 100%); border-color:rgba(5,150,105,0.4); font-size:0.75rem;" type="button" onclick="openTicketModal('faculty')">
+            🎫 Show VIP Transit Pass (FREE)
+          </button>
+          <button class="btn btn-sm btn-outline" style="border-color:var(--emerald); color:var(--emerald-light); font-size:0.75rem;" type="button" onclick="openFacultyAccessiblePlanner()">
+            ♿ Step-Free Accessible Routing
+          </button>
+          <button class="btn btn-sm btn-outline" style="border-color:rgba(255,255,255,0.2); font-size:0.75rem;" type="button" onclick="callFacultyCoordinator()">
+            📞 VIP Dispatch Line
           </button>
         </div>
       </div>
@@ -6316,6 +6448,7 @@
             <option value="fastest">⚡ Fastest Route</option>
             <option value="least_walking">🚶 Least Walking</option>
             <option value="fewest_transfers">🚌 Direct Transit</option>
+            <option value="accessible">♿ Step-Free Accessible</option>
           </select>
         </div>
         <div class="pref-row">
@@ -6455,6 +6588,90 @@
       <div style="display:flex; gap:8px;">
         <button class="btn btn-outline" style="flex:1;" type="button" onclick="closeDriverSummaryModal()">Close</button>
         <button class="btn btn-primary" style="flex:1; border-color:var(--gold); color:#000; background:var(--gold);" type="button" onclick="closeDriverSummaryModal(); driverStartNextTrip();">▶️ Next Run</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       PHASE 7: CAMPUS VISITOR & PARENT TRANSIT GUIDE
+  ══════════════════════════════ -->
+  <div id="visitor-guide-modal" class="modal-bg" onclick="closeVisitorGuideModal(event)">
+    <div class="visitor-guide-card" onclick="event.stopPropagation()">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid var(--border-subtle); padding-bottom:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:1.4rem;">🏛️</span>
+          <div>
+            <div style="font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:1.05rem; color:var(--text);">Campus Visitor Transit Guide</div>
+            <div style="font-size:0.72rem; color:var(--text-secondary);">Public transit information for visitors, parents &amp; campus guests</div>
+          </div>
+        </div>
+        <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:18px;" type="button" onclick="closeVisitorGuideModal()">✕</button>
+      </div>
+
+      <!-- Visitor Overview Banner -->
+      <div style="background:var(--surface-hover); border-left:3px solid var(--primary); padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:14px; font-size:0.78rem; line-height:1.4; color:var(--text);">
+        Welcome to <strong>Vellore Institute of Technology (VIT Vellore)</strong>! Campus shuttles operate daily across all academic and residential corridors.
+      </div>
+
+      <!-- 1. Shuttle Access & Fare -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.8rem; font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>🚌</span>
+          <span>General Campus Buses (#101 &amp; #102)</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4;">
+          Open to all visitors, parents, and campus guests. Fare is a flat <strong>₹20.00</strong> per single journey. You can pay cash/UPI directly upon boarding.
+        </div>
+      </div>
+
+      <!-- 2. Faculty Shuttle Restriction Note -->
+      <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-sm); padding:10px; margin-bottom:14px;">
+        <div style="font-size:0.78rem; font-weight:800; color:var(--gold-light); display:flex; align-items:center; gap:6px;">
+          <span>⚠️</span>
+          <span>Faculty Shuttle #201 Policy</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-secondary); margin-top:3px; line-height:1.35;">
+          The green shuttle is strictly reserved for official VIT Faculty &amp; Staff (free verified VIP pass). Visitors and students ride General Buses #101 &amp; #102.
+        </div>
+      </div>
+
+      <!-- 3. Campus Visitor Parking & Reception -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:0.8rem; font-weight:800; color:var(--text); margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+          <span>🅿️</span>
+          <span>Visitor Reception &amp; Parking Bays</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--text-secondary); line-height:1.4;">
+          Visitor parking is allocated near <strong>Main Gate 1 (Katpadi Entrance)</strong> and the <strong>Anna Auditorium Visitor Lot</strong>. Campus shuttles board continuously outside Main Gate 1.
+        </div>
+      </div>
+
+      <!-- 4. Key Campus Destinations for Visitors -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:0.8rem; font-weight:800; color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
+          <span>🗺️</span>
+          <span>Popular Visitor Waypoints</span>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:var(--surface-hover); padding:8px 10px; border-radius:var(--radius-sm); font-size:0.72rem;">
+            <strong>Admissions / Deans</strong><br>Dr. MGR Main Building
+          </div>
+          <div style="background:var(--surface-hover); padding:8px 10px; border-radius:var(--radius-sm); font-size:0.72rem;">
+            <strong>Guest Houses</strong><br>Kamraj &amp; Visvesvaraya
+          </div>
+          <div style="background:var(--surface-hover); padding:8px 10px; border-radius:var(--radius-sm); font-size:0.72rem;">
+            <strong>Anna Auditorium</strong><br>Convocation &amp; Events
+          </div>
+          <div style="background:var(--surface-hover); padding:8px 10px; border-radius:var(--radius-sm); font-size:0.72rem;">
+            <strong>Dining &amp; Refreshments</strong><br>DC Cafe &amp; Foodys
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-outline" style="flex:1;" type="button" onclick="closeVisitorGuideModal()">Close Guide</button>
+        <button class="btn btn-primary" style="flex:1;" type="button" onclick="closeVisitorGuideModal(); continueAsGuest();">🗺️ Explore Campus Map</button>
       </div>
     </div>
   </div>
@@ -6789,6 +7006,26 @@
         themeIcon.textContent = curTheme === 'dark' ? '☀️' : '🌙';
       }
 
+      // Faculty Portal VIP Banner & Status
+      const facBanner = document.getElementById('faculty-vip-banner');
+      if (facBanner) {
+        facBanner.classList.toggle('active', currentRole === 'faculty');
+      }
+      const facDep = document.getElementById('fac-next-departures');
+      const facStat = document.getElementById('fac-shuttle-status');
+      const facShuttle = activeShuttles['vit_faculty_shuttle_201'];
+      if (facShuttle && facDep) {
+        const mbStop = campusStops.find(s => s.id === 6);
+        const sjtStop = campusStops.find(s => s.id === 9);
+        let mbEta = 3, sjtEta = 6;
+        if (mbStop) mbEta = calculateETA(facShuttle.lat, facShuttle.lng, mbStop.lat, mbStop.lng, facShuttle.speed).etaMinutes;
+        if (sjtStop) sjtEta = calculateETA(facShuttle.lat, facShuttle.lng, sjtStop.lat, sjtStop.lng, facShuttle.speed).etaMinutes;
+        facDep.textContent = `MB Portico: ~${Math.max(1, mbEta)}m • SJT Portico: ~${Math.max(2, sjtEta)}m`;
+        if (facStat) {
+          facStat.textContent = (typeof isSimulationRunning !== 'undefined' && isSimulationRunning) ? '🟢 Live Fleet Active • On Schedule' : '⚡ On Schedule (Academic Corridors)';
+        }
+      }
+
       renderQuickShortcuts();
       renderShuttleOverview();
       renderFavorites();
@@ -6807,7 +7044,16 @@
       const grid = document.getElementById('shortcuts-grid');
       if (!grid) return;
 
-      const shortcuts = [
+      const shortcuts = currentRole === 'faculty' ? [
+        { name: "Main Building (MB)", desc: "Admin & Executive", icon: "🏛️", id: 9 },
+        { name: "SJT Portico", desc: "CS & Eng Portico", icon: "🏢", id: 10 },
+        { name: "Tech Tower (TT)", desc: "Engineering Labs", icon: "⚙️", id: 15 },
+        { name: "PRP Research Block", desc: "Laboratories & Research", icon: "🔬", id: 13 },
+        { name: "Central Library", desc: "Periyar EVR Centre", icon: "📚", id: 8 },
+        { name: "CDMM Block", desc: "Design & Manufacturing", icon: "📐", id: 12 },
+        { name: "Staff Quarters", desc: "Faculty Residential", icon: "🏡", id: 6 },
+        { name: "Campus Gate 1", desc: "Main Entrance / VIP", icon: "🚪", id: 6 }
+      ] : [
         { name: "SJT Tower", desc: "CS & Eng Block", icon: "🏛️", id: 10 },
         { name: "Central Library", desc: "Periyar EVR 24/7", icon: "📚", id: 8 },
         { name: "MH Food Court", desc: "Mess & All Maart", icon: "🍔", id: 3 },
@@ -10001,6 +10247,13 @@
 
     // ── TICKET MODAL ──
     function openTicketModal(type) {
+      if (type === 'faculty' && currentRole !== 'faculty') {
+        playBoop();
+        triggerHapticFeedback('error');
+        alert("🔒 Access Restricted: Faculty VIP Complimentary Passes are exclusively reserved for verified VIT Faculty and Academic Staff (@vit.ac.in). Students and Guests must use General Bus #101 / #102 tickets.");
+        return;
+      }
+
       triggerConfetti();
       playChime();
       const modal = document.getElementById('ticket-modal');
@@ -10072,6 +10325,31 @@
         playBeep();
         document.getElementById('ticket-modal').classList.remove('active');
       }
+    }
+
+    function openVisitorGuideModal() {
+      playBeep();
+      triggerHapticFeedback('light');
+      const m = document.getElementById('visitor-guide-modal');
+      if (m) m.classList.add('active');
+    }
+
+    function closeVisitorGuideModal() {
+      playBeep();
+      const m = document.getElementById('visitor-guide-modal');
+      if (m) m.classList.remove('active');
+    }
+
+    function openFacultyAccessiblePlanner() {
+      playBeep();
+      openJourneyPlanner(10, 6);
+      setJourneyPreference('accessible');
+    }
+
+    function callFacultyCoordinator() {
+      playBeep();
+      triggerHapticFeedback('selection');
+      alert("📞 VIT Faculty Transport Coordination Office\n\nDirect Hotline: +91 (416) 220-2111 (Ext. 2111)\nVIP Corridor Dispatch: Main Building Portico Dispatch Office\nHours: 08:00 - 20:30 IST (Mon - Sat)\nEmergency Transport Officer: 0416-220-2222");
     }
 
     function reportCrowd(lvl) {
@@ -10670,7 +10948,7 @@
         const prefMode = getStudentPreferences().preferredRoutingMode;
         if (prefMode) {
           journeyPlannerState.preference = prefMode;
-          ['fastest', 'least_walking', 'fewest_transfers'].forEach(p => {
+          ['fastest', 'least_walking', 'fewest_transfers', 'accessible'].forEach(p => {
             const chip = document.getElementById(`jp-pref-${p}`);
             if (chip) chip.classList.toggle('active', p === prefMode);
           });
@@ -10717,7 +10995,7 @@
     function setJourneyPreference(pref) {
       playBeep();
       journeyPlannerState.preference = pref;
-      ['fastest', 'least_walking', 'fewest_transfers'].forEach(p => {
+      ['fastest', 'least_walking', 'fewest_transfers', 'accessible'].forEach(p => {
         const chip = document.getElementById(`jp-pref-${p}`);
         if (chip) chip.classList.toggle('active', p === pref);
       });
@@ -11107,6 +11385,19 @@
         options.sort((a, b) => a.totalWalkMeters - b.totalWalkMeters || a.totalDuration - b.totalDuration);
       } else if (pref === 'fewest_transfers') {
         options.sort((a, b) => a.transfersCount - b.transfersCount || a.totalDuration - b.totalDuration);
+      } else if (pref === 'accessible') {
+        // Step-Free Accessible route preference: prioritize minimal walking distance and zero transfers (ramps/elevators)
+        options.sort((a, b) => {
+          const scoreA = (a.totalWalkMeters * 1.5) + (a.transfersCount * 300) + a.totalDuration;
+          const scoreB = (b.totalWalkMeters * 1.5) + (b.transfersCount * 300) + b.totalDuration;
+          return scoreA - scoreB;
+        });
+        options.forEach(o => {
+          if (o.totalWalkMeters < 350 && o.transfersCount === 0) {
+            o.badgeText = '♿ STEP-FREE ACCESSIBLE';
+            o.badgeClass = 'jp-badge-rec';
+          }
+        });
       }
 
       options.forEach((opt, idx) => {
