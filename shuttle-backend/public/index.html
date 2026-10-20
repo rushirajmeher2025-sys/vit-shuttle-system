@@ -50,6 +50,23 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
+
+    /* ══════════════════════════════════════════════════════
+       🎨 CRITICAL TAILWIND + LEAFLET CIRCLE FIX
+       Prevents Tailwind max-width:100% on svg/img from
+       distorting Leaflet circles into squished ovals
+    ══════════════════════════════════════════════════════ */
+    .leaflet-pane svg {
+      max-width: none !important;
+      max-height: none !important;
+    }
+    .leaflet-container img {
+      max-width: none !important;
+      max-height: none !important;
+    }
+    .leaflet-marker-icon {
+      overflow: visible !important;
+    }
     .leaflet-container {
       background: #e5e7eb;
       font-family: 'Space Grotesk', sans-serif;
@@ -60,39 +77,47 @@
       padding: 0 4px !important;
       border-radius: 4px;
     }
-    .custom-bus-marker, .custom-stop-marker, .custom-user-marker {
-      background: transparent;
-      border: none;
-    }
-    /* Current Location Pulse & Puck */
-    .user-puck-container {
+
+    /* ══════════════════════════════════════════════════════
+       📍 TRUE GEOMETRIC CIRCLE CURRENT LOCATION PUCK
+    ══════════════════════════════════════════════════════ */
+    .user-puck-wrap {
+      width: 20px;
+      height: 20px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      box-sizing: border-box;
     }
-    .user-puck-ring {
+    .user-puck-radar {
       position: absolute;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: rgba(2, 132, 199, 0.25);
-      animation: radar-pulse 2.2s cubic-bezier(0.1, 0, 0.2, 1) infinite;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 9999px !important;
+      background: rgba(2, 132, 199, 0.28);
+      animation: radar-pulse 2s cubic-bezier(0.1, 0, 0.3, 1) infinite;
+      pointer-events: none;
+      box-sizing: border-box;
     }
-    .user-puck-dot {
+    .user-puck-center {
       position: relative;
       width: 16px;
       height: 16px;
-      border-radius: 50%;
+      min-width: 16px;
+      min-height: 16px;
+      border-radius: 9999px !important;
       background: #0284c7;
-      border: 2.5px solid #ffffff;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6), 0 0 0 1px rgba(0,0,0,0.1);
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.4), 0 3px 8px rgba(0, 0, 0, 0.35);
       z-index: 2;
+      box-sizing: border-box;
     }
-    .user-puck-label {
+    .user-puck-tag {
       position: absolute;
-      top: -22px;
+      top: -24px;
       left: 50%;
       transform: translateX(-50%);
       background: #0f172a;
@@ -102,7 +127,7 @@
       padding: 1px 6px;
       border-radius: 8px;
       white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       z-index: 3;
     }
   </style>
@@ -126,10 +151,15 @@
             <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none">VIT Shuttle System</h1>
           </div>
         </div>
-        <button onclick="showAlertsModal()" class="relative w-9 h-9 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95">
-          <span class="material-symbols-outlined text-[20px]">notifications</span>
-          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="toggleNotificationHubSPA()" class="relative w-9 h-9 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95" title="Bulletins">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span id="unreadBadgePortal" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          </button>
+          <div id="roleBadgePortal" onclick="openStudentPortalModalSPA()" class="px-2.5 py-1 bg-sky-100 text-sky-800 text-[11px] font-bold rounded-lg border border-sky-200 cursor-pointer">
+            STUDENT
+          </div>
+        </div>
       </header>
 
       <main class="px-4 pt-4 space-y-4 flex-1">
@@ -206,10 +236,14 @@
           </div>
           <h3 class="text-base font-bold text-slate-900 mt-2">Student Portal</h3>
           <p class="text-xs text-slate-500 mt-0.5">Access campus transit with your verified @vitstudent.ac.in credentials</p>
-          <button onclick="switchTab('map')" class="w-full mt-3.5 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Sign In / Register
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </button>
+          <div class="flex gap-2 mt-3.5">
+            <button onclick="openStudentPortalModalSPA()" class="flex-1 py-2.5 px-3 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+              <span class="material-symbols-outlined text-sm">badge</span> Manage Pass
+            </button>
+            <button onclick="switchTab('map')" class="flex-1 py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+              Live Map <span class="material-symbols-outlined text-sm">arrow_forward</span>
+            </button>
+          </div>
         </div>
 
         <!-- Faculty Portal -->
@@ -218,12 +252,12 @@
             <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
               <span class="material-symbols-outlined">star</span>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">FREE</span>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">FREE VIP</span>
           </div>
           <h3 class="text-base font-bold text-slate-900 mt-2">Faculty Portal</h3>
           <p class="text-xs text-slate-500 mt-0.5">Complimentary VIP Transit Corridor across all campus blocks</p>
-          <button onclick="showInfo('Faculty VIP Portal', 'Authenticated: Dr. R. Ramanathan (FAC-7012). Unlimited complimentary priority transit authorized across all corridors.')" class="w-full mt-3.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Sign In / Register
+          <button onclick="openFacultyModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+            Launch Faculty Console
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
@@ -234,12 +268,12 @@
             <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
               <span class="material-symbols-outlined">directions_car</span>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase">SHIFT ACTIVE</span>
+            <span id="driverStatusBadgeSPA" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase">SHIFT ACTIVE</span>
           </div>
           <h3 class="text-base font-bold text-slate-900 mt-2">Driver Console</h3>
           <p class="text-xs text-slate-500 mt-0.5">GPS telemetry broadcasting, route progression, &amp; dispatch status</p>
-          <button onclick="showInfo('Driver Telemetry Console', 'Operator: Rajesh K. (MH Loop #101). Telemetry Beacon: ACTIVE (4G Live). Next Checkpoint: SJT Portico.')" class="w-full mt-3.5 py-2.5 px-4 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Driver Console Login
+          <button onclick="openDriverModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+            Driver Telemetry Console
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
@@ -250,18 +284,18 @@
             <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
               <span class="material-symbols-outlined">shield</span>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">OPS</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">OPS CONTROL</span>
           </div>
           <h3 class="text-base font-bold text-slate-900 mt-2">Admin Console</h3>
           <p class="text-xs text-slate-500 mt-0.5">Fleet telemetry dispatch, corridors, rosters &amp; audit engine</p>
-          <button onclick="showInfo('Transit Operations Admin', 'Campus Transport Control Room. Total Fleet: 8 Shuttles. Peak Mode: ACTIVE. All emergency SOS relays online.')" class="w-full mt-3.5 py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Administrator Access
+          <button onclick="openAdminModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+            Launch Operations Center
             <span class="material-symbols-outlined text-sm">arrow_forward</span>
           </button>
         </div>
 
         <!-- Quick Utilities -->
-        <div onclick="showInfo('Campus Visitor & Parent Transit Guide', 'Visitors can purchase single-ride ₹20 tokens at Katpadi Gate 1 counter or via UPI QR on board. Operation hours: 6:00 AM - 10:30 PM daily.')" class="bg-white border border-slate-200 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+        <div onclick="showVisitorInfoSPA()" class="bg-white border border-slate-200 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
               <span class="material-symbols-outlined text-lg">account_balance</span>
@@ -276,7 +310,7 @@
 
         <button onclick="switchTab('map')" class="w-full py-2.5 px-4 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-sky-100 transition active:scale-[0.98]">
           <span class="material-symbols-outlined text-sm">explore</span>
-          Instant Demo Access — Explore Map as Student
+          Instant Demo Access — Explore Map on Google Maps
         </button>
 
         <!-- Digital Transit Pass -->
@@ -304,9 +338,9 @@
         <div class="pt-2">
           <div class="flex items-center justify-between mb-2">
             <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Campus Bulletins</span>
-            <button onclick="showAlertsModal()" class="text-xs font-bold text-sky-600 hover:underline">View All (3)</button>
+            <button onclick="toggleNotificationHubSPA()" class="text-xs font-bold text-sky-600 hover:underline">View All (<span id="bulletinCountSPA">3</span>)</button>
           </div>
-          <div class="space-y-2">
+          <div id="bulletinListSPA" class="space-y-2">
             <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
               <span class="material-symbols-outlined text-amber-500 text-lg">bolt</span>
               <div>
@@ -345,10 +379,10 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5">
-          <button onclick="showAlertsModal()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition active:scale-95">
+          <button onclick="toggleNotificationHubSPA()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition active:scale-95" title="Bulletins">
             <span class="material-symbols-outlined text-base">notifications</span>
           </button>
-          <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200">
+          <div onclick="switchTab('portal')" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200 cursor-pointer">
             RR
           </div>
         </div>
@@ -390,7 +424,6 @@
 
       <!-- Interactive Google Maps Viewport Container -->
       <div id="mapContainerSPA" class="relative h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200">
-        <!-- Google Maps Leaflet Canvas -->
         <div id="mapSPA" class="w-full h-full z-0"></div>
 
         <!-- Floating Map Controls -->
@@ -521,12 +554,231 @@
           <span class="material-symbols-outlined text-xl">badge</span>
           <span class="text-[10px] tracking-tight mt-0.5">Pass</span>
         </button>
-        <button onclick="showAlertsModal()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <button onclick="toggleNotificationHubSPA()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
           <span class="material-symbols-outlined text-xl">warning</span>
           <span class="text-[10px] tracking-tight mt-0.5">Alerts</span>
         </button>
       </div>
     </nav>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- FUNCTIONAL CONSOLES & MODALS -->
+  <!-- ======================================================== -->
+
+  <!-- 1. FACULTY MODAL -->
+  <div id="facultyModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeFacultyModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-2xl">star</span>
+        </div>
+        <div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">VIP FAST-TRACK ACTIVE</span>
+          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Faculty VIP Portal</h3>
+          <p class="text-xs text-slate-500">Dr. S. Ramanujan • FAC-8819</p>
+        </div>
+      </div>
+
+      <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold text-emerald-900">
+          <span>Priority Corridor #201</span>
+          <span class="text-emerald-700 font-mono">ON SCHEDULE</span>
+        </div>
+        <p class="text-[11px] text-emerald-800">Direct portico service connecting Main Building, SMV, Tech Tower &amp; PRP Block.</p>
+        <div class="flex items-center justify-between text-[11px] pt-1 border-t border-emerald-200/60 font-semibold text-emerald-900">
+          <span>Next Departure at MB:</span>
+          <span class="text-emerald-700 font-mono font-bold">~2 MIN</span>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button id="vipPickupBtnSPA" onclick="requestVipPickupSPA()" class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md shadow-emerald-600/20">
+          <span class="material-symbols-outlined text-sm">hail</span> Request Priority Pickup at My Block
+        </button>
+        <button onclick="toggleQRModal(); closeFacultyModalSPA();" class="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <span class="material-symbols-outlined text-sm">qr_code_scanner</span> Show Faculty VIP Pass
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DRIVER CONSOLE MODAL -->
+  <div id="driverModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeDriverModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-2xl">directions_bus</span>
+        </div>
+        <div>
+          <span id="driverDutyBadgeSPA" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">ONLINE • BROADCASTING</span>
+          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Driver Console</h3>
+          <p class="text-xs text-slate-500">Rajesh K. • Vehicle #101 (Men's Express)</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-center text-xs">
+        <div class="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+          <p class="text-[10px] uppercase font-bold text-slate-400">Current Speed</p>
+          <p id="driverLiveSpeedSPA" class="text-xl font-bold text-slate-900 mt-0.5">22 km/h</p>
+          <div class="flex gap-1 justify-center mt-2">
+            <button onclick="adjustDriverSpeedSPA(-2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">−2</button>
+            <button onclick="adjustDriverSpeedSPA(2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">+2</button>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+          <p class="text-[10px] uppercase font-bold text-slate-400">Passenger Load</p>
+          <p id="driverPassengerCountSPA" class="text-xl font-bold text-slate-900 mt-0.5">14 / 36</p>
+          <div class="flex gap-1 justify-center mt-2">
+            <button onclick="adjustPassengersSPA(-1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">−1</button>
+            <button onclick="adjustPassengersSPA(1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">+1</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <button id="dutyToggleBtnSPA" onclick="toggleDriverDutySPA()" class="w-full py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <span class="material-symbols-outlined text-sm">pause_circle</span> Toggle Shift Duty (Take Break)
+        </button>
+        <button onclick="announceStopSPA()" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <span class="material-symbols-outlined text-sm">campaign</span> Announce Arrival: SJT Portico
+        </button>
+        <button onclick="triggerEmergencySOSSPA()" class="w-full py-2.5 px-4 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <span class="material-symbols-outlined text-sm">warning</span> Emergency Breakdown / SOS Alert
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ADMIN OPERATIONS MODAL -->
+  <div id="adminModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeAdminModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-2xl">shield</span>
+        </div>
+        <div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">TRANSIT OPS DISPATCH</span>
+          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Admin Control Hub</h3>
+          <p class="text-xs text-slate-500">Fleet Operations &amp; Route Audit</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+          <p class="text-[9px] uppercase font-bold text-slate-400">Total Fleet</p>
+          <p class="text-sm font-bold text-slate-900">8 Units</p>
+        </div>
+        <div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+          <p class="text-[9px] uppercase font-bold text-slate-400">Active Duty</p>
+          <p class="text-sm font-bold text-emerald-600">3 Shuttles</p>
+        </div>
+        <div class="p-2.5 bg-slate-50 border border-slate-100 rounded-xl">
+          <p class="text-[9px] uppercase font-bold text-slate-400">On-Time %</p>
+          <p class="text-sm font-bold text-sky-600">99.4%</p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+        <div class="flex items-center justify-between text-xs">
+          <div>
+            <p class="font-bold text-slate-800">Evening Peak Headway (4m)</p>
+            <p class="text-[10px] text-slate-500">Auto-dispatch reserve fleet</p>
+          </div>
+          <button id="adminPeakBtnSPA" onclick="togglePeakSPA()" class="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs">
+            ENABLED
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-200">
+          <div>
+            <p class="font-bold text-slate-800">TT Portico Turnaround Detour</p>
+            <p class="text-[10px] text-slate-500">Symposium walkway block</p>
+          </div>
+          <button id="adminDetourBtnSPA" onclick="toggleDetourSPA()" class="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold text-xs">
+            ACTIVE
+          </button>
+        </div>
+      </div>
+
+      <!-- Broadcast Live Bulletin -->
+      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+        <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+          <span class="material-symbols-outlined text-sm text-sky-600">podcasts</span> Broadcast Passenger Bulletin
+        </p>
+        <input id="broadcastTitleSPA" type="text" placeholder="Bulletin Title (e.g., Rain Speed Protocol)" class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500" />
+        <textarea id="broadcastMsgSPA" rows="2" placeholder="Announcement details..." class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500"></textarea>
+        <button onclick="broadcastAdminBulletinSPA()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
+          <span class="material-symbols-outlined text-sm">send</span> Broadcast to All Mobile Portals
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. NOTIFICATIONS HUB MODAL -->
+  <div id="notifHubModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="toggleNotificationHubSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center justify-between pr-8">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Campus Transit Bulletins</h3>
+          <p class="text-xs text-slate-500">Live operational &amp; corridor alerts</p>
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 text-[11px] font-semibold border-b border-slate-100 pb-2">
+        <button onclick="triggerToast('Viewing all alerts')" class="px-2.5 py-1 bg-sky-100 text-sky-700 rounded-lg font-bold">All</button>
+        <button onclick="triggerToast('Viewing fleet alerts')" class="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded-lg">Fleet</button>
+        <button onclick="triggerToast('Viewing detours')" class="px-2.5 py-1 text-slate-500 hover:bg-slate-100 rounded-lg">Detours</button>
+        <button onclick="clearAllNotificationsSPA()" class="ml-auto text-sky-600 hover:underline">Mark all read</button>
+      </div>
+
+      <div id="notifHubListSPA" class="space-y-2.5">
+        <div class="p-3 bg-amber-50/60 border border-amber-200 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-900">
+            <span>⚡ Frequency Boosted</span>
+            <span class="text-[10px] text-amber-700 font-mono">ACTIVE NOW</span>
+          </div>
+          <p class="text-[11px] text-amber-800 leading-snug">Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</p>
+        </div>
+
+        <div class="p-3 bg-rose-50/60 border border-rose-200 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-rose-900">
+            <span>🚧 TT Portico Diversion</span>
+            <span class="text-[10px] text-rose-700 font-mono">UNTIL 9 PM</span>
+          </div>
+          <p class="text-[11px] text-rose-800 leading-snug">Turnaround diversion near Technology Tower portico; alight at SMV junction.</p>
+        </div>
+
+        <div class="p-3 bg-sky-50/60 border border-sky-200 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-sky-900">
+            <span>🌙 Night Owl Shuttles</span>
+            <span class="text-[10px] text-sky-700 font-mono">DAILY</span>
+          </div>
+          <p class="text-[11px] text-sky-800 leading-snug">Night library loop extended to 11:30 PM for central campus library access.</p>
+        </div>
+      </div>
+
+      <button onclick="toggleNotificationHubSPA()" class="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">
+        Close Bulletins
+      </button>
+    </div>
   </div>
 
   <!-- QR Modal -->
@@ -539,8 +791,8 @@
         <span class="material-symbols-outlined text-2xl">qr_code_2</span>
       </div>
       <div>
-        <h3 class="text-base font-bold text-slate-900">Digital Transit Pass</h3>
-        <p class="text-xs text-slate-500">Scan at shuttle door NFC / Optical Reader</p>
+        <h3 id="spaQrTitle" class="text-base font-bold text-slate-900">Digital Transit Pass</h3>
+        <p id="spaQrSub" class="text-xs text-slate-500">Scan at shuttle door NFC / Optical Reader</p>
       </div>
       <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
         <svg class="w-44 h-44" viewBox="0 0 100 100" fill="currentColor">
@@ -573,7 +825,7 @@
           <rect x="62" y="80" width="8" height="10" fill="#0f172a" />
           <rect x="76" y="84" width="12" height="6" fill="#0f172a" />
         </svg>
-        <span class="text-[11px] font-mono text-slate-500 font-bold mt-2">ID: VIT-21BCE1042-SJT</span>
+        <span id="spaQrCodeText" class="text-[11px] font-mono text-slate-500 font-bold mt-2">ID: VIT-21BCE1042-SJT</span>
       </div>
       <div class="flex items-center justify-between text-xs px-2">
         <span class="text-slate-500">Auto-refresh token:</span>
@@ -581,25 +833,6 @@
       </div>
       <button onclick="toggleQRModal()" class="w-full py-2.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition">
         Done
-      </button>
-    </div>
-  </div>
-
-  <!-- Info Modal -->
-  <div id="generalModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
-      <button onclick="closeInfo()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
-        <span class="material-symbols-outlined text-sm">close</span>
-      </button>
-      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto">
-        <span class="material-symbols-outlined text-2xl">info</span>
-      </div>
-      <div>
-        <h3 id="modalTitle" class="text-base font-bold text-slate-900">Information</h3>
-        <p id="modalDesc" class="text-xs text-slate-600 mt-2 leading-relaxed"></p>
-      </div>
-      <button onclick="closeInfo()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">
-        Understood
       </button>
     </div>
   </div>
@@ -640,13 +873,13 @@
       }
     }
 
-    // Portal screen telemetry selection
     function selectPortalRoute(busId, speed, stop, eta, crowding) {
       document.getElementById('portalBusId').textContent = '#' + busId;
       document.getElementById('portalSpeed').textContent = speed;
       document.getElementById('portalStop').textContent = stop;
       document.getElementById('portalEta').textContent = eta;
       document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${crowding}`;
+      triggerToast(`Selected Bus #${busId} • ${stop} in ${eta}`);
     }
 
     // Pass countdown
@@ -663,7 +896,7 @@
     }, 1000);
 
     // ══════════════════════════════════════════════════════
-    // 🗺️ GOOGLE MAPS LEAFLET ENGINE WITH CURRENT LOCATION DOT
+    // 🗺️ GOOGLE MAPS LEAFLET ENGINE (ACCURATE CIRCULAR PUCK)
     // ══════════════════════════════════════════════════════
     let currentShuttleSPA = '101';
     let isSatelliteSPA = false;
@@ -671,9 +904,7 @@
     let googleLayerSPA = null;
     let spaMarkers = {};
     let userMarkerSPA = null;
-    let userAccuracyCircleSPA = null;
 
-    // Default current user location on VIT Campus (near SJT entrance)
     let userLocationSPA = { lat: 12.971420, lng: 79.163200 };
 
     const spaBusProfiles = {
@@ -771,46 +1002,33 @@
       }
     };
 
-    function renderUserLocationMarkerSPA(lat, lng, accuracy = 15) {
+    function renderUserLocationMarkerSPA(lat, lng) {
       userLocationSPA = { lat, lng };
 
       if (!userMarkerSPA && mapSPA) {
         const userIcon = L.divIcon({
-          className: 'custom-user-marker',
+          className: '',
           html: `
-            <div class="user-puck-container" style="transform:translate(-50%, -50%);">
-              <div class="user-puck-ring"></div>
-              <div class="user-puck-dot"></div>
-              <div class="user-puck-label">📍 You Are Here</div>
+            <div class="user-puck-wrap">
+              <div class="user-puck-radar"></div>
+              <div class="user-puck-center"></div>
+              <div class="user-puck-tag">📍 You Are Here</div>
             </div>
           `,
-          iconSize: [0, 0]
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
         });
 
         userMarkerSPA = L.marker([lat, lng], {
           icon: userIcon,
-          zIndexOffset: 2000
+          zIndexOffset: 3000
         }).addTo(mapSPA);
 
         userMarkerSPA.on('click', () => {
-          triggerToast('Your Current Position • Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5));
+          triggerToast('📍 Your Current Position (VIT Vellore)');
         });
-
-        userAccuracyCircleSPA = L.circle([lat, lng], {
-          radius: accuracy,
-          color: '#0284c7',
-          weight: 1,
-          opacity: 0.35,
-          fillColor: '#0284c7',
-          fillOpacity: 0.08
-        }).addTo(mapSPA);
-
       } else if (userMarkerSPA) {
         userMarkerSPA.setLatLng([lat, lng]);
-        if (userAccuracyCircleSPA) {
-          userAccuracyCircleSPA.setLatLng([lat, lng]);
-          userAccuracyCircleSPA.setRadius(accuracy);
-        }
       }
     }
 
@@ -828,7 +1046,6 @@
         attribution: '© Google Maps • VIT Vellore'
       }).addTo(mapSPA);
 
-      // Add Routes
       Object.keys(spaRoutes).forEach(id => {
         const r = spaRoutes[id];
         L.polyline(r.coords, {
@@ -839,10 +1056,9 @@
         }).addTo(mapSPA);
       });
 
-      // Add Stops
       spaStops.forEach(s => {
         const stopIcon = L.divIcon({
-          className: 'custom-stop-marker',
+          className: '',
           html: `<div style="transform:translate(-50%, -50%); display:flex; align-items:center; gap:3px; background:white; padding:2px 6px; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.15); white-space:nowrap; cursor:pointer;">
             <span style="font-size:11px;">${s.icon}</span>
             <span style="font-size:10px; font-weight:700; color:#0f172a;">${s.name.split('(')[0].trim()}</span>
@@ -857,11 +1073,10 @@
         });
       });
 
-      // Add Bus Markers
       Object.keys(spaBusProfiles).forEach(id => {
         const p = spaBusProfiles[id];
         const icon = L.divIcon({
-          className: 'custom-bus-marker',
+          className: '',
           html: `
             <div style="transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="setShuttleFilterSPA('${id}')">
               <div style="background:#0f172a; color:white; font-size:10px; font-weight:700; padding:2px 6px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:4px; white-space:nowrap; margin-bottom:2px;">
@@ -881,28 +1096,25 @@
         spaMarkers[id] = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: 1000 }).addTo(mapSPA);
       });
 
-      // Render Current Location Dot
-      renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng, 14);
+      renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng);
 
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           pos => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            const acc = pos.coords.accuracy || 12;
             userLocationSPA = { lat, lng };
-            renderUserLocationMarkerSPA(lat, lng, acc);
+            renderUserLocationMarkerSPA(lat, lng);
             const el = document.getElementById('locStatusTextSPA');
             if (el) el.textContent = 'Live Device GPS Synced';
           },
           err => {
-            renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng, 14);
+            renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng);
           },
           { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
         );
       }
 
-      // Continuous GPS movement for Bus 101
       let simTick = 0;
       setInterval(() => {
         simTick = (simTick + 1) % 100;
@@ -982,17 +1194,6 @@
       else mapSPA.zoomOut();
     }
 
-    function recenterSPA() {
-      if (!mapSPA) return;
-      const m = spaMarkers[currentShuttleSPA];
-      if (m) {
-        mapSPA.flyTo(m.getLatLng(), 17.2, { animate: true, duration: 0.8 });
-        triggerToast(`Centered on ${spaBusProfiles[currentShuttleSPA].name}`);
-      } else {
-        fitCampusBoundsSPA();
-      }
-    }
-
     function fitCampusBoundsSPA() {
       if (!mapSPA) return;
       mapSPA.flyTo([12.9718, 79.1625], 16.2, { animate: true, duration: 0.8 });
@@ -1022,18 +1223,187 @@
       document.getElementById('unifiedQrModal').classList.toggle('hidden');
     }
 
-    function showInfo(title, desc) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalDesc').textContent = desc;
-      document.getElementById('generalModal').classList.remove('hidden');
+    // Functional Modal Openers
+    function openStudentPortalModalSPA() {
+      document.getElementById('spaQrTitle').textContent = 'Student Transit Boarding Pass';
+      document.getElementById('spaQrSub').textContent = 'Rushi Raj Meher • 21BCE1042';
+      document.getElementById('spaQrCodeText').textContent = 'ID: VIT-21BCE1042-SJT';
+      toggleQRModal();
     }
 
-    function closeInfo() {
-      document.getElementById('generalModal').classList.add('hidden');
+    function openFacultyModalSPA() {
+      document.getElementById('facultyModalSPA').classList.remove('hidden');
+    }
+    function closeFacultyModalSPA() {
+      document.getElementById('facultyModalSPA').classList.add('hidden');
     }
 
-    function showAlertsModal() {
-      showInfo('Campus Fleet Notifications', 'Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM). Tech Tower turnaround diversion active due to symposium.');
+    function openDriverModalSPA() {
+      document.getElementById('driverModalSPA').classList.remove('hidden');
+    }
+    function closeDriverModalSPA() {
+      document.getElementById('driverModalSPA').classList.add('hidden');
+    }
+
+    function openAdminModalSPA() {
+      document.getElementById('adminModalSPA').classList.remove('hidden');
+    }
+    function closeAdminModalSPA() {
+      document.getElementById('adminModalSPA').classList.add('hidden');
+    }
+
+    function toggleNotificationHubSPA() {
+      document.getElementById('notifHubModalSPA').classList.toggle('hidden');
+      document.getElementById('unreadBadgePortal').classList.add('hidden');
+    }
+
+    function showVisitorInfoSPA() {
+      triggerToast('Visitors: Purchase ₹20 token at Gate 1 or pay via UPI QR on shuttle.');
+    }
+
+    // Faculty Actions
+    function requestVipPickupSPA() {
+      const btn = document.getElementById('vipPickupBtnSPA');
+      btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Dispatching VIP Shuttle...`;
+      setTimeout(() => {
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Dispatched! ETA: 2 mins`;
+        btn.className = "w-full py-2.5 px-4 bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5";
+        triggerToast('🚖 Priority VIP Shuttle #201 dispatched to MB Portico');
+      }, 1200);
+    }
+
+    // Driver Actions
+    let driverSpeedSPA = 22;
+    let driverPassengersSPA = 14;
+    let isDriverOnDutySPA = true;
+
+    function adjustDriverSpeedSPA(delta) {
+      driverSpeedSPA = Math.max(0, Math.min(45, driverSpeedSPA + delta));
+      document.getElementById('driverLiveSpeedSPA').textContent = `${driverSpeedSPA} km/h`;
+      document.getElementById('portalSpeed').textContent = `${driverSpeedSPA} KM/H`;
+      document.getElementById('spaDrawerSpeed').innerHTML = `${driverSpeedSPA} <span class="text-xs font-medium text-slate-500">km/h</span>`;
+      triggerToast(`Driver telemetry updated: ${driverSpeedSPA} km/h`);
+    }
+
+    function adjustPassengersSPA(delta) {
+      driverPassengersSPA = Math.max(0, Math.min(36, driverPassengersSPA + delta));
+      document.getElementById('driverPassengerCountSPA').textContent = `${driverPassengersSPA} / 36`;
+      const crowdStatus = driverPassengersSPA > 28 ? 'High Crowding' : driverPassengersSPA > 18 ? 'Medium Crowding' : 'Low Crowding';
+      document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${crowdStatus}`;
+      document.getElementById('spaDrawerCrowd').textContent = `● ${crowdStatus.split(' ')[0]}`;
+      document.getElementById('spaDrawerSeats').textContent = `${driverPassengersSPA}/36 Seats`;
+      triggerToast(`Passenger count: ${driverPassengersSPA}/36`);
+    }
+
+    function toggleDriverDutySPA() {
+      isDriverOnDutySPA = !isDriverOnDutySPA;
+      const badge = document.getElementById('driverDutyBadgeSPA');
+      const portalBadge = document.getElementById('driverStatusBadgeSPA');
+      const btn = document.getElementById('dutyToggleBtnSPA');
+
+      if (isDriverOnDutySPA) {
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase";
+        badge.textContent = "ONLINE • BROADCASTING";
+        portalBadge.textContent = "SHIFT ACTIVE";
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm">pause_circle</span> Toggle Shift Duty (Take Break)`;
+        triggerToast('Driver status: Shift resumed (Online)');
+      } else {
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase";
+        badge.textContent = "ON BREAK • PAUSED";
+        portalBadge.textContent = "ON BREAK";
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm">play_circle</span> Resume Active Shift Duty`;
+        triggerToast('Driver status: On 15-min scheduled break');
+      }
+    }
+
+    function announceStopSPA() {
+      triggerToast('📢 Broadcasted to bus speakers: "Arriving next at SJT Portico"');
+    }
+
+    function triggerEmergencySOSSPA() {
+      triggerToast('🚨 SOS broadcasted to Transit Control Room & Ambulance Station');
+    }
+
+    // Admin Actions
+    let isPeakBoostSPA = true;
+    let isDetourSPA = true;
+
+    function togglePeakSPA() {
+      isPeakBoostSPA = !isPeakBoostSPA;
+      const btn = document.getElementById('adminPeakBtnSPA');
+      if (isPeakBoostSPA) {
+        btn.className = "px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs";
+        btn.textContent = "ENABLED";
+        triggerToast('Peak headway boost activated (4 min interval)');
+      } else {
+        btn.className = "px-3 py-1 bg-slate-300 text-slate-700 rounded-lg font-bold text-xs";
+        btn.textContent = "DISABLED";
+        triggerToast('Peak headway boost turned off (Standard 8m)');
+      }
+    }
+
+    function toggleDetourSPA() {
+      isDetourSPA = !isDetourSPA;
+      const btn = document.getElementById('adminDetourBtnSPA');
+      if (isDetourSPA) {
+        btn.className = "px-3 py-1 bg-rose-600 text-white rounded-lg font-bold text-xs";
+        btn.textContent = "ACTIVE";
+        triggerToast('TT Portico diversion active');
+      } else {
+        btn.className = "px-3 py-1 bg-slate-300 text-slate-700 rounded-lg font-bold text-xs";
+        btn.textContent = "CLEARED";
+        triggerToast('TT Portico route cleared & normal flow restored');
+      }
+    }
+
+    function broadcastAdminBulletinSPA() {
+      const title = document.getElementById('broadcastTitleSPA').value.trim();
+      const msg = document.getElementById('broadcastMsgSPA').value.trim();
+
+      if (!title || !msg) {
+        triggerToast('Please enter both title and details');
+        return;
+      }
+
+      const hubList = document.getElementById('notifHubListSPA');
+      const item = document.createElement('div');
+      item.className = "p-3 bg-sky-50/70 border border-sky-200 rounded-xl space-y-1";
+      item.innerHTML = `
+        <div class="flex items-center justify-between text-xs font-bold text-sky-900">
+          <span>📢 ${escapeHtml(title)}</span>
+          <span class="text-[10px] text-sky-700 font-mono">JUST NOW</span>
+        </div>
+        <p class="text-[11px] text-sky-800 leading-snug">${escapeHtml(msg)}</p>
+      `;
+      hubList.prepend(item);
+
+      const portalList = document.getElementById('bulletinListSPA');
+      const portalItem = document.createElement('div');
+      portalItem.className = "p-3 bg-white rounded-xl border border-sky-300 flex items-start gap-2.5";
+      portalItem.innerHTML = `
+        <span class="material-symbols-outlined text-sky-600 text-lg">campaign</span>
+        <div>
+          <p class="text-xs font-bold text-slate-800">${escapeHtml(title)}</p>
+          <p class="text-[11px] text-slate-500 leading-snug">${escapeHtml(msg)}</p>
+        </div>
+      `;
+      portalList.prepend(portalItem);
+
+      document.getElementById('broadcastTitleSPA').value = '';
+      document.getElementById('broadcastMsgSPA').value = '';
+      document.getElementById('unreadBadgePortal').classList.remove('hidden');
+
+      triggerToast(`🚀 Broadcasted: "${title}" to all mobile portals!`);
+      closeAdminModalSPA();
+    }
+
+    function clearAllNotificationsSPA() {
+      document.getElementById('unreadBadgePortal').classList.add('hidden');
+      triggerToast('All notifications marked as read');
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
     function triggerToast(msg) {

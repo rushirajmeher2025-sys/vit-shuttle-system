@@ -49,7 +49,23 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    /* Leaflet customization for sleek integration */
+
+    /* ══════════════════════════════════════════════════════
+       🎨 CRITICAL TAILWIND + LEAFLET CIRCLE FIX
+       Prevents Tailwind max-width:100% on svg/img from
+       distorting Leaflet circles into squished ovals
+    ══════════════════════════════════════════════════════ */
+    .leaflet-pane svg {
+      max-width: none !important;
+      max-height: none !important;
+    }
+    .leaflet-container img {
+      max-width: none !important;
+      max-height: none !important;
+    }
+    .leaflet-marker-icon {
+      overflow: visible !important;
+    }
     .leaflet-container {
       background: #e5e7eb;
       font-family: 'Space Grotesk', sans-serif;
@@ -60,44 +76,47 @@
       padding: 0 4px !important;
       border-radius: 4px;
     }
-    .leaflet-popup-content-wrapper {
-      border-radius: 14px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-      border: 1px solid #e2e8f0;
-    }
-    .custom-bus-marker, .custom-stop-marker, .custom-user-marker {
-      background: transparent;
-      border: none;
-    }
-    /* Current Location Pulse & Puck */
-    .user-puck-container {
+
+    /* ══════════════════════════════════════════════════════
+       📍 TRUE GEOMETRIC CIRCLE CURRENT LOCATION PUCK
+    ══════════════════════════════════════════════════════ */
+    .user-puck-wrap {
+      width: 20px;
+      height: 20px;
       position: relative;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
+      box-sizing: border-box;
     }
-    .user-puck-ring {
+    .user-puck-radar {
       position: absolute;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: rgba(2, 132, 199, 0.25);
-      animation: radar-pulse 2.2s cubic-bezier(0.1, 0, 0.2, 1) infinite;
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 9999px !important;
+      background: rgba(2, 132, 199, 0.28);
+      animation: radar-pulse 2s cubic-bezier(0.1, 0, 0.3, 1) infinite;
+      pointer-events: none;
+      box-sizing: border-box;
     }
-    .user-puck-dot {
+    .user-puck-center {
       position: relative;
       width: 16px;
       height: 16px;
-      border-radius: 50%;
+      min-width: 16px;
+      min-height: 16px;
+      border-radius: 9999px !important;
       background: #0284c7;
-      border: 2.5px solid #ffffff;
-      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.6), 0 0 0 1px rgba(0,0,0,0.1);
+      border: 3px solid #ffffff;
+      box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.4), 0 3px 8px rgba(0, 0, 0, 0.35);
       z-index: 2;
+      box-sizing: border-box;
     }
-    .user-puck-label {
+    .user-puck-tag {
       position: absolute;
-      top: -22px;
+      top: -24px;
       left: 50%;
       transform: translateX(-50%);
       background: #0f172a;
@@ -107,7 +126,7 @@
       padding: 1px 6px;
       border-radius: 8px;
       white-space: nowrap;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
       z-index: 3;
     }
   </style>
@@ -128,10 +147,10 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5">
-      <button onclick="showAlerts()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition">
+      <button onclick="toggleNotificationHub()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition" title="Bulletins">
         <span class="material-symbols-outlined text-base">notifications</span>
       </button>
-      <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200">
+      <div onclick="openRoleSwitcher()" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200 cursor-pointer" title="Switch User Role">
         RR
       </div>
     </div>
@@ -177,7 +196,6 @@
 
   <!-- Interactive Google Maps Viewport Container -->
   <div id="mapContainer" class="relative max-w-md mx-auto h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200">
-    <!-- Google Maps Leaflet Canvas -->
     <div id="map" class="w-full h-full z-0"></div>
 
     <!-- Floating Map Controls -->
@@ -307,7 +325,7 @@
         <span class="material-symbols-outlined text-xl">badge</span>
         <span class="text-[10px] tracking-tight mt-0.5">Pass</span>
       </button>
-      <button onclick="showAlerts()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+      <button onclick="toggleNotificationHub()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
         <span class="material-symbols-outlined text-xl">warning</span>
         <span class="text-[10px] tracking-tight mt-0.5">Alerts</span>
       </button>
@@ -370,6 +388,44 @@
     </div>
   </div>
 
+  <!-- Notifications Hub Modal -->
+  <div id="notifHubModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="toggleNotificationHub()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center justify-between pr-8">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">Campus Transit Bulletins</h3>
+          <p class="text-xs text-slate-500">Live operational &amp; corridor alerts</p>
+        </div>
+      </div>
+
+      <div class="space-y-2.5">
+        <div class="p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-amber-900">
+            <span>⚡ Frequency Boosted</span>
+            <span class="text-[10px] text-amber-700 font-mono">PEAK ACTIVE</span>
+          </div>
+          <p class="text-[11px] text-amber-800 leading-snug">Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</p>
+        </div>
+
+        <div class="p-3 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-rose-900">
+            <span>🚧 TT Portico Diversion</span>
+            <span class="text-[10px] text-rose-700 font-mono">ROAD WORK</span>
+          </div>
+          <p class="text-[11px] text-rose-800 leading-snug">Turnaround diversion near Technology Tower portico; alight at SMV junction.</p>
+        </div>
+      </div>
+
+      <button onclick="toggleNotificationHub()" class="w-full py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">
+        Close
+      </button>
+    </div>
+  </div>
+
   <!-- Notification Banner / Toast -->
   <div id="toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 max-w-xs w-full">
     <span class="material-symbols-outlined text-base text-sky-400">info</span>
@@ -378,15 +434,11 @@
   </div>
 
   <script>
-    // ══════════════════════════════════════════════════════
-    // 🗺️ GOOGLE MAPS LEAFLET ENGINE WITH CURRENT LOCATION DOT
-    // ══════════════════════════════════════════════════════
     let currentShuttle = '101';
     let isSatellite = false;
     let userMarker = null;
-    let userAccuracyCircle = null;
 
-    // Default current user location on VIT Campus (near SJT entrance)
+    // Center of VIT Vellore Campus
     let userLocation = { lat: 12.971420, lng: 79.163200 };
 
     // Initialize Map at VIT Vellore Campus
@@ -395,7 +447,6 @@
       attributionControl: true
     }).setView([12.9718, 79.1625], 16.2);
 
-    // Google Maps Tile Layer with Subdomains
     let googleTileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
       subdomains: ['0', '1', '2', '3'],
       maxZoom: 20,
@@ -414,72 +465,51 @@
       showToast(isSatellite ? 'Switched to Google Satellite Hybrid' : 'Switched to Google Roadmap');
     }
 
-    // ── CURRENT LOCATION DOT IMPLEMENTATION ──
-    function renderUserLocationMarker(lat, lng, accuracy = 15) {
+    // ── PERFECT CIRCULAR CURRENT LOCATION PUCK ──
+    function renderUserLocationMarker(lat, lng) {
       userLocation = { lat, lng };
 
       if (!userMarker) {
         const userIcon = L.divIcon({
-          className: 'custom-user-marker',
+          className: '',
           html: `
-            <div class="user-puck-container" style="transform:translate(-50%, -50%);">
-              <div class="user-puck-ring"></div>
-              <div class="user-puck-dot"></div>
-              <div class="user-puck-label">📍 You Are Here</div>
+            <div class="user-puck-wrap">
+              <div class="user-puck-radar"></div>
+              <div class="user-puck-center"></div>
+              <div class="user-puck-tag">📍 You Are Here</div>
             </div>
           `,
-          iconSize: [0, 0]
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
         });
 
         userMarker = L.marker([lat, lng], {
           icon: userIcon,
-          zIndexOffset: 2000
+          zIndexOffset: 3000
         }).addTo(map);
 
         userMarker.on('click', () => {
-          showToast('Your Current Position • Lat: ' + lat.toFixed(5) + ', Lng: ' + lng.toFixed(5));
+          showToast('📍 Your Current Position (VIT Vellore)');
         });
-
-        // Semi-transparent accuracy circle
-        userAccuracyCircle = L.circle([lat, lng], {
-          radius: accuracy,
-          color: '#0284c7',
-          weight: 1,
-          opacity: 0.35,
-          fillColor: '#0284c7',
-          fillOpacity: 0.08
-        }).addTo(map);
-
       } else {
         userMarker.setLatLng([lat, lng]);
-        if (userAccuracyCircle) {
-          userAccuracyCircle.setLatLng([lat, lng]);
-          userAccuracyCircle.setRadius(accuracy);
-        }
       }
     }
 
-    // Attempt real device GPS geolocation
     function initUserGeolocation() {
-      // Place initial visible location marker immediately
-      renderUserLocationMarker(userLocation.lat, userLocation.lng, 14);
+      renderUserLocationMarker(userLocation.lat, userLocation.lng);
 
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           pos => {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
-            const acc = pos.coords.accuracy || 12;
-
-            // If user is within reasonable distance of Vellore (or for local testing), use it:
             userLocation = { lat, lng };
-            renderUserLocationMarker(lat, lng, acc);
+            renderUserLocationMarker(lat, lng);
             document.getElementById('locStatusText').textContent = 'Live Device GPS Synced';
           },
           err => {
-            // Keep verified campus spot default if denied or unavailable
-            console.log('GPS note: using verified VIT campus coordinates', err.message);
-            renderUserLocationMarker(userLocation.lat, userLocation.lng, 14);
+            renderUserLocationMarker(userLocation.lat, userLocation.lng);
           },
           { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
         );
@@ -490,55 +520,51 @@
       if (userLocation) {
         map.flyTo([userLocation.lat, userLocation.lng], 17.5, { animate: true, duration: 0.8 });
         showToast('📍 Centered on Your Current Location');
-      } else {
-        initUserGeolocation();
       }
     }
 
-    // Campus Corridor Coordinates (Real VIT GPS paths)
+    // Corridor Lines & Stops
     const routesData = {
       '101': {
         color: '#0284c7',
         coords: [
-          [12.968634, 79.156367], // Gate 1
-          [12.969800, 79.157800], // Main Building (MB)
-          [12.970500, 79.159200], // Tech Tower (TT)
-          [12.971847, 79.163585], // SJT
-          [12.973066, 79.163866], // M Block
-          [12.973810, 79.164065], // Q Block
-          [12.974397, 79.164205], // P & N Block
-          [12.972703, 79.167738]  // Gandhi Block
+          [12.968634, 79.156367],
+          [12.969800, 79.157800],
+          [12.970500, 79.159200],
+          [12.971847, 79.163585],
+          [12.973066, 79.163866],
+          [12.973810, 79.164065],
+          [12.974397, 79.164205],
+          [12.972703, 79.167738]
         ]
       },
       '102': {
         color: '#ec4899',
         coords: [
-          [12.968256, 79.159605], // G-Block LH
-          [12.969718, 79.158588], // DC Cafe
-          [12.968807, 79.156940], // Library
-          [12.968634, 79.156367], // Gate 1
-          [12.971659, 79.162310], // LH near SJT
-          [12.971847, 79.163585]  // SJT
+          [12.968256, 79.159605],
+          [12.969718, 79.158588],
+          [12.968807, 79.156940],
+          [12.968634, 79.156367],
+          [12.971659, 79.162310],
+          [12.971847, 79.163585]
         ]
       },
       '201': {
         color: '#059669',
         coords: [
-          [12.968634, 79.156367], // Gate 1
-          [12.968807, 79.156940], // Library
-          [12.970500, 79.159200], // TT
-          [12.971847, 79.163585], // SJT
-          [12.972287, 79.166090], // PRP Block
-          [12.972703, 79.167738]  // Gandhi Block
+          [12.968634, 79.156367],
+          [12.968807, 79.156940],
+          [12.970500, 79.159200],
+          [12.971847, 79.163585],
+          [12.972287, 79.166090],
+          [12.972703, 79.167738]
         ]
       }
     };
 
-    // Draw Route Polylines
-    const routeLayers = {};
     Object.keys(routesData).forEach(id => {
       const r = routesData[id];
-      routeLayers[id] = L.polyline(r.coords, {
+      L.polyline(r.coords, {
         color: r.color,
         weight: 5,
         opacity: 0.85,
@@ -546,7 +572,6 @@
       }).addTo(map);
     });
 
-    // Campus Stop Markers
     const stops = [
       { name: "Main Gate 1 (Katpadi)", lat: 12.968634, lng: 79.156367, icon: "🚪" },
       { name: "Main Building (MB)", lat: 12.969800, lng: 79.157800, icon: "🏛️" },
@@ -558,7 +583,7 @@
 
     stops.forEach(s => {
       const stopIcon = L.divIcon({
-        className: 'custom-stop-marker',
+        className: '',
         html: `<div style="transform:translate(-50%, -50%); display:flex; align-items:center; gap:3px; background:white; padding:2px 6px; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.15); white-space:nowrap; cursor:pointer;">
           <span style="font-size:11px;">${s.icon}</span>
           <span style="font-size:10px; font-weight:700; color:#0f172a;">${s.name.split('(')[0].trim()}</span>
@@ -573,7 +598,7 @@
       });
     });
 
-    // Shuttle Vehicle Profiles & Live Markers
+    // Vehicles
     const busProfiles = {
       '101': {
         name: 'MH Bus #101',
@@ -626,7 +651,7 @@
     Object.keys(busProfiles).forEach(id => {
       const p = busProfiles[id];
       const icon = L.divIcon({
-        className: 'custom-bus-marker',
+        className: '',
         html: `
           <div style="transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="setShuttleFilter('${id}')">
             <div style="background:#0f172a; color:white; font-size:10px; font-weight:700; padding:2px 6px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:4px; white-space:nowrap; margin-bottom:2px;">
@@ -646,23 +671,19 @@
       shuttleMarkers[id] = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: 1000 }).addTo(map);
     });
 
-    // Live smooth GPS vehicle simulation
     let simStep = 0;
     setInterval(() => {
       simStep = (simStep + 1) % 100;
       const progress = (simStep % 20) / 20;
-      
       const start = [12.970500, 79.159200];
       const end = [12.971847, 79.163585];
       const curLat = start[0] + (end[0] - start[0]) * progress;
       const curLng = start[1] + (end[1] - start[1]) * progress;
-
       if (shuttleMarkers['101']) {
         shuttleMarkers['101'].setLatLng([curLat, curLng]);
       }
     }, 2000);
 
-    // Filter and focus
     function setShuttleFilter(id) {
       const chips = {
         all: document.getElementById('chipAll'),
@@ -670,7 +691,6 @@
         '102': document.getElementById('chip102'),
         '201': document.getElementById('chip201'),
       };
-
       Object.values(chips).forEach(chip => {
         if (!chip) return;
         chip.className = 'px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap transition active:scale-95';
@@ -679,7 +699,7 @@
       if (id === 'all') {
         chips.all.className = 'px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap transition active:scale-95';
         fitCampusBounds();
-        showToast('Viewing all active campus corridors on Google Maps');
+        showToast('Viewing all active campus corridors');
         return;
       }
 
@@ -688,7 +708,6 @@
       const profile = busProfiles[id];
       if (!profile) return;
 
-      // Update bottom sheet
       document.getElementById('drawerTitle').textContent = profile.name;
       document.getElementById('drawerSubtitle').textContent = profile.subtitle;
       document.getElementById('drawerBadge').textContent = profile.badge;
@@ -702,23 +721,12 @@
       if (m) {
         map.flyTo(m.getLatLng(), 17, { animate: true, duration: 0.8 });
       }
-
-      showToast(`Tracking ${profile.name} on Google Maps`);
+      showToast(`Tracking ${profile.name}`);
     }
 
     function zoomMap(delta) {
       if (delta > 0) map.zoomIn();
       else map.zoomOut();
-    }
-
-    function recenterMap() {
-      const m = shuttleMarkers[currentShuttle];
-      if (m) {
-        map.flyTo(m.getLatLng(), 17.2, { animate: true, duration: 0.8 });
-        showToast(`Centered on ${busProfiles[currentShuttle].name}`);
-      } else {
-        fitCampusBounds();
-      }
     }
 
     function fitCampusBounds() {
@@ -750,16 +758,19 @@
     }
 
     function toggleQRModal() {
-      const modal = document.getElementById('qrModal');
-      modal.classList.toggle('hidden');
+      document.getElementById('qrModal').classList.toggle('hidden');
+    }
+
+    function toggleNotificationHub() {
+      document.getElementById('notifHubModal').classList.toggle('hidden');
+    }
+
+    function openRoleSwitcher() {
+      showToast('Current role: Student. Visit Portals tab to launch Faculty, Driver or Admin consoles.');
     }
 
     function toggleAllStops() {
       showToast('Showing all 6 stops: Gate 1 ➔ MB ➔ TT ➔ SJT ➔ MH-F/G ➔ Main');
-    }
-
-    function showAlerts() {
-      showToast('Alert: Peak evening fleet boost active until 8:30 PM.');
     }
 
     function showToast(msg) {
@@ -776,7 +787,6 @@
       document.getElementById('toast').classList.add('hidden');
     }
 
-    // Auto-initialize current location dot on load
     window.addEventListener('DOMContentLoaded', () => {
       initUserGeolocation();
     });
