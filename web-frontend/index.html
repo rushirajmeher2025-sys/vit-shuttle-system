@@ -9,6 +9,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <!-- Leaflet CSS & JS for Google Maps Tile Layer -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -37,6 +42,20 @@
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
+    }
+    .leaflet-container {
+      background: #e5e7eb;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .leaflet-control-attribution {
+      font-size: 9px !important;
+      background: rgba(255, 255, 255, 0.85) !important;
+      padding: 0 4px !important;
+      border-radius: 4px;
+    }
+    .custom-bus-marker, .custom-stop-marker {
+      background: transparent;
+      border: none;
     }
   </style>
 </head>
@@ -260,7 +279,7 @@
     </div>
 
     <!-- ======================================================== -->
-    <!-- SCREEN 2: LIVE CAMPUS MAP TAB -->
+    <!-- SCREEN 2: LIVE CAMPUS MAP TAB (GOOGLE MAPS POWERED) -->
     <!-- ======================================================== -->
     <div id="tab-map" class="hidden flex-1 flex flex-col">
       <!-- Top App Bar -->
@@ -291,9 +310,9 @@
       <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 space-y-2 sticky top-[53px] z-30">
         <div class="relative flex items-center">
           <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3">search</span>
-          <input id="searchInputSPA" type="text" value="SJT (Silver Jubilee Tower)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
+          <input id="searchInputSPA" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStopsSPA(event)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
           <div class="absolute right-2 flex items-center gap-1 text-slate-400">
-            <button onclick="triggerToast('GPS calibrated: Lat 12.9692° N, Long 79.1559° E')" class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-700 px-1.5 py-0.5 rounded transition">GPS</button>
+            <button onclick="locateCurrentGPSSPA()" class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700 hover:bg-sky-100 hover:text-sky-700 px-1.5 py-0.5 rounded transition">GPS</button>
             <button onclick="document.getElementById('searchInputSPA').value=''"><span class="material-symbols-outlined text-sm">cancel</span></button>
           </div>
         </div>
@@ -313,91 +332,30 @@
         <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg">
           <span class="flex items-center gap-1 text-sky-800 font-medium">
             <span class="material-symbols-outlined text-[13px] text-sky-600">sensors</span>
-            Autonomous WebSocket Relay Active
+            Google Maps Live Telemetry Active
           </span>
           <span class="text-emerald-700 font-bold font-mono">±3.8m accuracy</span>
         </div>
       </div>
 
-      <!-- Interactive Map Viewport Container -->
-      <div class="relative h-[380px] bg-[#eef3f7] overflow-hidden border-b border-slate-200">
-        <!-- SVG Vector Map Simulation -->
-        <div id="mapViewportSPA" class="absolute inset-0 w-full h-full transition-transform duration-300 origin-center" style="transform: scale(1);">
-          <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
-            <defs>
-              <pattern id="gridSPA" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
-              </pattern>
-            </defs>
-            <rect width="400" height="400" fill="url(#gridSPA)" />
-
-            <!-- Greenery Zones -->
-            <rect x="250" y="40" width="120" height="60" rx="12" fill="#dcfce7" opacity="0.6" />
-            <text x="310" y="75" font-size="7" font-weight="600" text-anchor="middle" fill="#15803d">OUTDOOR STADIUM</text>
-
-            <!-- Campus Road Pathways -->
-            <path d="M 60 40 L 60 220 L 180 220 L 180 340" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
-            <path d="M 180 60 L 180 220 L 320 220 L 320 360" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
-            <path d="M 60 120 L 340 120" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round" fill="none" />
-
-            <!-- Transit Corridors Lines -->
-            <!-- Bus 101: Blue Men's Express Loop -->
-            <path d="M 65 50 L 65 215 L 185 215 L 185 330" stroke="#0284c7" stroke-width="4" stroke-dasharray="6,4" fill="none" />
-            <!-- Bus 102: Pink Ladies' Loop -->
-            <path d="M 315 70 L 315 225 L 175 225 L 175 350" stroke="#ec4899" stroke-width="4" stroke-dasharray="6,4" fill="none" />
-            <!-- Shuttle 201: Emerald VIP Loop -->
-            <path d="M 70 125 L 330 125" stroke="#059669" stroke-width="4" stroke-dasharray="6,4" fill="none" />
-
-            <!-- Building Nodes -->
-            <g transform="translate(140, 20)" class="cursor-pointer" onclick="document.getElementById('searchInputSPA').value='Main Gate 1'">
-              <rect width="110" height="24" rx="4" fill="#ffffff" stroke="#94a3b8" />
-              <text x="55" y="15" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">MAIN GATE 1 (KATPADI)</text>
-            </g>
-            <g transform="translate(130, 60)" class="cursor-pointer" onclick="document.getElementById('searchInputSPA').value='Main Building (MB)'">
-              <rect width="130" height="28" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-              <text x="65" y="14" font-size="9" font-weight="700" text-anchor="middle" fill="#0284c7">MAIN BUILDING (MB)</text>
-              <text x="65" y="24" font-size="7" text-anchor="middle" fill="#64748b">Admin &amp; North Portico</text>
-            </g>
-            <g transform="translate(40, 110)" class="cursor-pointer" onclick="document.getElementById('searchInputSPA').value='Tech Tower (TT)'">
-              <rect width="100" height="24" rx="4" fill="#ffffff" stroke="#94a3b8" />
-              <text x="50" y="14" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">TECH TOWER (TT)</text>
-            </g>
-            <g transform="translate(60, 230)" class="cursor-pointer" onclick="document.getElementById('searchInputSPA').value='SJT Tower'">
-              <rect width="120" height="30" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
-              <text x="60" y="15" font-size="9" font-weight="700" text-anchor="middle" fill="#0284c7">SJT TOWER</text>
-              <text x="60" y="25" font-size="7" text-anchor="middle" fill="#64748b">Target Stop #10 • Academic Hub</text>
-            </g>
-          </svg>
-
-          <!-- Floating Live Vehicles -->
-          <!-- Bus 101 Marker -->
-          <div id="busMarkerSPA" class="absolute top-[215px] left-[150px] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-700">
-            <div id="spaMarkerTag" class="bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 mb-1 whitespace-nowrap">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-              <span id="spaMarkerText">Bus 101 • 22 km/h</span>
-            </div>
-            <div class="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center shadow-lg border-2 border-white ring-4 ring-sky-300/60">
-              <span class="material-symbols-outlined text-lg">directions_bus</span>
-            </div>
-            <div id="spaMarkerNext" class="mt-1 bg-white/90 border border-sky-200 text-sky-800 text-[9px] font-bold px-1.5 py-0.5 rounded shadow">
-              ➔ Next: SJT (2m)
-            </div>
-          </div>
-        </div>
+      <!-- Interactive Google Maps Viewport Container -->
+      <div id="mapContainerSPA" class="relative h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200">
+        <!-- Google Maps Leaflet Canvas -->
+        <div id="mapSPA" class="w-full h-full z-0"></div>
 
         <!-- Floating Map Controls -->
         <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
-          <button onclick="recenterSPA()" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="recenterSPA()" title="Center Vehicle" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">my_location</span>
           </button>
           <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
-            <button onclick="zoomSPA(0.2)" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
-            <button onclick="zoomSPA(-0.2)" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold active:scale-95 transition">−</button>
+            <button onclick="zoomSPA(1)" title="Zoom In" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
+            <button onclick="zoomSPA(-1)" title="Zoom Out" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold active:scale-95 transition">−</button>
           </div>
-          <button onclick="triggerToast('Exploring campus transit routing')" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="fitCampusBoundsSPA()" title="View Full Campus" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">explore</span>
           </button>
-          <button onclick="triggerToast('Toggled high-contrast transit map layer')" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="toggleMapTypeSPA()" title="Toggle Google Satellite / Road" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">layers</span>
           </button>
         </div>
@@ -482,7 +440,7 @@
 
         <!-- Dual Action Buttons -->
         <div class="grid grid-cols-2 gap-2 pt-1">
-          <button onclick="triggerToast('Walk to SJT: Head east toward TT Portico, ~120m')" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 flex items-center justify-center gap-1.5 hover:bg-slate-50 transition active:scale-95">
+          <button onclick="walkToSjtSPA()" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 flex items-center justify-center gap-1.5 hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-base">directions_walk</span>
             Walk to SJT (1.5 min)
           </button>
@@ -623,6 +581,13 @@
         navBtnMap.className = 'flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1 transition';
         navBtnPortal.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition';
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Recalculate Leaflet size when container is made visible
+        setTimeout(() => {
+          if (window.mapSPAInstance) {
+            window.mapSPAInstance.invalidateSize();
+          }
+        }, 120);
       }
     }
 
@@ -648,8 +613,15 @@
       }
     }, 1000);
 
-    // Map filters & profiles
-    let currentSPAZoom = 1;
+    // ══════════════════════════════════════════════════════
+    // 🗺️ GOOGLE MAPS LEAFLET ENGINE (FROM PREVIOUS UI)
+    // ══════════════════════════════════════════════════════
+    let currentShuttleSPA = '101';
+    let isSatelliteSPA = false;
+    let mapSPA = null;
+    let googleLayerSPA = null;
+    let spaMarkers = {};
+
     const spaBusProfiles = {
       '101': {
         name: 'MH Bus #101',
@@ -660,9 +632,11 @@
         seats: '14/36 Seats',
         eta: '2',
         nextStop: 'to SJT (380m)',
+        color: '#0284c7',
         tag: 'Bus 101 • 22 km/h',
         nextPill: '➔ Next: SJT (2m)',
-        pos: { top: 215, left: 150 }
+        lat: 12.9712,
+        lng: 79.1620
       },
       '102': {
         name: 'LH Bus #102',
@@ -673,9 +647,11 @@
         seats: '24/36 Seats',
         eta: '4',
         nextStop: 'to Ladies Hostels (520m)',
+        color: '#ec4899',
         tag: 'Bus 102 • 18 km/h',
         nextPill: '➔ Next: LH Portico (4m)',
-        pos: { top: 225, left: 240 }
+        lat: 12.9690,
+        lng: 79.1585
       },
       '201': {
         name: 'VIP Shuttle #201',
@@ -686,11 +662,156 @@
         seats: '4/18 Seats',
         eta: '1',
         nextStop: 'to Tech Tower (180m)',
+        color: '#059669',
         tag: 'Shuttle 201 • 25 km/h',
         nextPill: '➔ Next: Tech Tower (1m)',
-        pos: { top: 120, left: 200 }
+        lat: 12.9702,
+        lng: 79.1588
       }
     };
+
+    const spaStops = [
+      { name: "Main Gate 1 (Katpadi)", lat: 12.968634, lng: 79.156367, icon: "🚪" },
+      { name: "Main Building (MB)", lat: 12.969800, lng: 79.157800, icon: "🏛️" },
+      { name: "Tech Tower (TT)", lat: 12.970500, lng: 79.159200, icon: "⚙️" },
+      { name: "SJT (Silver Jubilee Tower)", lat: 12.971847, lng: 79.163585, icon: "🚏" },
+      { name: "Men's Hostels Q/P/N", lat: 12.973810, lng: 79.164065, icon: "🛏️" },
+      { name: "Ladies Hostels G-Block", lat: 12.968256, lng: 79.159605, icon: "🌸" }
+    ];
+
+    const spaRoutes = {
+      '101': {
+        color: '#0284c7',
+        coords: [
+          [12.968634, 79.156367],
+          [12.969800, 79.157800],
+          [12.970500, 79.159200],
+          [12.971847, 79.163585],
+          [12.973066, 79.163866],
+          [12.973810, 79.164065],
+          [12.974397, 79.164205],
+          [12.972703, 79.167738]
+        ]
+      },
+      '102': {
+        color: '#ec4899',
+        coords: [
+          [12.968256, 79.159605],
+          [12.969718, 79.158588],
+          [12.968807, 79.156940],
+          [12.968634, 79.156367],
+          [12.971659, 79.162310],
+          [12.971847, 79.163585]
+        ]
+      },
+      '201': {
+        color: '#059669',
+        coords: [
+          [12.968634, 79.156367],
+          [12.968807, 79.156940],
+          [12.970500, 79.159200],
+          [12.971847, 79.163585],
+          [12.972287, 79.166090],
+          [12.972703, 79.167738]
+        ]
+      }
+    };
+
+    function initGoogleMapsSPA() {
+      if (mapSPA) return;
+      mapSPA = L.map('mapSPA', {
+        zoomControl: false,
+        attributionControl: true
+      }).setView([12.9718, 79.1625], 16.2);
+      window.mapSPAInstance = mapSPA;
+
+      googleLayerSPA = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        subdomains: ['0', '1', '2', '3'],
+        maxZoom: 20,
+        attribution: '© Google Maps • VIT Vellore'
+      }).addTo(mapSPA);
+
+      // Add Routes
+      Object.keys(spaRoutes).forEach(id => {
+        const r = spaRoutes[id];
+        L.polyline(r.coords, {
+          color: r.color,
+          weight: 5,
+          opacity: 0.85,
+          dashArray: id === '201' ? '8, 6' : null
+        }).addTo(mapSPA);
+      });
+
+      // Add Stops
+      spaStops.forEach(s => {
+        const stopIcon = L.divIcon({
+          className: 'custom-stop-marker',
+          html: `<div style="transform:translate(-50%, -50%); display:flex; align-items:center; gap:3px; background:white; padding:2px 6px; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.15); white-space:nowrap; cursor:pointer;">
+            <span style="font-size:11px;">${s.icon}</span>
+            <span style="font-size:10px; font-weight:700; color:#0f172a;">${s.name.split('(')[0].trim()}</span>
+          </div>`,
+          iconSize: [0, 0]
+        });
+        const m = L.marker([s.lat, s.lng], { icon: stopIcon }).addTo(mapSPA);
+        m.on('click', () => {
+          document.getElementById('searchInputSPA').value = s.name;
+          triggerToast(`Selected stop: ${s.name}`);
+          mapSPA.flyTo([s.lat, s.lng], 17.5, { animate: true });
+        });
+      });
+
+      // Add Bus Markers
+      Object.keys(spaBusProfiles).forEach(id => {
+        const p = spaBusProfiles[id];
+        const icon = L.divIcon({
+          className: 'custom-bus-marker',
+          html: `
+            <div style="transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="setShuttleFilterSPA('${id}')">
+              <div style="background:#0f172a; color:white; font-size:10px; font-weight:700; padding:2px 6px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:4px; white-space:nowrap; margin-bottom:2px;">
+                <span style="width:6px; height:6px; border-radius:50%; background:#4ade80;"></span>
+                ${p.name} • ${p.speed} km/h
+              </div>
+              <div style="width:34px; height:34px; border-radius:50%; background:${p.color}; color:white; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.35); border:2.5px solid white;">
+                <span class="material-symbols-outlined" style="font-size:18px;">directions_bus</span>
+              </div>
+              <div style="background:rgba(255,255,255,0.92); border:1px solid ${p.color}; color:#0f172a; font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; margin-top:2px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                ${p.nextPill}
+              </div>
+            </div>
+          `,
+          iconSize: [0, 0]
+        });
+        spaMarkers[id] = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: 1000 }).addTo(mapSPA);
+      });
+
+      // Continuous GPS movement for Bus 101
+      let simTick = 0;
+      setInterval(() => {
+        simTick = (simTick + 1) % 100;
+        const prog = (simTick % 20) / 20;
+        const st = [12.970500, 79.159200];
+        const en = [12.971847, 79.163585];
+        const cLat = st[0] + (en[0] - st[0]) * prog;
+        const cLng = st[1] + (en[1] - st[1]) * prog;
+        if (spaMarkers['101']) {
+          spaMarkers['101'].setLatLng([cLat, cLng]);
+        }
+      }, 2000);
+    }
+
+    // Toggle Google satellite / road
+    function toggleMapTypeSPA() {
+      if (!mapSPA) return;
+      isSatelliteSPA = !isSatelliteSPA;
+      mapSPA.removeLayer(googleLayerSPA);
+      const lyrs = isSatelliteSPA ? 'y' : 'm';
+      googleLayerSPA = L.tileLayer(`https://mt{s}.google.com/vt/lyrs=${lyrs}&x={x}&y={y}&z={z}`, {
+        subdomains: ['0', '1', '2', '3'],
+        maxZoom: 20,
+        attribution: isSatelliteSPA ? '© Google Earth / Satellite • VIT' : '© Google Maps • VIT'
+      }).addTo(mapSPA);
+      triggerToast(isSatelliteSPA ? 'Switched to Google Satellite' : 'Switched to Google Roadmap');
+    }
 
     function setShuttleFilterSPA(id) {
       const chips = {
@@ -705,11 +826,13 @@
 
       if (id === 'all') {
         chips.all.className = 'px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap active:scale-95 transition';
-        triggerToast('Showing all active campus corridors');
+        fitCampusBoundsSPA();
+        triggerToast('Showing all active campus corridors on Google Maps');
         return;
       }
 
       chips[id].className = 'px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap active:scale-95 transition';
+      currentShuttleSPA = id;
       const p = spaBusProfiles[id];
       if (!p) return;
 
@@ -722,24 +845,59 @@
       document.getElementById('spaDrawerEta').innerHTML = `${p.eta} <span class="text-xs font-semibold">min</span>`;
       document.getElementById('spaDrawerNextWalk').textContent = p.nextStop;
 
-      const marker = document.getElementById('busMarkerSPA');
-      marker.style.top = `${p.pos.top}px`;
-      marker.style.left = `${p.pos.left}px`;
-      document.getElementById('spaMarkerText').textContent = p.tag;
-      document.getElementById('spaMarkerNext').textContent = p.nextPill;
-      triggerToast(`Tracking ${p.name}`);
+      const m = spaMarkers[id];
+      if (m && mapSPA) {
+        mapSPA.flyTo(m.getLatLng(), 17, { animate: true, duration: 0.8 });
+      }
+      triggerToast(`Tracking ${p.name} on Google Maps`);
     }
 
     function zoomSPA(delta) {
-      currentSPAZoom = Math.min(Math.max(0.8, currentSPAZoom + delta), 1.8);
-      document.getElementById('mapViewportSPA').style.transform = `scale(${currentSPAZoom})`;
-      triggerToast(`Zoom: ${Math.round(currentSPAZoom * 100)}%`);
+      if (!mapSPA) return;
+      if (delta > 0) mapSPA.zoomIn();
+      else mapSPA.zoomOut();
     }
 
     function recenterSPA() {
-      currentSPAZoom = 1;
-      document.getElementById('mapViewportSPA').style.transform = `scale(1)`;
-      triggerToast('Centered on vehicle');
+      if (!mapSPA) return;
+      const m = spaMarkers[currentShuttleSPA];
+      if (m) {
+        mapSPA.flyTo(m.getLatLng(), 17.2, { animate: true, duration: 0.8 });
+        triggerToast(`Centered on ${spaBusProfiles[currentShuttleSPA].name}`);
+      } else {
+        fitCampusBoundsSPA();
+      }
+    }
+
+    function fitCampusBoundsSPA() {
+      if (!mapSPA) return;
+      mapSPA.flyTo([12.9718, 79.1625], 16.2, { animate: true, duration: 0.8 });
+      triggerToast('Centered on full VIT Vellore Campus');
+    }
+
+    function locateCurrentGPSSPA() {
+      if (!mapSPA) return;
+      mapSPA.flyTo([12.971847, 79.163585], 17.5, { animate: true });
+      triggerToast('GPS Locked: SJT Academic Hub (VIT Vellore)');
+    }
+
+    function filterStopsSPA(e) {
+      if (e.key === 'Enter') {
+        const query = e.target.value.toLowerCase();
+        const found = spaStops.find(s => s.name.toLowerCase().includes(query));
+        if (found && mapSPA) {
+          mapSPA.flyTo([found.lat, found.lng], 17.5, { animate: true });
+          triggerToast(`Found: ${found.name}`);
+        } else {
+          triggerToast(`Searching corridors near: ${e.target.value}`);
+        }
+      }
+    }
+
+    function walkToSjtSPA() {
+      if (!mapSPA) return;
+      mapSPA.flyTo([12.971847, 79.163585], 17.8, { animate: true });
+      triggerToast('Turn left past TT portico. SJT is ~120m away (1.5 min walk).');
     }
 
     function toggleQRModal() {
@@ -773,6 +931,11 @@
     function hideAppToast() {
       document.getElementById('appToast').classList.add('hidden');
     }
+
+    // Initialize map immediately in the background
+    window.addEventListener('DOMContentLoaded', () => {
+      initGoogleMapsSPA();
+    });
   </script>
 </body>
 </html>
