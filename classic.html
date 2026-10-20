@@ -5078,6 +5078,240 @@
       margin-top: 6px;
     }
 
+    /* ══════════════════════════════════════════════════════
+       🛡️ PHASE 8 — ADMINISTRATOR CONSOLE STYLES
+    ══════════════════════════════════════════════════════ */
+    .role-tab.active-admin {
+      background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    }
+    .ci-admin {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .cta-admin {
+      background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+      color: #ffffff;
+      border: none;
+    }
+    .arb-admin {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+
+    .admin-container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 16px 12px 100px;
+    }
+
+    .admin-hero-card {
+      background: var(--surface-card);
+      border: 1px solid rgba(239, 68, 68, 0.28);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: var(--glass-blur);
+    }
+    .admin-hero-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #ef4444, #f59e0b, #10b981);
+    }
+
+    .admin-subnav-bar {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .admin-subnav-bar::-webkit-scrollbar { display: none; }
+
+    .admin-subnav-chip {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 6px 14px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .admin-subnav-chip:hover {
+      background: var(--surface-active);
+      color: var(--text);
+    }
+    .admin-subnav-chip.active {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: #ef4444;
+      color: #fca5a5;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .admin-grid-kpi {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .admin-kpi-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: var(--glass-blur);
+    }
+    .admin-kpi-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .admin-kpi-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 3px;
+    }
+    .admin-kpi-icon {
+      font-size: 1.6rem;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      background: var(--surface-hover);
+    }
+
+    .admin-card-section {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.35);
+    }
+
+    .admin-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .admin-table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.76rem;
+      text-align: left;
+    }
+    .admin-table th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      padding: 10px 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .admin-table td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text);
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .admin-table tr:hover td {
+      background: var(--surface-hover);
+    }
+
+    .badge-status-pill {
+      font-size: 0.66rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      text-transform: uppercase;
+    }
+    .badge-status-active {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .badge-status-maint {
+      background: rgba(239, 68, 68, 0.16);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.35);
+    }
+    .badge-status-standby {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+    }
+
+    .admin-action-btn {
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--surface-hover);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .admin-action-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .admin-action-btn.danger:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+
+    .admin-search-input {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-pill);
+      padding: 7px 16px;
+      font-size: 0.76rem;
+      color: var(--text);
+      outline: none;
+      min-width: 220px;
+    }
+    .admin-search-input:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
+    }
+
 </style>
 </head>
 <body class="tab-home">
@@ -5142,6 +5376,19 @@
             <div class="card-title">Driver Console</div>
             <button class="card-cta cta-driver btn" type="button" onclick="event.stopPropagation(); openAuthForm('driver')">
               <span>Driver Console Login</span>
+              <span>→</span>
+            </button>
+          </div>
+
+          <!-- Admin Card -->
+          <div class="role-card" onclick="openAuthForm('admin')" tabindex="0" role="button" aria-label="Administrator Console">
+            <div class="card-top">
+              <div class="card-icon ci-admin">🛡️</div>
+              <div class="card-badge cb-admin" style="background:rgba(239,68,68,0.2); color:#fca5a5; border:1px solid rgba(239,68,68,0.4);">OPS</div>
+            </div>
+            <div class="card-title">Admin Console</div>
+            <button class="card-cta cta-admin btn" type="button" onclick="event.stopPropagation(); openAuthForm('admin')">
+              <span>Administrator Access</span>
               <span>→</span>
             </button>
           </div>
@@ -5296,6 +5543,7 @@
         <button id="role-student" class="role-tab active-student" role="tab" aria-selected="true" onclick="switchRole('student')">Student</button>
         <button id="role-faculty" class="role-tab" role="tab" aria-selected="false" onclick="switchRole('faculty')">Faculty</button>
         <button id="role-driver"  class="role-tab" role="tab" aria-selected="false" onclick="switchRole('driver')">Driver</button>
+        <button id="role-admin"   class="role-tab" role="tab" aria-selected="false" onclick="switchRole('admin')">Admin</button>
       </div>
 
       <div class="session-chip" id="session-chip" onclick="showPortalOverlay()" role="button" tabindex="0" title="User Account">
@@ -6358,7 +6606,301 @@
 
     </div><!-- /tab-view-driver -->
 
+    <!-- ══════════════════════════════════════════════════════
+         PHASE 8: ADMINISTRATOR DASHBOARD & OPERATIONS HUB
+    ══════════════════════════════════════════════════════ -->
+    <div id="tab-view-admin" class="tab-view-container admin-container" style="display:none;">
+      
+      <!-- Top Operations Banner -->
+      <div class="admin-hero-card">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:44px; height:44px; border-radius:12px; background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.4); display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#f87171;">
+              🛡️
+            </div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.2rem; font-weight:800; color:var(--text); margin:0;">VIT Transit Operations Hub</h2>
+                <span style="font-size:0.68rem; font-weight:800; padding:2px 8px; border-radius:999px; background:rgba(239,68,68,0.2); color:#fca5a5; border:1px solid rgba(239,68,68,0.4);">ADMINISTRATOR ROOT</span>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:3px;">
+                Fleet Telemetry Dispatch, Corridors, Rosters &amp; Audit Engine
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-outline btn-sm" type="button" onclick="switchRole('student')" style="border-radius:var(--radius-pill); font-size:0.75rem; padding:6px 14px;">
+              ← Exit to Student Portal
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="toggleSimulationMode()" style="border-radius:var(--radius-pill); font-size:0.75rem; padding:6px 14px; background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+              ⚡ Autonomous GPS Sim
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Search & Actions Filter Bar -->
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:16px; gap:10px; flex-wrap:wrap;">
+          <div style="position:relative; flex:1; max-width:400px;">
+            <input type="text" id="admin-search-input" class="admin-search-input" style="width:100%;" placeholder="🔍 Search vehicles, routes, drivers, or users..." oninput="handleAdminSearch(this.value)">
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" type="button" onclick="openAddVehicleModal()" style="font-size:0.72rem; padding:6px 12px; border-color:var(--border);">
+              ➕ Add Vehicle
+            </button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="openAddRouteModal()" style="font-size:0.72rem; padding:6px 12px; border-color:var(--border);">
+              ➕ Add Corridor
+            </button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="openAddAnnouncementModal()" style="font-size:0.72rem; padding:6px 12px; border-color:var(--gold); color:var(--gold-light);">
+              📢 Announcement
+            </button>
+            <button class="btn btn-outline btn-sm" type="button" onclick="openAddDisruptionModal()" style="font-size:0.72rem; padding:6px 12px; border-color:var(--rose); color:var(--rose);">
+              ⚠️ Log Disruption
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Sub-Tabs -->
+      <div class="admin-subnav-bar">
+        <button class="admin-subnav-chip active" id="as-chip-overview" type="button" onclick="switchAdminSubTab('overview')">
+          <span>📊</span> Overview &amp; KPIs
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-vehicles" type="button" onclick="switchAdminSubTab('vehicles')">
+          <span>🚌</span> Fleet Vehicles (<span id="as-badge-vehicles">4</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-routes" type="button" onclick="switchAdminSubTab('routes')">
+          <span>🗺️</span> Routes &amp; Corridors (<span id="as-badge-routes">3</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-drivers" type="button" onclick="switchAdminSubTab('drivers')">
+          <span>👨‍✈️</span> Drivers &amp; Roster (<span id="as-badge-drivers">4</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-users" type="button" onclick="switchAdminSubTab('users')">
+          <span>👥</span> User Accounts (<span id="as-badge-users">4</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-announcements" type="button" onclick="switchAdminSubTab('announcements')">
+          <span>📢</span> Announcements (<span id="as-badge-announcements">3</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-disruptions" type="button" onclick="switchAdminSubTab('disruptions')">
+          <span>⚠️</span> Disruptions (<span id="as-badge-disruptions">2</span>)
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-analytics" type="button" onclick="switchAdminSubTab('analytics')">
+          <span>📈</span> Analytics &amp; Heatmap
+        </button>
+        <button class="admin-subnav-chip" id="as-chip-audit" type="button" onclick="switchAdminSubTab('audit')">
+          <span>📜</span> Audit Trail (<span id="as-badge-audit">4</span>)
+        </button>
+      </div>
+
+      <!-- Subtab Main Content Container -->
+      <div id="admin-subtab-content">
+        <!-- Rendered dynamically by renderAdminSubTab() -->
+      </div>
+
+    </div><!-- /tab-view-admin -->
+
   </div><!-- /dashboard-view-wrapper -->
+
+  <!-- ══════════════════════════════
+       ADMIN MODALS (VEHICLE, ROUTE, ANNOUNCEMENT, DISRUPTION, ROLE)
+  ══════════════════════════════ -->
+  <!-- 1. Add / Edit Vehicle Modal -->
+  <div id="admin-modal-vehicle" class="modal-bg" onclick="closeAdminVehicleModal(event)">
+    <div class="profile-card" onclick="event.stopPropagation()" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);" id="am-veh-title">Register Fleet Vehicle</div>
+        <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;" type="button" onclick="closeAdminVehicleModal()">✕</button>
+      </div>
+      <form onsubmit="saveVehicle(event)" style="display:flex; flex-direction:column; gap:10px;">
+        <input type="hidden" id="am-veh-id" value="">
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Vehicle Display Name</label>
+          <input type="text" id="am-veh-name" required placeholder="e.g. Campus Bus #103" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">License Plate</label>
+            <input type="text" id="am-veh-plate" required placeholder="TN-23-VIT-1033" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Vehicle Type</label>
+            <select id="am-veh-type" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+              <option value="36-Seater Campus Bus">36-Seater Campus Bus</option>
+              <option value="18-Seater VIP Minibus">18-Seater VIP Minibus</option>
+              <option value="14-Seater Electric Cart">14-Seater Electric Cart</option>
+              <option value="24-Seater Shuttle">24-Seater Shuttle</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Fuel / Power</label>
+            <input type="text" id="am-veh-fuel" value="95% EV" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Capacity (Pax)</label>
+            <input type="number" id="am-veh-cap" value="55" min="5" max="100" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Assigned Campus Route</label>
+          <select id="am-veh-route" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+            <option value="vit_general_bus_101">Campus Bus #101 (Men's Hostels)</option>
+            <option value="vit_general_bus_102">Campus Bus #102 (Women's Hostel)</option>
+            <option value="vit_faculty_shuttle_201">Faculty Exclusive Shuttle #201</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Assigned Driver</label>
+          <select id="am-veh-driver" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+            <option value="Rajesh Kumar (BUS-101-DRV)">Rajesh Kumar (BUS-101-DRV)</option>
+            <option value="Murugan S. (BUS-102-DRV)">Murugan S. (BUS-102-DRV)</option>
+            <option value="K. Venkatesh (FAC-201-DRV)">K. Venkatesh (FAC-201-DRV)</option>
+            <option value="D. Anbarasan (EV-301-DRV)">D. Anbarasan (EV-301-DRV)</option>
+            <option value="Unassigned">Unassigned (Standby)</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="btn btn-outline" type="button" onclick="closeAdminVehicleModal()">Cancel</button>
+          <button class="btn btn-primary" type="submit">💾 Save Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Add / Edit Route Modal -->
+  <div id="admin-modal-route" class="modal-bg" onclick="closeAdminRouteModal(event)">
+    <div class="profile-card" onclick="event.stopPropagation()" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);">Create Campus Transit Corridor</div>
+        <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;" type="button" onclick="closeAdminRouteModal()">✕</button>
+      </div>
+      <form onsubmit="saveRoute(event)" style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Corridor Name</label>
+          <input type="text" id="am-route-name" required placeholder="e.g. North Campus Hostel Express #103" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Short Code</label>
+            <input type="text" id="am-route-code" required placeholder="e.g. Bus #103" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Fare</label>
+            <input type="text" id="am-route-fare" value="₹20" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Target Passengers</label>
+            <select id="am-route-aud" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+              <option value="Students & All">Students &amp; All</option>
+              <option value="Faculty VIP Only">Faculty VIP Only</option>
+              <option value="Women Hostels Only">Women Hostels Only</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Corridor Color</label>
+            <select id="am-route-color" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+              <option value="#2563eb">🔵 Blue (#2563eb)</option>
+              <option value="#ec4899">🌸 Pink (#ec4899)</option>
+              <option value="#059669">🟢 Emerald (#059669)</option>
+              <option value="#f59e0b">🟡 Amber (#f59e0b)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="btn btn-outline" type="button" onclick="closeAdminRouteModal()">Cancel</button>
+          <button class="btn btn-primary" type="submit">💾 Create Corridor</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Add Announcement Modal -->
+  <div id="admin-modal-announcement" class="modal-bg" onclick="closeAdminAnnouncementModal(event)">
+    <div class="profile-card" onclick="event.stopPropagation()" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--text);">Publish Transport Bulletin</div>
+        <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;" type="button" onclick="closeAdminAnnouncementModal()">✕</button>
+      </div>
+      <form onsubmit="saveAnnouncement(event)" style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Bulletin Title</label>
+          <input type="text" id="am-ann-title" required placeholder="e.g. Extra Evening Shuttles for Riviera" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Audience</label>
+            <select id="am-ann-aud" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+              <option value="All Campus">All Campus</option>
+              <option value="Students Only">Students Only</option>
+              <option value="Faculty Only">Faculty Only</option>
+              <option value="Drivers Only">Drivers Only</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Category</label>
+            <select id="am-ann-cat" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+              <option value="fleet">⚡ Fleet Boost</option>
+              <option value="disruption">🔴 Disruption</option>
+              <option value="policy">⭐ Policy</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Severity Level</label>
+          <select id="am-ann-sev" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+            <option value="normal">Normal Information</option>
+            <option value="warning">Important Advisory</option>
+            <option value="urgent">Critical Alert</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="btn btn-outline" type="button" onclick="closeAdminAnnouncementModal()">Cancel</button>
+          <button class="btn btn-primary" type="submit">📢 Broadcast Bulletin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Add Disruption Modal -->
+  <div id="admin-modal-disruption" class="modal-bg" onclick="closeAdminDisruptionModal(event)">
+    <div class="profile-card" onclick="event.stopPropagation()" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1rem; color:var(--rose);">⚠️ Log Service Disruption</div>
+        <button style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;" type="button" onclick="closeAdminDisruptionModal()">✕</button>
+      </div>
+      <form onsubmit="saveDisruption(event)" style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Disrupted Location / Stop</label>
+          <input type="text" id="am-dis-loc" required placeholder="e.g. SJT Portico Turning" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Affected Corridors</label>
+          <input type="text" id="am-dis-corridor" required placeholder="e.g. Bus #101 &amp; Shuttle #201" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Cause</label>
+            <input type="text" id="am-dis-cause" required placeholder="e.g. Water logging / paving" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+          <div>
+            <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Estimated Delay (Mins)</label>
+            <input type="number" id="am-dis-mins" value="5" min="1" max="60" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:700; color:var(--text-muted);">Detour / Passenger Advice</label>
+          <input type="text" id="am-dis-detour" required placeholder="e.g. Board at DC Cafe Stop instead" class="pref-control-select" style="width:100%; padding:8px 10px; margin-top:2px;">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+          <button class="btn btn-outline" type="button" onclick="closeAdminDisruptionModal()">Cancel</button>
+          <button class="btn btn-primary" type="submit" style="background:#dc2626;">⚠️ Broadcast Disruption</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ══════════════════════════════
        NOTIFICATIONS MODAL
@@ -7490,6 +8032,7 @@
       const tabTickets = document.getElementById('tab-view-tickets');
       const tabAlerts = document.getElementById('tab-view-alerts');
       const tabDriver = document.getElementById('tab-view-driver');
+      const tabAdmin = document.getElementById('tab-view-admin');
       const topBar = document.querySelector('.top-bar');
       const mapControls = document.querySelector('.map-controls');
       const bottomTray = document.querySelector('.bottom-tray');
@@ -7500,6 +8043,7 @@
         if (tabTickets) tabTickets.style.display = 'none';
         if (tabAlerts) tabAlerts.style.display = 'none';
         if (tabDriver) tabDriver.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
@@ -7509,9 +8053,26 @@
         try { closeStopDetailDrawer(); } catch (e) {}
         try { initDashboard(); } catch (e) {}
         if (dashWrapper) dashWrapper.scrollTop = 0;
+      } else if (tab === 'admin') {
+        if (dashWrapper) dashWrapper.classList.add('active');
+        if (tabAdmin) tabAdmin.style.display = 'block';
+        if (tabHome) tabHome.style.display = 'none';
+        if (tabTickets) tabTickets.style.display = 'none';
+        if (tabAlerts) tabAlerts.style.display = 'none';
+        if (tabDriver) tabDriver.style.display = 'none';
+        if (topBar) topBar.style.display = 'none';
+        if (mapControls) mapControls.style.display = 'none';
+        if (bottomTray) bottomTray.style.display = 'none';
+        try { closeJourneyMapHUD(); } catch (e) {}
+        document.body.classList.remove('has-drawer-open');
+        try { toggleMapListMode(false); } catch (e) {}
+        try { closeStopDetailDrawer(); } catch (e) {}
+        try { initAdminDashboard(); } catch (e) {}
+        if (dashWrapper) dashWrapper.scrollTop = 0;
       } else if (tab === 'driver') {
         if (dashWrapper) dashWrapper.classList.add('active');
         if (tabDriver) tabDriver.style.display = 'block';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (tabHome) tabHome.style.display = 'none';
         if (tabTickets) tabTickets.style.display = 'none';
         if (tabAlerts) tabAlerts.style.display = 'none';
@@ -7524,6 +8085,7 @@
       } else if (tab === 'map') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (tabDriver) tabDriver.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (topBar) {
           topBar.style.display = 'flex';
           topBar.style.visibility = 'visible';
@@ -7548,6 +8110,7 @@
       } else if (tab === 'routes') {
         if (dashWrapper) dashWrapper.classList.remove('active');
         if (tabDriver) tabDriver.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (topBar) {
           topBar.style.display = 'flex';
           topBar.style.visibility = 'visible';
@@ -7564,6 +8127,7 @@
         if (tabTickets) tabTickets.style.display = 'block';
         if (tabAlerts) tabAlerts.style.display = 'none';
         if (tabDriver) tabDriver.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
@@ -7577,6 +8141,7 @@
         if (tabTickets) tabTickets.style.display = 'none';
         if (tabAlerts) tabAlerts.style.display = 'block';
         if (tabDriver) tabDriver.style.display = 'none';
+        if (tabAdmin) tabAdmin.style.display = 'none';
         if (topBar) topBar.style.display = 'none';
         if (mapControls) mapControls.style.display = 'none';
         if (bottomTray) bottomTray.style.display = 'none';
@@ -9638,7 +10203,7 @@
     // ── ROLE SWITCHING ──
     function switchRole(role) {
       currentRole = role;
-      ['student','faculty','driver'].forEach(r => {
+      ['student','faculty','driver','admin'].forEach(r => {
         const btn = document.getElementById(`role-${r}`);
         if (!btn) return;
         btn.className = `role-tab${role===r?' active-'+r:''}`;
@@ -9651,15 +10216,27 @@
       const mapControls = document.querySelector('.map-controls');
       const bottomTray = document.querySelector('.bottom-tray');
 
-      if (role==='driver') {
-        pv.style.display='none'; dv.style.display='block';
+      if (role === 'admin') {
+        pv.style.display = 'none';
+        dv.style.display = 'none';
+        if (bnav) bnav.style.display = 'none';
+        if (topBar) topBar.style.display = 'none';
+        if (mapControls) mapControls.style.display = 'none';
+        if (bottomTray) bottomTray.style.display = 'none';
+        if (dashWrapper) dashWrapper.classList.add('active');
+        switchTab('admin');
+        initAdminDashboard();
+      } else if (role === 'driver') {
+        pv.style.display = 'none';
+        dv.style.display = 'block';
         if (bnav) bnav.style.display = 'none';
         initDriverConsole();
         switchTab('driver');
       } else {
-        pv.style.display='block'; dv.style.display='none';
+        pv.style.display = 'block';
+        dv.style.display = 'none';
         if (bnav) bnav.style.display = 'flex';
-        selectShuttle(role==='faculty'?'vit_faculty_shuttle_201':'vit_general_bus_101');
+        selectShuttle(role === 'faculty' ? 'vit_faculty_shuttle_201' : 'vit_general_bus_101');
         initDashboard();
         if (currentTab === 'home') {
           if (dashWrapper) dashWrapper.classList.add('active');
@@ -10503,8 +11080,15 @@
         if(dh)dh.textContent='@vit.ac.in'; if(ei)ei.placeholder='faculty.name@vit.ac.in';
         if(il)il.textContent='Employee / Faculty ID'; if(iv)iv.placeholder='e.g. VIT-FAC-4091';
         if(st)st.textContent=authMode==='login'?'Sign In as Faculty':'Create Faculty Account';
-        if(gb)gb.textContent=`${verb} with Google (@vit.ac.in)`;
-        if(fn)fn.textContent='Faculty fare: 100% FREE • Verified @vit.ac.in';
+      } else if (activeAuthRole === 'admin') {
+        if(ri)ri.textContent='🛡️'; if(rl)rl.textContent='Admin Console';
+        if(fh)fh.textContent=authMode==='login'?'Operations Admin Login':'Register Admin';
+        if(fs)fs.textContent='Campus fleet dispatch, route management & telemetry audit';
+        if(dh)dh.textContent='@vit.ac.in'; if(ei)ei.placeholder='admin.transit@vit.ac.in';
+        if(il)il.textContent='Admin Authorization ID'; if(iv)iv.placeholder='e.g. VIT-ADMIN-01';
+        if(st)st.textContent=authMode==='login'?'Unlock Admin Console':'Register Admin';
+        if(gb)gb.textContent=authMode==='login'?'Admin Login with Google (@vit.ac.in)':'Register Admin';
+        if(fn)fn.textContent='Restricted to authorized VIT Transit Operations Officers';
       } else {
         if(ri)ri.textContent='🚖'; if(rl)rl.textContent='Driver Console';
         if(fh)fh.textContent=authMode==='login'?'Driver Console Login':'Register Driver';
@@ -10527,6 +11111,7 @@
       const n=document.getElementById('auth-name'), i=document.getElementById('auth-id-val');
       if(activeAuthRole==='student'){if(e)e.value='student.vit@vitstudent.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Arjun Kumar';if(i)i.value='21BCE1042';}
       else if(activeAuthRole==='faculty'){if(e)e.value='dr.raman@vit.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Dr. C. Raman';if(i)i.value='VIT-FAC-4091';}
+      else if(activeAuthRole==='admin'){if(e)e.value='admin.transit@vit.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Transit Operations Admin';if(i)i.value='VIT-ADMIN-01';}
       else{if(e)e.value='driver.raj@vit.ac.in';if(p)p.value='vit2026pass';if(n)n.value='Rajesh Kumar';if(i)i.value='BUS-101-DRV';}
       handleAuthSubmit(new Event('submit'));
     }
@@ -10549,6 +11134,7 @@
       if (!email||!pwd) return showErr('Please fill in both email and password.');
       if (activeAuthRole==='student'&&!email.endsWith('@vitstudent.ac.in')) return showErr('Student email must end with <strong>@vitstudent.ac.in</strong>.<br><small>Or click "One-Click Instant Verified Sign In" below.</small>');
       if (activeAuthRole==='faculty'&&(!email.endsWith('@vit.ac.in')||email.endsWith('@vitstudent.ac.in'))) return showErr('Faculty email must end with <strong>@vit.ac.in</strong>.<br><small>Or click "One-Click Instant Verified Sign In" below.</small>');
+      if (activeAuthRole==='admin'&&(!email.endsWith('@vit.ac.in')||email.endsWith('@vitstudent.ac.in'))) return showErr('Administrator email must end with <strong>@vit.ac.in</strong>.<br><small>Or click "One-Click Instant Verified Sign In" below.</small>');
       if (pwd.length < 6) return showErr('Password must be at least 6 characters.');
 
       if (sb) { sb.disabled=true; sb.innerHTML='<span>Verifying...</span>'; }
@@ -10597,7 +11183,7 @@
     function updateNavChip(role) {
       const badge = document.getElementById('session-label');
       if (!badge) return;
-      const icon = role==='student'?'🎓':role==='faculty'?'⭐':'🚖';
+      const icon = role==='student'?'🎓':role==='faculty'?'⭐':role==='driver'?'🚖':'🛡️';
       const name = currentUser?.name ? (' '+currentUser.name.split(' ')[0]) : '';
       badge.textContent = `${icon}${name} (${role.toUpperCase()})`;
     }
@@ -11717,6 +12303,1037 @@
       if (!currentDetailStop) return;
       closeStopDetailDrawer();
       openJourneyPlanner(null, currentDetailStop.id);
+    }
+
+    // ══════════════════════════════════════════════════════
+    // 🛡️ PHASE 8 — ADMINISTRATOR CONSOLE ENGINE
+    // ══════════════════════════════════════════════════════
+    let adminState = {
+      activeTab: 'overview',
+      searchQuery: '',
+      vehicles: [
+        { id: 'vit_general_bus_101', name: "Campus Bus #101", plate: "TN-23-VIT-1011", type: "36-Seater Campus Bus", fuel: "88% EV", capacity: 55, status: "active", routeId: "vit_general_bus_101", routeName: "Men's Hostels Express", driver: "Rajesh Kumar (BUS-101-DRV)", lastPing: "Just now" },
+        { id: 'vit_general_bus_102', name: "Campus Bus #102", plate: "TN-23-VIT-1022", type: "36-Seater Campus Bus", fuel: "92% Diesel", capacity: 55, status: "active", routeId: "vit_general_bus_102", routeName: "Ladies' Hostel Loop", driver: "Murugan S. (BUS-102-DRV)", lastPing: "Just now" },
+        { id: 'vit_faculty_shuttle_201', name: "Faculty Shuttle #201", plate: "TN-23-VIP-2011", type: "18-Seater VIP Minibus", fuel: "79% EV", capacity: 22, status: "active", routeId: "vit_faculty_shuttle_201", routeName: "Faculty VIP Corridor", driver: "K. Venkatesh (FAC-201-DRV)", lastPing: "Just now" },
+        { id: 'vit_ev_van_301', name: "Eco Van #301", plate: "TN-23-EV-3011", type: "14-Seater Electric Cart", fuel: "100% EV", capacity: 14, status: "standby", routeId: "vit_general_bus_101", routeName: "Standby Reserve", driver: "Unassigned", lastPing: "14m ago" }
+      ],
+      routes: [
+        { id: 'vit_general_bus_101', name: "Campus Bus #101 (Men's Hostels)", shortName: "Bus #101", color: "#2563eb", fare: "₹20", audience: "Students & All", active: true, stopsCount: 6, stopIds: [6, 5, 3, 4, 2, 10] },
+        { id: 'vit_general_bus_102', name: "Campus Bus #102 (Women's Hostel)", shortName: "Bus #102", color: "#ec4899", fare: "₹20", audience: "Students & All", active: true, stopsCount: 5, stopIds: [6, 5, 7, 8, 10] },
+        { id: 'vit_faculty_shuttle_201', name: "Faculty Exclusive Shuttle #201", shortName: "Shuttle #201", color: "#059669", fare: "FREE", audience: "Faculty VIP Only", active: true, stopsCount: 7, stopIds: [6, 5, 3, 10, 13, 14, 1] }
+      ],
+      drivers: [
+        { id: 'BUS-101-DRV', name: 'Rajesh Kumar', phone: '+91 98401 23456', vehicle: 'vit_general_bus_101', shift: '08:00 - 14:00', status: 'Active Driving', tripsToday: 4, rating: 4.9 },
+        { id: 'BUS-102-DRV', name: 'Murugan S.', phone: '+91 94432 87654', vehicle: 'vit_general_bus_102', shift: '08:00 - 14:00', status: 'Active Driving', tripsToday: 3, rating: 4.8 },
+        { id: 'FAC-201-DRV', name: 'K. Venkatesh', phone: '+91 97890 12345', vehicle: 'vit_faculty_shuttle_201', shift: '08:30 - 17:30', status: 'Active Driving', tripsToday: 5, rating: 5.0 },
+        { id: 'EV-301-DRV', name: 'D. Anbarasan', phone: '+91 91234 56789', vehicle: 'vit_ev_van_301', shift: '14:00 - 20:00', status: 'Off Duty', tripsToday: 0, rating: 4.7 }
+      ],
+      users: [
+        { id: '21BCE1042', name: 'Arjun Kumar', email: 'student.vit@vitstudent.ac.in', role: 'student', verified: true, trips: 18 },
+        { id: 'VIT-FAC-4091', name: 'Dr. C. Raman', email: 'dr.raman@vit.ac.in', role: 'faculty', verified: true, trips: 42 },
+        { id: 'BUS-101-DRV', name: 'Rajesh Kumar', email: 'driver.raj@vit.ac.in', role: 'driver', verified: true, trips: 142 },
+        { id: 'VIT-ADMIN-01', name: 'Transit Operations Team', email: 'admin.transit@vit.ac.in', role: 'admin', verified: true, trips: 0 }
+      ],
+      announcements: [
+        { id: 'ann-1', title: 'Mid-Term Exam Shuttle Frequency Boost', category: 'fleet', audience: 'All Campus', severity: 'warning', date: 'Today, 08:30 AM', active: true },
+        { id: 'ann-2', title: 'South Campus Gate 1 Resurfacing Notice', category: 'disruption', audience: 'All Campus', severity: 'urgent', date: 'Yesterday', active: true },
+        { id: 'ann-3', title: 'Faculty Shuttle Direct Portico Booking', category: 'policy', audience: 'Faculty Only', severity: 'normal', date: '2 days ago', active: true }
+      ],
+      disruptions: [
+        { id: 'dis-1', location: 'Gate 1 Portico Circle', corridor: 'All Routes Entering Gate 1', cause: 'Road resurfacing & cable trenching', delayMins: 4, severity: 'Moderate', detour: 'Route via Foodys loop', status: 'Active' },
+        { id: 'dis-2', location: 'Gandhi Block Corridor', corridor: 'East Campus Connector', cause: 'Tree branch clearance', delayMins: 2, severity: 'Low', detour: 'Single-lane shared transit', status: 'Active' }
+      ],
+      auditLogs: [
+        { id: 'aud-1', time: '12:05 PM', admin: 'Transit Operations Admin', action: 'ROLE_UPDATE', detail: 'Verified Faculty status granted to Dr. C. Raman (@vit.ac.in)' },
+        { id: 'aud-2', time: '11:30 AM', admin: 'Transit Operations Admin', action: 'DISRUPTION_LOGGED', detail: 'Logged 4-min delay notice at Gate 1 Portico Circle' },
+        { id: 'aud-3', time: '10:15 AM', admin: 'Transit Operations Admin', action: 'VEHICLE_ASSIGN', detail: 'Assigned Driver Rajesh Kumar to Bus #101 (MH Express)' },
+        { id: 'aud-4', time: '08:00 AM', admin: 'Transit Operations Admin', action: 'FLEET_INIT', detail: 'Autonomous GPS Fleet Simulation telemetry initialized for 3 vehicles' }
+      ]
+    };
+
+    function loadAdminState() {
+      try {
+        const saved = localStorage.getItem('vit_admin_state');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed && typeof parsed === 'object') {
+            adminState = Object.assign(adminState, parsed);
+          }
+        }
+      } catch (e) {}
+    }
+
+    function persistAdminState() {
+      try {
+        localStorage.setItem('vit_admin_state', JSON.stringify({
+          vehicles: adminState.vehicles,
+          routes: adminState.routes,
+          drivers: adminState.drivers,
+          users: adminState.users,
+          announcements: adminState.announcements,
+          disruptions: adminState.disruptions,
+          auditLogs: adminState.auditLogs
+        }));
+      } catch (e) {}
+    }
+
+    function logAdminAudit(action, detail) {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const entry = {
+        id: 'aud-' + Date.now(),
+        time,
+        admin: (currentUser?.name || 'Transit Operations Admin'),
+        action,
+        detail
+      };
+      adminState.auditLogs.unshift(entry);
+      if (adminState.auditLogs.length > 30) adminState.auditLogs = adminState.auditLogs.slice(0, 30);
+      persistAdminState();
+      updateAdminBadges();
+      if (adminState.activeTab === 'audit') renderAdminAuditLogs(document.getElementById('admin-subtab-content'));
+    }
+
+    function initAdminDashboard() {
+      loadAdminState();
+      updateAdminBadges();
+      switchAdminSubTab(adminState.activeTab || 'overview');
+    }
+
+    function updateAdminBadges() {
+      const bV = document.getElementById('as-badge-vehicles');
+      const bR = document.getElementById('as-badge-routes');
+      const bD = document.getElementById('as-badge-drivers');
+      const bU = document.getElementById('as-badge-users');
+      const bA = document.getElementById('as-badge-announcements');
+      const bDis = document.getElementById('as-badge-disruptions');
+      const bAud = document.getElementById('as-badge-audit');
+      if (bV) bV.textContent = adminState.vehicles.length;
+      if (bR) bR.textContent = adminState.routes.length;
+      if (bD) bD.textContent = adminState.drivers.length;
+      if (bU) bU.textContent = adminState.users.length;
+      if (bA) bA.textContent = adminState.announcements.filter(a => a.active).length;
+      if (bDis) bDis.textContent = adminState.disruptions.filter(d => d.status === 'Active').length;
+      if (bAud) bAud.textContent = adminState.auditLogs.length;
+    }
+
+    function switchAdminSubTab(tab) {
+      playBeep();
+      adminState.activeTab = tab;
+      const chips = document.querySelectorAll('.admin-subnav-chip');
+      chips.forEach(c => c.classList.remove('active'));
+      const activeChip = document.getElementById(`as-chip-${tab}`);
+      if (activeChip) activeChip.classList.add('active');
+
+      renderAdminSubTab();
+    }
+
+    function handleAdminSearch(val) {
+      adminState.searchQuery = (val || '').trim().toLowerCase();
+      renderAdminSubTab();
+    }
+
+    function renderAdminSubTab() {
+      const cont = document.getElementById('admin-subtab-content');
+      if (!cont) return;
+
+      switch (adminState.activeTab) {
+        case 'overview': renderAdminOverview(cont); break;
+        case 'vehicles': renderAdminVehicles(cont); break;
+        case 'routes': renderAdminRoutes(cont); break;
+        case 'drivers': renderAdminDrivers(cont); break;
+        case 'users': renderAdminUsers(cont); break;
+        case 'announcements': renderAdminAnnouncements(cont); break;
+        case 'disruptions': renderAdminDisruptions(cont); break;
+        case 'analytics': renderAdminAnalytics(cont); break;
+        case 'audit': renderAdminAuditLogs(cont); break;
+        default: renderAdminOverview(cont); break;
+      }
+    }
+
+    // 1. OVERVIEW
+    function renderAdminOverview(cont) {
+      const activeCount = adminState.vehicles.filter(v => v.status === 'active').length;
+      const maintCount = adminState.vehicles.filter(v => v.status === 'maintenance').length;
+      const activeRoutes = adminState.routes.filter(r => r.active).length;
+      const activeDrivers = adminState.drivers.filter(d => d.status.includes('Active')).length;
+
+      cont.innerHTML = `
+        <div class="admin-grid-kpi">
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">${adminState.vehicles.length}</div>
+              <div class="admin-kpi-label">Configured Fleet (${activeCount} Active)</div>
+            </div>
+            <div class="admin-kpi-icon">🚌</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">${activeRoutes}</div>
+              <div class="admin-kpi-label">Campus Corridors (16 Stops)</div>
+            </div>
+            <div class="admin-kpi-icon">🗺️</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">${activeDrivers}</div>
+              <div class="admin-kpi-label">Drivers on Duty</div>
+            </div>
+            <div class="admin-kpi-icon">👨‍✈️</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">1,428</div>
+              <div class="admin-kpi-label">Today's Boardings</div>
+            </div>
+            <div class="admin-kpi-icon">🎟️</div>
+          </div>
+        </div>
+
+        <div class="admin-card-section" style="margin-bottom:16px;">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Operational Telemetry &amp; Infrastructure Health</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Real-time services connecting WebSocket broadcasters, database syncing, and GPS engines</div>
+            </div>
+            <span class="badge-status-pill badge-status-active">● ALL SYSTEMS NOMINAL</span>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px;">
+            <div style="background:var(--surface-hover); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--text);">WebSocket Realtime Telemetry</span>
+                <span style="font-size:0.68rem; font-weight:800; color:#34d399;">ONLINE</span>
+              </div>
+              <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">Port 8080 • Broadcaster latency ~20ms</div>
+            </div>
+            <div style="background:var(--surface-hover); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--text);">Supabase Database Batcher</span>
+                <span style="font-size:0.68rem; font-weight:800; color:#34d399;">HEALTHY</span>
+              </div>
+              <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">5-minute logging queue active • PostgreSQL</div>
+            </div>
+            <div style="background:var(--surface-hover); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-size:0.75rem; font-weight:700; color:var(--text);">Autonomous Fleet Simulation</span>
+                <span style="font-size:0.68rem; font-weight:800; color:#38bdf8;">ACTIVE</span>
+              </div>
+              <div style="font-size:0.7rem; color:var(--text-muted); margin-top:4px;">3 vehicles in synchronized loop (18-24 KM/H)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Active Fleet Snapshot</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Real-time dispatch and driver assignment matrix</div>
+            </div>
+            <button class="btn btn-outline btn-sm" type="button" onclick="switchAdminSubTab('vehicles')" style="font-size:0.72rem;">Manage Full Fleet →</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Plate</th>
+                  <th>Route Corridor</th>
+                  <th>Assigned Driver</th>
+                  <th>Power / Fuel</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${adminState.vehicles.map(v => `
+                  <tr>
+                    <td><strong>${escapeHtml(v.name)}</strong><br><small style="color:var(--text-muted);">${v.type}</small></td>
+                    <td><code>${v.plate}</code></td>
+                    <td>${escapeHtml(v.routeName)}</td>
+                    <td>${escapeHtml(v.driver)}</td>
+                    <td><span style="color:var(--emerald-light); font-weight:700;">⚡ ${v.fuel}</span></td>
+                    <td>
+                      <span class="badge-status-pill ${v.status === 'active' ? 'badge-status-active' : v.status === 'maintenance' ? 'badge-status-maint' : 'badge-status-standby'}">
+                        ● ${v.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="admin-action-btn" type="button" onclick="toggleVehicleStatus('${v.id}')">
+                        ${v.status === 'active' ? '🔧 Set Maint' : '✅ Activate'}
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. VEHICLES
+    function renderAdminVehicles(cont) {
+      const q = adminState.searchQuery;
+      const list = adminState.vehicles.filter(v => 
+        !q || v.name.toLowerCase().includes(q) || v.plate.toLowerCase().includes(q) || v.driver.toLowerCase().includes(q) || v.routeName.toLowerCase().includes(q)
+      );
+
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Campus Transit Fleet Directory (${list.length} Vehicles)</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Register, modify capacity, assign routes, or put vehicles into workshop maintenance</div>
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openAddVehicleModal()">➕ Register New Vehicle</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Vehicle Name</th>
+                  <th>Plate Number</th>
+                  <th>Class / Specs</th>
+                  <th>Pax Capacity</th>
+                  <th>Battery / Fuel</th>
+                  <th>Assigned Corridor</th>
+                  <th>Driver Assigned</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${list.length === 0 ? '<tr><td colspan="9" style="text-align:center; padding:20px; color:var(--text-muted);">No vehicles match your search query.</td></tr>' : list.map(v => `
+                  <tr>
+                    <td><strong>${escapeHtml(v.name)}</strong></td>
+                    <td><code>${v.plate}</code></td>
+                    <td>${v.type}</td>
+                    <td><strong>${v.capacity}</strong> seats/standing</td>
+                    <td><span style="color:var(--emerald-light); font-weight:700;">⚡ ${v.fuel}</span></td>
+                    <td>${escapeHtml(v.routeName)}</td>
+                    <td>${escapeHtml(v.driver)}</td>
+                    <td>
+                      <span class="badge-status-pill ${v.status === 'active' ? 'badge-status-active' : v.status === 'maintenance' ? 'badge-status-maint' : 'badge-status-standby'}">
+                        ● ${v.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style="display:flex; gap:6px;">
+                        <button class="admin-action-btn" type="button" onclick="openAddVehicleModal('${v.id}')">✏️ Edit</button>
+                        <button class="admin-action-btn" type="button" onclick="toggleVehicleStatus('${v.id}')">
+                          ${v.status === 'active' ? '🔧 Workshop' : '✅ Active'}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 3. ROUTES
+    function renderAdminRoutes(cont) {
+      const q = adminState.searchQuery;
+      const list = adminState.routes.filter(r => !q || r.name.toLowerCase().includes(q) || r.shortName.toLowerCase().includes(q));
+
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Campus Corridors &amp; Stop Sequences (${list.length} Routes)</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Reorder stop sequences, toggle active status, adjust passenger fares and audience access</div>
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openAddRouteModal()">➕ Create Campus Corridor</button>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            ${list.map(r => {
+              return `
+                <div style="background:var(--surface-hover); border:1px solid var(--border); border-radius:var(--radius-md); padding:14px 16px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="width:12px; height:12px; border-radius:50%; background:${r.color}; display:inline-block;"></span>
+                      <strong style="font-family:'Space Grotesk',sans-serif; font-size:0.95rem; color:var(--text);">${escapeHtml(r.name)}</strong>
+                      <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--surface-active); color:var(--text-secondary);">${r.fare} • ${r.audience}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                      <button class="admin-action-btn" type="button" onclick="toggleRouteActive('${r.id}')">
+                        ${r.active ? '🟢 Corridor Active' : '⏸️ Suspended'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="font-size:0.72rem; font-weight:700; color:var(--text-muted); margin-bottom:6px;">
+                    CONFIGURED STOP SEQUENCE (${r.stopIds.length} STOPS):
+                  </div>
+                  <div style="display:flex; flex-direction:column; gap:4px;">
+                    ${r.stopIds.map((sId, sIdx) => {
+                      const stopName = campusStops.find(s => s.id === sId)?.name || 'Stop #' + sId;
+                      return `
+                        <div style="background:var(--surface-card); border:1px solid var(--border-subtle); border-radius:6px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center; font-size:0.75rem;">
+                          <div style="display:flex; align-items:center; gap:6px;">
+                            <span style="font-weight:800; color:var(--primary); font-size:0.68rem;">#${sIdx + 1}</span>
+                            <span>${escapeHtml(stopName)}</span>
+                          </div>
+                          <div style="display:flex; gap:4px;">
+                            <button class="admin-action-btn" style="padding:2px 6px; font-size:0.65rem;" type="button" onclick="moveRouteStop('${r.id}', ${sIdx}, -1)" ${sIdx === 0 ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>▲ Up</button>
+                            <button class="admin-action-btn" style="padding:2px 6px; font-size:0.65rem;" type="button" onclick="moveRouteStop('${r.id}', ${sIdx}, 1)" ${sIdx === r.stopIds.length - 1 ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}>▼ Down</button>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // 4. DRIVERS
+    function renderAdminDrivers(cont) {
+      const q = adminState.searchQuery;
+      const list = adminState.drivers.filter(d => !q || d.name.toLowerCase().includes(q) || d.id.toLowerCase().includes(q) || d.phone.includes(q));
+
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Driver Roster &amp; Vehicle Assignments (${list.length} Drivers)</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Shift allocations, vehicle telemetry bindings, and driver ratings</div>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Driver Name</th>
+                  <th>Badge ID</th>
+                  <th>Contact Phone</th>
+                  <th>Assigned Vehicle</th>
+                  <th>Shift Window</th>
+                  <th>Current Shift State</th>
+                  <th>Trips Today</th>
+                  <th>Rating</th>
+                  <th>Reassign Vehicle</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${list.map(d => `
+                  <tr>
+                    <td><strong>${escapeHtml(d.name)}</strong></td>
+                    <td><code>${d.id}</code></td>
+                    <td>${d.phone}</td>
+                    <td><strong>${escapeHtml(d.vehicle)}</strong></td>
+                    <td>${d.shift}</td>
+                    <td>
+                      <span class="badge-status-pill ${d.status.includes('Active') ? 'badge-status-active' : 'badge-status-standby'}">
+                        ● ${d.status}
+                      </span>
+                    </td>
+                    <td><strong>${d.tripsToday}</strong> completed</td>
+                    <td>⭐ ${d.rating}</td>
+                    <td>
+                      <select class="pref-control-select" style="font-size:0.72rem; padding:4px 6px;" onchange="reassignDriverVehicle('${d.id}', this.value)">
+                        <option value="vit_general_bus_101" ${d.vehicle === 'vit_general_bus_101' ? 'selected' : ''}>Bus #101</option>
+                        <option value="vit_general_bus_102" ${d.vehicle === 'vit_general_bus_102' ? 'selected' : ''}>Bus #102</option>
+                        <option value="vit_faculty_shuttle_201" ${d.vehicle === 'vit_faculty_shuttle_201' ? 'selected' : ''}>Shuttle #201</option>
+                        <option value="vit_ev_van_301" ${d.vehicle === 'vit_ev_van_301' ? 'selected' : ''}>Van #301</option>
+                        <option value="Unassigned" ${d.vehicle === 'Unassigned' ? 'selected' : ''}>Unassigned</option>
+                      </select>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 5. USERS
+    function renderAdminUsers(cont) {
+      const q = adminState.searchQuery;
+      const list = adminState.users.filter(u => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q));
+
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">User Accounts &amp; Role Assignments (${list.length} Users)</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Institutional authorization matrix: assign Student, Faculty VIP, Driver, or Operations Admin privileges</div>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>User Full Name</th>
+                  <th>Institutional ID</th>
+                  <th>Official Email</th>
+                  <th>Current Role</th>
+                  <th>Verification</th>
+                  <th>Change Institutional Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${list.map(u => `
+                  <tr>
+                    <td><strong>${escapeHtml(u.name)}</strong></td>
+                    <td><code>${u.id}</code></td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td>
+                      <span class="badge-status-pill ${u.role === 'admin' ? 'badge-status-maint' : u.role === 'faculty' ? 'badge-status-active' : 'badge-status-standby'}">
+                        ${u.role.toUpperCase()}
+                      </span>
+                    </td>
+                    <td><span style="color:#34d399; font-weight:700;">● Verified</span></td>
+                    <td>
+                      <select class="pref-control-select" style="font-size:0.72rem; padding:4px 8px;" onchange="changeUserRole('${u.id}', this.value)">
+                        <option value="student" ${u.role === 'student' ? 'selected' : ''}>Student (Standard ₹20)</option>
+                        <option value="faculty" ${u.role === 'faculty' ? 'selected' : ''}>Faculty (VIP Free Pass)</option>
+                        <option value="driver" ${u.role === 'driver' ? 'selected' : ''}>Authorized Driver</option>
+                        <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Operations Administrator</option>
+                      </select>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 6. ANNOUNCEMENTS
+    function renderAdminAnnouncements(cont) {
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Campus Transport Bulletins (${adminState.announcements.length})</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Broadcast official advisories, exam frequency boosts, and policy bulletins</div>
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openAddAnnouncementModal()">📢 Publish New Bulletin</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Bulletin Title</th>
+                  <th>Category</th>
+                  <th>Target Audience</th>
+                  <th>Severity</th>
+                  <th>Published Time</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${adminState.announcements.map(a => `
+                  <tr>
+                    <td><strong>${escapeHtml(a.title)}</strong></td>
+                    <td><span style="text-transform:capitalize;">${a.category}</span></td>
+                    <td><strong>${a.audience}</strong></td>
+                    <td>
+                      <span class="badge-status-pill ${a.severity === 'urgent' ? 'badge-status-maint' : a.severity === 'warning' ? 'badge-status-standby' : 'badge-status-active'}">
+                        ${a.severity}
+                      </span>
+                    </td>
+                    <td>${a.date}</td>
+                    <td>${a.active ? '🟢 Active' : '⚪ Expired'}</td>
+                    <td>
+                      <button class="admin-action-btn danger" type="button" onclick="expireAnnouncement('${a.id}')">
+                        ${a.active ? 'Expire Bulletin' : 'Remove'}
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 7. DISRUPTIONS
+    function renderAdminDisruptions(cont) {
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--rose); margin:0;">Service Disruptions &amp; Route Alerts (${adminState.disruptions.length})</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Active road maintenance, weather slowdowns, and passenger detour notifications</div>
+            </div>
+            <button class="btn btn-primary btn-sm" type="button" onclick="openAddDisruptionModal()" style="background:#dc2626;">⚠️ Log Disruption</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Location</th>
+                  <th>Affected Corridors</th>
+                  <th>Disruption Cause</th>
+                  <th>Est. Delay</th>
+                  <th>Severity</th>
+                  <th>Detour Advice</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${adminState.disruptions.length === 0 ? '<tr><td colspan="8" style="text-align:center; padding:20px; color:#34d399;">🟢 No active service disruptions recorded across campus corridors.</td></tr>' : adminState.disruptions.map(d => `
+                  <tr>
+                    <td><strong>${escapeHtml(d.location)}</strong></td>
+                    <td>${escapeHtml(d.corridor)}</td>
+                    <td>${escapeHtml(d.cause)}</td>
+                    <td><strong style="color:var(--rose);">+${d.delayMins} min</strong></td>
+                    <td><span class="badge-status-pill badge-status-maint">${d.severity}</span></td>
+                    <td><small>${escapeHtml(d.detour)}</small></td>
+                    <td><strong>${d.status}</strong></td>
+                    <td>
+                      <button class="admin-action-btn" type="button" onclick="resolveDisruption('${d.id}')">
+                        ✅ Resolve &amp; Clear
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 8. ANALYTICS
+    function renderAdminAnalytics(cont) {
+      cont.innerHTML = `
+        <div class="admin-grid-kpi">
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val" style="color:var(--emerald-light);">96.4%</div>
+              <div class="admin-kpi-label">On-Time Reliability Rate</div>
+            </div>
+            <div class="admin-kpi-icon">⏱️</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">3.8 min</div>
+              <div class="admin-kpi-label">Average Passenger Wait</div>
+            </div>
+            <div class="admin-kpi-icon">🚶</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">98.5%</div>
+              <div class="admin-kpi-label">Fleet Operational Uptime</div>
+            </div>
+            <div class="admin-kpi-icon">⚡</div>
+          </div>
+          <div class="admin-kpi-card">
+            <div>
+              <div class="admin-kpi-val">580 kg</div>
+              <div class="admin-kpi-label">Daily CO2 Saved (EV Buses)</div>
+            </div>
+            <div class="admin-kpi-icon">🌱</div>
+          </div>
+        </div>
+
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Peak-Hour Campus Demand Distribution (Official Telemetry)</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Data retrieved from backend API: /api/analytics/peak-hours</div>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Time Slot</th>
+                  <th>Campus Shift</th>
+                  <th>Average Crowding</th>
+                  <th>Recommended Shuttle Frequency</th>
+                  <th>Fleet Dispatch Level</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>08:00 - 09:00 AM</strong></td>
+                  <td>Morning Lecture Rush</td>
+                  <td><span class="badge-status-pill badge-status-maint">HIGH (95%)</span></td>
+                  <td>Every 3 - 4 mins</td>
+                  <td><div style="background:rgba(239,68,68,0.2);height:8px;border-radius:4px;width:95%;"></div></td>
+                </tr>
+                <tr>
+                  <td><strong>09:00 - 11:00 AM</strong></td>
+                  <td>Mid-Morning Lectures</td>
+                  <td><span class="badge-status-pill badge-status-standby">MODERATE (60%)</span></td>
+                  <td>Every 6 mins</td>
+                  <td><div style="background:rgba(245,158,11,0.2);height:8px;border-radius:4px;width:60%;"></div></td>
+                </tr>
+                <tr>
+                  <td><strong>12:00 - 02:00 PM</strong></td>
+                  <td>Lunch &amp; Mess Transit</td>
+                  <td><span class="badge-status-pill badge-status-maint">HIGH (92%)</span></td>
+                  <td>Every 3 mins</td>
+                  <td><div style="background:rgba(239,68,68,0.2);height:8px;border-radius:4px;width:92%;"></div></td>
+                </tr>
+                <tr>
+                  <td><strong>02:00 - 04:30 PM</strong></td>
+                  <td>Afternoon Lab Sessions</td>
+                  <td><span class="badge-status-pill badge-status-active">LOW (35%)</span></td>
+                  <td>Every 8 mins</td>
+                  <td><div style="background:rgba(16,185,129,0.2);height:8px;border-radius:4px;width:35%;"></div></td>
+                </tr>
+                <tr>
+                  <td><strong>05:00 - 07:00 PM</strong></td>
+                  <td>Hostel Dispersal &amp; Library</td>
+                  <td><span class="badge-status-pill badge-status-maint">HIGH (90%)</span></td>
+                  <td>Every 4 mins</td>
+                  <td><div style="background:rgba(239,68,68,0.2);height:8px;border-radius:4px;width:90%;"></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 9. AUDIT LOGS
+    function renderAdminAuditLogs(cont) {
+      cont.innerHTML = `
+        <div class="admin-card-section">
+          <div class="admin-section-header">
+            <div>
+              <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.05rem; font-weight:800; color:var(--text); margin:0;">Administrative Audit Trail &amp; Security Log</h3>
+              <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Immutable record of role changes, vehicle dispatches, and route sequence modifications</div>
+            </div>
+            <button class="btn btn-outline btn-sm" type="button" onclick="clearAdminAuditLogs()" style="color:var(--rose); border-color:var(--rose);">Clear Audit History</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Administrator</th>
+                  <th>Action Category</th>
+                  <th>Operational Change Details</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${adminState.auditLogs.map(l => `
+                  <tr>
+                    <td><code>${l.time}</code></td>
+                    <td><strong>${escapeHtml(l.admin)}</strong></td>
+                    <td><span class="badge-status-pill badge-status-active">${l.action}</span></td>
+                    <td>${escapeHtml(l.detail)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── CRUD OPERATIONS & MODAL CONTROLLERS ──
+    function openAddVehicleModal(editId = null) {
+      playBeep();
+      const modal = document.getElementById('admin-modal-vehicle');
+      const title = document.getElementById('am-veh-title');
+      const hiddenId = document.getElementById('am-veh-id');
+      const nameInput = document.getElementById('am-veh-name');
+      const plateInput = document.getElementById('am-veh-plate');
+      const typeSelect = document.getElementById('am-veh-type');
+      const fuelInput = document.getElementById('am-veh-fuel');
+      const capInput = document.getElementById('am-veh-cap');
+      const routeSelect = document.getElementById('am-veh-route');
+      const driverSelect = document.getElementById('am-veh-driver');
+
+      if (editId) {
+        const v = adminState.vehicles.find(item => item.id === editId);
+        if (v) {
+          title.textContent = 'Edit Fleet Vehicle Details';
+          hiddenId.value = v.id;
+          nameInput.value = v.name;
+          plateInput.value = v.plate;
+          typeSelect.value = v.type;
+          fuelInput.value = v.fuel;
+          capInput.value = v.capacity;
+          routeSelect.value = v.routeId;
+          driverSelect.value = v.driver;
+        }
+      } else {
+        title.textContent = 'Register Fleet Vehicle';
+        hiddenId.value = '';
+        nameInput.value = '';
+        plateInput.value = 'TN-23-VIT-' + Math.floor(1000 + Math.random() * 9000);
+        typeSelect.value = '36-Seater Campus Bus';
+        fuelInput.value = '95% EV';
+        capInput.value = '55';
+      }
+
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeAdminVehicleModal(e) {
+      if (!e || e.target.id === 'admin-modal-vehicle' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('admin-modal-vehicle')?.classList.remove('active');
+      }
+    }
+
+    function saveVehicle(e) {
+      if (e) e.preventDefault();
+      playChime();
+      const editId = document.getElementById('am-veh-id').value;
+      const name = document.getElementById('am-veh-name').value.trim();
+      const plate = document.getElementById('am-veh-plate').value.trim();
+      const type = document.getElementById('am-veh-type').value;
+      const fuel = document.getElementById('am-veh-fuel').value.trim();
+      const cap = parseInt(document.getElementById('am-veh-cap').value, 10) || 50;
+      const routeId = document.getElementById('am-veh-route').value;
+      const routeObj = adminState.routes.find(r => r.id === routeId);
+      const driver = document.getElementById('am-veh-driver').value;
+
+      if (editId) {
+        const v = adminState.vehicles.find(item => item.id === editId);
+        if (v) {
+          v.name = name;
+          v.plate = plate;
+          v.type = type;
+          v.fuel = fuel;
+          v.capacity = cap;
+          v.routeId = routeId;
+          v.routeName = routeObj?.name || routeId;
+          v.driver = driver;
+        }
+        logAdminAudit('VEHICLE_EDIT', `Updated details for vehicle ${name} (${plate})`);
+      } else {
+        const newId = 'vit_bus_' + Date.now();
+        const newVeh = {
+          id: newId,
+          name,
+          plate,
+          type,
+          fuel,
+          capacity: cap,
+          status: 'active',
+          routeId,
+          routeName: routeObj?.name || 'Campus Corridor',
+          driver,
+          lastPing: 'Just now'
+        };
+        adminState.vehicles.push(newVeh);
+        logAdminAudit('VEHICLE_ADD', `Registered new fleet vehicle ${name} (${plate})`);
+      }
+
+      persistAdminState();
+      updateAdminBadges();
+      closeAdminVehicleModal();
+      renderAdminSubTab();
+    }
+
+    function toggleVehicleStatus(vehId) {
+      playBeep();
+      const v = adminState.vehicles.find(item => item.id === vehId);
+      if (!v) return;
+      v.status = v.status === 'active' ? 'maintenance' : 'active';
+      logAdminAudit('VEHICLE_STATUS', `Changed status of ${v.name} to ${v.status.toUpperCase()}`);
+      persistAdminState();
+      renderAdminSubTab();
+    }
+
+    function openAddRouteModal() {
+      playBeep();
+      document.getElementById('admin-modal-route')?.classList.add('active');
+    }
+    function closeAdminRouteModal(e) {
+      if (!e || e.target.id === 'admin-modal-route' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('admin-modal-route')?.classList.remove('active');
+      }
+    }
+    function saveRoute(e) {
+      if (e) e.preventDefault();
+      playChime();
+      const name = document.getElementById('am-route-name').value.trim();
+      const code = document.getElementById('am-route-code').value.trim();
+      const fare = document.getElementById('am-route-fare').value.trim();
+      const aud = document.getElementById('am-route-aud').value;
+      const color = document.getElementById('am-route-color').value;
+
+      const newRoute = {
+        id: 'vit_route_' + Date.now(),
+        name,
+        shortName: code,
+        color,
+        fare,
+        audience: aud,
+        active: true,
+        stopsCount: 5,
+        stopIds: [6, 5, 3, 10, 1]
+      };
+      adminState.routes.push(newRoute);
+      logAdminAudit('ROUTE_CREATE', `Created campus corridor ${code} - ${name}`);
+      persistAdminState();
+      updateAdminBadges();
+      closeAdminRouteModal();
+      renderAdminSubTab();
+    }
+
+    function toggleRouteActive(routeId) {
+      playBeep();
+      const r = adminState.routes.find(item => item.id === routeId);
+      if (!r) return;
+      r.active = !r.active;
+      logAdminAudit('ROUTE_STATUS', `Set corridor ${r.shortName} active state to ${r.active}`);
+      persistAdminState();
+      renderAdminSubTab();
+    }
+
+    function moveRouteStop(routeId, stopIdx, dir) {
+      playBeep();
+      const r = adminState.routes.find(item => item.id === routeId);
+      if (!r) return;
+      const targetIdx = stopIdx + dir;
+      if (targetIdx < 0 || targetIdx >= r.stopIds.length) return;
+      const tmp = r.stopIds[stopIdx];
+      r.stopIds[stopIdx] = r.stopIds[targetIdx];
+      r.stopIds[targetIdx] = tmp;
+
+      logAdminAudit('ROUTE_SEQUENCE', `Reordered stops on corridor ${r.shortName}`);
+      persistAdminState();
+      renderAdminSubTab();
+    }
+
+    function reassignDriverVehicle(driverId, newVehicle) {
+      playBeep();
+      const d = adminState.drivers.find(item => item.id === driverId);
+      if (!d) return;
+      d.vehicle = newVehicle;
+      logAdminAudit('DRIVER_REASSIGN', `Reassigned driver ${d.name} (${d.id}) to ${newVehicle}`);
+      persistAdminState();
+      renderAdminSubTab();
+    }
+
+    function changeUserRole(userId, newRole) {
+      playChime();
+      const u = adminState.users.find(item => item.id === userId);
+      if (!u) return;
+      const oldRole = u.role;
+      u.role = newRole;
+      logAdminAudit('USER_ROLE_CHANGE', `Changed authorization of ${u.name} (${u.email}) from ${oldRole.toUpperCase()} to ${newRole.toUpperCase()}`);
+      persistAdminState();
+      alert(`✅ Updated User Authorization\n\nUser: ${u.name}\nNew Institutional Role: ${newRole.toUpperCase()}\nStatus: Verified Active`);
+      renderAdminSubTab();
+    }
+
+    function openAddAnnouncementModal() {
+      playBeep();
+      document.getElementById('admin-modal-announcement')?.classList.add('active');
+    }
+    function closeAdminAnnouncementModal(e) {
+      if (!e || e.target.id === 'admin-modal-announcement' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('admin-modal-announcement')?.classList.remove('active');
+      }
+    }
+    function saveAnnouncement(e) {
+      if (e) e.preventDefault();
+      playChime();
+      const title = document.getElementById('am-ann-title').value.trim();
+      const aud = document.getElementById('am-ann-aud').value;
+      const cat = document.getElementById('am-ann-cat').value;
+      const sev = document.getElementById('am-ann-sev').value;
+
+      const newAnn = {
+        id: 'ann-' + Date.now(),
+        title,
+        category: cat,
+        audience: aud,
+        severity: sev,
+        date: 'Just now',
+        active: true
+      };
+      adminState.announcements.unshift(newAnn);
+      logAdminAudit('ANNOUNCEMENT_PUBLISH', `Broadcasted bulletin "${title}" (${aud})`);
+      persistAdminState();
+      updateAdminBadges();
+      closeAdminAnnouncementModal();
+      renderAdminSubTab();
+    }
+    function expireAnnouncement(annId) {
+      playBeep();
+      const a = adminState.announcements.find(item => item.id === annId);
+      if (!a) return;
+      a.active = !a.active;
+      logAdminAudit('ANNOUNCEMENT_EXPIRE', `Toggled active state of bulletin "${a.title}"`);
+      persistAdminState();
+      updateAdminBadges();
+      renderAdminSubTab();
+    }
+
+    function openAddDisruptionModal() {
+      playBeep();
+      document.getElementById('admin-modal-disruption')?.classList.add('active');
+    }
+    function closeAdminDisruptionModal(e) {
+      if (!e || e.target.id === 'admin-modal-disruption' || e.target.tagName === 'BUTTON') {
+        playBeep();
+        document.getElementById('admin-modal-disruption')?.classList.remove('active');
+      }
+    }
+    function saveDisruption(e) {
+      if (e) e.preventDefault();
+      playChime();
+      const location = document.getElementById('am-dis-loc').value.trim();
+      const corridor = document.getElementById('am-dis-corridor').value.trim();
+      const cause = document.getElementById('am-dis-cause').value.trim();
+      const mins = parseInt(document.getElementById('am-dis-mins').value, 10) || 5;
+      const detour = document.getElementById('am-dis-detour').value.trim();
+
+      const newDis = {
+        id: 'dis-' + Date.now(),
+        location,
+        corridor,
+        cause,
+        delayMins: mins,
+        severity: 'Moderate',
+        detour,
+        status: 'Active'
+      };
+      adminState.disruptions.unshift(newDis);
+      logAdminAudit('DISRUPTION_LOGGED', `Recorded disruption at ${location} (+${mins}m delay)`);
+      persistAdminState();
+      updateAdminBadges();
+      closeAdminDisruptionModal();
+      renderAdminSubTab();
+    }
+    function resolveDisruption(disId) {
+      playBeep();
+      const d = adminState.disruptions.find(item => item.id === disId);
+      if (!d) return;
+      adminState.disruptions = adminState.disruptions.filter(item => item.id !== disId);
+      logAdminAudit('DISRUPTION_RESOLVED', `Resolved disruption at ${d.location}`);
+      persistAdminState();
+      updateAdminBadges();
+      renderAdminSubTab();
+    }
+
+    function clearAdminAuditLogs() {
+      playBeep();
+      const conf = confirm('⚠️ Clear administrative audit trail history?');
+      if (conf) {
+        adminState.auditLogs = [];
+        persistAdminState();
+        updateAdminBadges();
+        renderAdminSubTab();
+      }
     }
 
     updateMarker(activeShuttles['vit_general_bus_101']);

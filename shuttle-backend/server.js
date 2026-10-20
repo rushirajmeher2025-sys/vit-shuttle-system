@@ -73,6 +73,41 @@ const server = http.createServer(async (req, res) => {
                 openIncidentsCount: recentIncidents.length
             }
         }));
+    } else if (req.method === 'GET' && parsedUrl === '/api/admin/overview') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200);
+        res.end(JSON.stringify({
+            success: true,
+            data: {
+                totalVehicles: 4,
+                activeVehicles: 3,
+                maintenanceVehicles: 1,
+                totalRoutes: 3,
+                totalStops: (cachedStops && cachedStops.length) || 16,
+                activeDrivers: 3,
+                passengersServedToday: 1428,
+                onTimeReliability: "96.4%",
+                openDisruptions: recentIncidents.length || 1,
+                systemHealth: {
+                    wsServer: "ONLINE",
+                    supabaseSync: "READY",
+                    gpsStream: "ACTIVE"
+                }
+            }
+        }));
+    } else if (req.method === 'GET' && parsedUrl === '/api/admin/audit-logs') {
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.writeHead(200);
+        res.end(JSON.stringify({
+            success: true,
+            data: [
+                { id: 'aud-1', time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}), admin: 'Transit Operations Admin', action: 'ROLE_UPDATE', detail: 'Verified Faculty status granted to Dr. C. Raman (@vit.ac.in)' },
+                { id: 'aud-2', time: '11:30 AM', admin: 'Transit Operations Admin', action: 'DISRUPTION_LOGGED', detail: 'Logged 4-min delay notice at Gate 1 Portico Circle' },
+                { id: 'aud-3', time: '10:15 AM', admin: 'Transit Operations Admin', action: 'VEHICLE_ASSIGN', detail: 'Assigned Driver Rajesh Kumar to Bus #101 (MH Express)' }
+            ]
+        }));
     } else {
         res.writeHead(404);
         res.end(JSON.stringify({ error: 'Not Found' }));
