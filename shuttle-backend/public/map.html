@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIT Shuttle System - Live Campus Map</title>
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            transit: {
+              blue: '#0284c7',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .pulse-radar {
+      animation: radar-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes radar-pulse {
+      0% {
+        transform: scale(0.9);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen pb-20 select-none">
+  <!-- Top App Bar -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 flex items-center justify-between max-w-md mx-auto">
+    <div class="flex items-center gap-2">
+      <a href="portal.html" class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-lg">directions_bus</span>
+      </a>
+      <div>
+        <h1 class="text-sm font-bold text-slate-900 leading-tight">VIT Shuttle System</h1>
+        <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Vellore Campus • <span id="activeCount">3 Shuttles Active</span>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-1.5">
+      <button onclick="showAlerts()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition">
+        <span class="material-symbols-outlined text-base">notifications</span>
+      </button>
+      <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200">
+        RR
+      </div>
+    </div>
+  </header>
+
+  <!-- Search & Route Quick Filters Header -->
+  <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 max-w-md mx-auto space-y-2 sticky top-[53px] z-30">
+    <div class="relative flex items-center">
+      <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3">search</span>
+      <input id="searchInput" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStops(event)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
+      <div class="absolute right-2 flex items-center gap-1 text-slate-400">
+        <button onclick="locateCurrentGPS()" class="text-[10px] font-bold uppercase tracking-wider bg-slate-200 hover:bg-sky-100 hover:text-sky-700 text-slate-700 px-1.5 py-0.5 rounded transition">GPS</button>
+        <button onclick="clearSearch()"><span class="material-symbols-outlined text-sm hover:text-slate-600">cancel</span></button>
+      </div>
+    </div>
+
+    <!-- Corridor Filter Chips -->
+    <div class="flex gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+      <button id="chipAll" onclick="setShuttleFilter('all')" class="px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap transition active:scale-95">● All Shuttles</button>
+      <button id="chip101" onclick="setShuttleFilter('101')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap flex items-center gap-1 transition active:scale-95">
+        <span class="material-symbols-outlined text-xs">directions_bus</span>
+        Bus 101 (Men's Express • ₹20)
+      </button>
+      <button id="chip102" onclick="setShuttleFilter('102')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap transition active:scale-95">
+        🌸 Bus 102 (Ladies' Loop • ₹20)
+      </button>
+      <button id="chip201" onclick="setShuttleFilter('201')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap transition active:scale-95">
+        ⭐ Shuttle 201 (VIP)
+      </button>
+    </div>
+
+    <!-- Telemetry status notification pill -->
+    <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg">
+      <span class="flex items-center gap-1 text-sky-800 font-medium">
+        <span class="material-symbols-outlined text-[13px] text-sky-600">sensors</span>
+        Autonomous WebSocket Relay Active
+      </span>
+      <span class="text-emerald-700 font-bold font-mono">±3.8m accuracy</span>
+    </div>
+  </div>
+
+  <!-- Interactive Map Viewport Container -->
+  <div id="mapContainer" class="relative max-w-md mx-auto h-[380px] bg-[#eef3f7] overflow-hidden border-b border-slate-200">
+    <!-- SVG Vector Map Simulation with Transformable Viewport -->
+    <div id="mapViewport" class="absolute inset-0 w-full h-full transition-transform duration-300 origin-center" style="transform: scale(1) translate(0px, 0px);">
+      <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+        <!-- Grid pattern background for high-tech map feel -->
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="400" height="400" fill="url(#grid)" />
+
+        <!-- Campus Greenery Zones -->
+        <rect x="250" y="40" width="120" height="60" rx="12" fill="#dcfce7" opacity="0.6" />
+        <text x="310" y="75" font-size="7" font-weight="600" text-anchor="middle" fill="#15803d">OUTDOOR STADIUM</text>
+
+        <rect x="20" y="270" width="100" height="70" rx="12" fill="#dcfce7" opacity="0.6" />
+        <text x="70" y="310" font-size="7" font-weight="600" text-anchor="middle" fill="#15803d">RIVIERA LAKE GARDENS</text>
+
+        <!-- Campus Road Pathways (Base Gray) -->
+        <path d="M 60 40 L 60 220 L 180 220 L 180 340" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+        <path d="M 180 60 L 180 220 L 320 220 L 320 360" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" fill="none" />
+        <path d="M 60 120 L 340 120" stroke="#cbd5e1" stroke-width="8" stroke-linecap="round" fill="none" />
+
+        <!-- Transit Corridors Lines -->
+        <!-- Bus 101: Blue Men's Express Loop -->
+        <path id="path101" d="M 65 50 L 65 215 L 185 215 L 185 330" stroke="#0284c7" stroke-width="4" stroke-dasharray="6,4" fill="none" />
+        <!-- Bus 102: Pink Ladies' Loop -->
+        <path id="path102" d="M 315 70 L 315 225 L 175 225 L 175 350" stroke="#ec4899" stroke-width="4" stroke-dasharray="6,4" fill="none" />
+        <!-- Shuttle 201: Emerald VIP Loop -->
+        <path id="path201" d="M 70 125 L 330 125" stroke="#059669" stroke-width="4" stroke-dasharray="6,4" fill="none" />
+
+        <!-- Building Nodes -->
+        <g id="nodeGate1" transform="translate(140, 20)" class="cursor-pointer" onclick="selectStop('Main Gate 1')">
+          <rect width="110" height="24" rx="4" fill="#ffffff" stroke="#94a3b8" />
+          <text x="55" y="15" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">MAIN GATE 1 (KATPADI)</text>
+        </g>
+        <g id="nodeMB" transform="translate(130, 60)" class="cursor-pointer" onclick="selectStop('Main Building (MB)')">
+          <rect width="130" height="28" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+          <text x="65" y="14" font-size="9" font-weight="700" text-anchor="middle" fill="#0284c7">MAIN BUILDING (MB)</text>
+          <text x="65" y="24" font-size="7" text-anchor="middle" fill="#64748b">Admin &amp; North Portico</text>
+        </g>
+        <g id="nodeTT" transform="translate(40, 110)" class="cursor-pointer" onclick="selectStop('Technology Tower (TT)')">
+          <rect width="100" height="24" rx="4" fill="#ffffff" stroke="#94a3b8" />
+          <text x="50" y="14" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">TECH TOWER (TT)</text>
+        </g>
+        <g id="nodeSJT" transform="translate(60, 230)" class="cursor-pointer" onclick="selectStop('SJT (Silver Jubilee Tower)')">
+          <rect width="120" height="30" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="2" />
+          <text x="60" y="15" font-size="9" font-weight="700" text-anchor="middle" fill="#0284c7">SJT TOWER</text>
+          <text x="60" y="25" font-size="7" text-anchor="middle" fill="#64748b">Target Stop #10 • Academic Hub</text>
+        </g>
+        <g id="nodeMH" transform="translate(140, 335)" class="cursor-pointer" onclick="selectStop('Men Hostels F/G')">
+          <rect width="90" height="22" rx="4" fill="#ffffff" stroke="#94a3b8" />
+          <text x="45" y="14" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">MEN'S HOSTELS</text>
+        </g>
+        <g id="nodeLH" transform="translate(280, 345)" class="cursor-pointer" onclick="selectStop('Ladies Hostels Block')">
+          <rect width="90" height="22" rx="4" fill="#ffffff" stroke="#94a3b8" />
+          <text x="45" y="14" font-size="8" font-weight="700" text-anchor="middle" fill="#0f172a">LADIES HOSTELS</text>
+        </g>
+      </svg>
+
+      <!-- Floating Live Vehicle Marker (Animated) -->
+      <div id="busMarker" class="absolute top-[215px] left-[150px] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center transition-all duration-700 ease-out cursor-pointer" onclick="recenterMap()">
+        <div id="busTag" class="bg-slate-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 mb-1 whitespace-nowrap">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="busTagText">Bus 101 • 22 km/h</span>
+        </div>
+        <div id="busIconBubble" class="w-10 h-10 rounded-full bg-sky-600 text-white flex items-center justify-center shadow-lg border-2 border-white ring-4 ring-sky-300/60 relative">
+          <span class="material-symbols-outlined text-lg">directions_bus</span>
+        </div>
+        <div id="busNextPill" class="mt-1 bg-white/90 border border-sky-200 text-sky-800 text-[9px] font-bold px-1.5 py-0.5 rounded shadow whitespace-nowrap">
+          ➔ Next: SJT (2m)
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating Map Controls -->
+    <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
+      <button onclick="recenterMap()" title="Center Vehicle" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+        <span class="material-symbols-outlined text-lg">my_location</span>
+      </button>
+      <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
+        <button onclick="zoomMap(0.2)" title="Zoom In" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
+        <button onclick="zoomMap(-0.2)" title="Zoom Out" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold active:scale-95 transition">−</button>
+      </div>
+      <button onclick="toggleRouteExplore()" title="View Route Overview" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+        <span class="material-symbols-outlined text-lg">explore</span>
+      </button>
+      <button onclick="toggleMapTheme()" title="Toggle High-contrast Layers" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 active:scale-95 transition">
+        <span class="material-symbols-outlined text-lg">layers</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tactile Bottom Sheet Drawer: Actively Tracked Shuttle -->
+  <section class="max-w-md mx-auto bg-white rounded-t-3xl shadow-xl border-t border-slate-200 px-4 pt-3 pb-6 -mt-3 relative z-30 space-y-4">
+    <!-- Drag Handle -->
+    <div class="w-10 h-1 rounded-full bg-slate-300 mx-auto"></div>
+
+    <!-- Active Vehicle Banner -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div id="drawerIconBox" class="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md">
+          <span class="material-symbols-outlined text-2xl">directions_bus</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="drawerTitle" class="text-base font-bold text-slate-900 leading-none">MH Bus #101</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">● In Transit</span>
+          </div>
+          <p id="drawerSubtitle" class="text-xs text-slate-500 mt-1">Men's Express Loop • Verified Driver Rajesh K.</p>
+        </div>
+      </div>
+      <span id="drawerBadge" class="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg font-bold text-xs border border-sky-200">₹20 PASS</span>
+    </div>
+
+    <!-- Telemetry Key Metrics Grid -->
+    <div class="grid grid-cols-3 gap-2 text-center">
+      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Speed</p>
+        <p id="drawerSpeed" class="text-xl font-bold text-slate-900">22 <span class="text-xs font-medium text-slate-500">km/h</span></p>
+      </div>
+      <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Crowding</p>
+        <p id="drawerCrowd" class="text-base font-bold text-emerald-600 flex items-center justify-center gap-1">● Low</p>
+        <p id="drawerSeats" class="text-[10px] text-slate-500">14/36 Seats</p>
+      </div>
+      <div class="p-3 bg-sky-50 rounded-2xl border border-sky-100">
+        <p class="text-[10px] uppercase font-bold text-sky-600">Next ETA</p>
+        <p id="drawerEta" class="text-xl font-bold text-sky-700">2 <span class="text-xs font-semibold">min</span></p>
+        <p id="drawerNextWalk" class="text-[10px] text-sky-600 font-medium">to SJT (380m)</p>
+      </div>
+    </div>
+
+    <!-- Route Progression Stepper -->
+    <div>
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Route Progression &amp; Live Halts</span>
+        <button onclick="toggleAllStops()" class="text-xs font-bold text-sky-600 hover:underline">View All 6 Stops</button>
+      </div>
+      <div class="space-y-3 relative pl-4 border-l-2 border-slate-200 ml-3">
+        <!-- Stop 1 (Departed) -->
+        <div class="relative">
+          <span class="w-3 h-3 rounded-full bg-slate-400 absolute -left-[23px] top-1 border-2 border-white"></span>
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span class="line-through font-medium">Main Building (North Portico)</span>
+            <span class="material-symbols-outlined text-sm">check_circle</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Departed 2m ago</p>
+        </div>
+        <!-- Stop 2 (Next Target) -->
+        <div class="relative bg-sky-50 -ml-2 p-2 rounded-xl border border-sky-200">
+          <span class="w-3.5 h-3.5 rounded-full bg-sky-600 absolute -left-[19px] top-3 border-2 border-white ring-2 ring-sky-300"></span>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-sky-900">🚏 SJT (Silver Jubilee Tower)</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white">NEXT</span>
+          </div>
+          <p class="text-[11px] text-sky-700 font-semibold mt-0.5">Arriving Next • ETA 5:42 PM (120m walk)</p>
+        </div>
+        <!-- Stop 3 (Scheduled) -->
+        <div class="relative">
+          <span class="w-3 h-3 rounded-full bg-slate-200 border-2 border-slate-400 absolute -left-[23px] top-1"></span>
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
+            <span>Men's Hostels F/G Block</span>
+            <span class="text-[11px] text-slate-400 font-normal">5:48 PM</span>
+          </div>
+          <p class="text-[10px] text-slate-400">Scheduled • in ~6 mins</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dual Action Buttons -->
+    <div class="grid grid-cols-2 gap-2 pt-1">
+      <button onclick="walkToSjt()" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 flex items-center justify-center gap-1.5 hover:bg-slate-50 transition active:scale-95">
+        <span class="material-symbols-outlined text-base">directions_walk</span>
+        Walk to SJT (1.5 min)
+      </button>
+      <button onclick="toggleQRModal()" class="py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 font-bold text-xs text-white flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 transition active:scale-95">
+        <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+        Board (Show ₹20 Pass)
+      </button>
+    </div>
+  </section>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 max-w-md mx-auto">
+    <div class="flex items-center justify-around px-2">
+      <a href="portal.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">grid_view</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Portals</span>
+      </a>
+      <a href="map.html" class="flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1">
+        <span class="material-symbols-outlined text-xl">map</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Live Map</span>
+      </a>
+      <button onclick="setShuttleFilter('all')" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">alt_route</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Corridors</span>
+      </button>
+      <button onclick="toggleQRModal()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">badge</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Pass</span>
+      </button>
+      <button onclick="showAlerts()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">warning</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Alerts</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- QR Pass Modal -->
+  <div id="qrModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+      <button onclick="toggleQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-2xl">qr_code_2</span>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">Student Transit Boarding QR</h3>
+        <p class="text-xs text-slate-500">Scan at shuttle door NFC / Optical Reader</p>
+      </div>
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+        <svg class="w-44 h-44" viewBox="0 0 100 100" fill="currentColor">
+          <rect x="5" y="5" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="9" y="9" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="13" y="13" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <rect x="65" y="5" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="69" y="9" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="73" y="13" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <rect x="5" y="65" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="9" y="69" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="13" y="73" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <rect x="42" y="8" width="6" height="6" fill="#0f172a" />
+          <rect x="52" y="16" width="6" height="6" fill="#0f172a" />
+          <rect x="44" y="24" width="8" height="6" fill="#0f172a" />
+          <rect x="10" y="44" width="6" height="6" fill="#0f172a" />
+          <rect x="22" y="48" width="8" height="8" fill="#0f172a" />
+          <rect x="36" y="38" width="10" height="10" fill="#0284c7" />
+          <rect x="52" y="40" width="8" height="8" fill="#0f172a" />
+          <rect x="66" y="44" width="12" height="6" fill="#0f172a" />
+          <rect x="84" y="48" width="8" height="8" fill="#0f172a" />
+          <rect x="40" y="60" width="8" height="8" fill="#0f172a" />
+          <rect x="54" y="66" width="6" height="10" fill="#0f172a" />
+          <rect x="68" y="62" width="10" height="8" fill="#0284c7" />
+          <rect x="84" y="70" width="8" height="12" fill="#0f172a" />
+          <rect x="42" y="78" width="14" height="8" fill="#0f172a" />
+          <rect x="62" y="80" width="8" height="10" fill="#0f172a" />
+          <rect x="76" y="84" width="12" height="6" fill="#0f172a" />
+        </svg>
+        <span class="text-[11px] font-mono text-slate-500 font-bold mt-2">ID: VIT-21BCE1042-SJT</span>
+      </div>
+      <div class="flex items-center justify-between text-xs px-2">
+        <span class="text-slate-500">Auto-refresh token:</span>
+        <span class="text-emerald-600 font-bold font-mono">11s</span>
+      </div>
+      <button onclick="toggleQRModal()" class="w-full py-2.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition">
+        Done
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification Banner / Toast -->
+  <div id="toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 max-w-xs w-full">
+    <span class="material-symbols-outlined text-base text-sky-400">info</span>
+    <span id="toastMsg" class="flex-1">Notification message</span>
+    <button onclick="hideToast()"><span class="material-symbols-outlined text-sm text-slate-400">close</span></button>
+  </div>
+
+  <script>
+    let currentZoom = 1;
+    let currentShuttle = '101';
+
+    // Simulated bus positions on map routes
+    const busProfiles = {
+      '101': {
+        name: 'MH Bus #101',
+        subtitle: "Men's Express Loop • Verified Driver Rajesh K.",
+        badge: '₹20 PASS',
+        badgeColor: 'sky',
+        speed: '22',
+        crowd: '● Low',
+        seats: '14/36 Seats',
+        eta: '2',
+        nextStop: 'to SJT (380m)',
+        tag: 'Bus 101 • 22 km/h',
+        nextPill: '➔ Next: SJT (2m)',
+        color: 'sky',
+        pos: { top: 215, left: 150 }
+      },
+      '102': {
+        name: 'LH Bus #102',
+        subtitle: "Ladies' Loop • Driver Priya M.",
+        badge: '₹20 PASS',
+        badgeColor: 'pink',
+        speed: '18',
+        crowd: '● Moderate',
+        seats: '24/36 Seats',
+        eta: '4',
+        nextStop: 'to Ladies Hostels (520m)',
+        tag: 'Bus 102 • 18 km/h',
+        nextPill: '➔ Next: LH Portico (4m)',
+        color: 'pink',
+        pos: { top: 225, left: 240 }
+      },
+      '201': {
+        name: 'VIP Shuttle #201',
+        subtitle: 'Faculty & Administrative Transit • Driver Murugan V.',
+        badge: 'COMPLIMENTARY',
+        badgeColor: 'emerald',
+        speed: '25',
+        crowd: '● Light',
+        seats: '4/18 Seats',
+        eta: '1',
+        nextStop: 'to Tech Tower (180m)',
+        tag: 'Shuttle 201 • 25 km/h',
+        nextPill: '➔ Next: Tech Tower (1m)',
+        color: 'emerald',
+        pos: { top: 120, left: 200 }
+      }
+    };
+
+    function setShuttleFilter(id) {
+      const chips = {
+        all: document.getElementById('chipAll'),
+        '101': document.getElementById('chip101'),
+        '102': document.getElementById('chip102'),
+        '201': document.getElementById('chip201'),
+      };
+
+      // Reset chip styles
+      Object.values(chips).forEach(chip => {
+        if (!chip) return;
+        chip.className = 'px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap transition active:scale-95';
+      });
+
+      if (id === 'all') {
+        chips.all.className = 'px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap transition active:scale-95';
+        showToast('Viewing all 3 active campus corridors');
+        return;
+      }
+
+      chips[id].className = 'px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap transition active:scale-95';
+      currentShuttle = id;
+      const profile = busProfiles[id];
+      if (!profile) return;
+
+      // Update bottom sheet
+      document.getElementById('drawerTitle').textContent = profile.name;
+      document.getElementById('drawerSubtitle').textContent = profile.subtitle;
+      document.getElementById('drawerBadge').textContent = profile.badge;
+      document.getElementById('drawerSpeed').innerHTML = `${profile.speed} <span class="text-xs font-medium text-slate-500">km/h</span>`;
+      document.getElementById('drawerCrowd').textContent = profile.crowd;
+      document.getElementById('drawerSeats').textContent = profile.seats;
+      document.getElementById('drawerEta').innerHTML = `${profile.eta} <span class="text-xs font-semibold">min</span>`;
+      document.getElementById('drawerNextWalk').textContent = profile.nextStop;
+
+      // Update marker
+      const marker = document.getElementById('busMarker');
+      marker.style.top = `${profile.pos.top}px`;
+      marker.style.left = `${profile.pos.left}px`;
+      document.getElementById('busTagText').textContent = profile.tag;
+      document.getElementById('busNextPill').textContent = profile.nextPill;
+
+      showToast(`Tracking ${profile.name}`);
+    }
+
+    // Bus subtle live movement simulation
+    let step = 0;
+    setInterval(() => {
+      if (currentShuttle === '101') {
+        step = (step + 1) % 6;
+        const marker = document.getElementById('busMarker');
+        const baseTop = 215;
+        const baseLeft = 150;
+        marker.style.top = `${baseTop + Math.sin(step) * 6}px`;
+        marker.style.left = `${baseLeft + Math.cos(step) * 8}px`;
+      }
+    }, 2500);
+
+    function zoomMap(delta) {
+      currentZoom = Math.min(Math.max(0.8, currentZoom + delta), 1.8);
+      document.getElementById('mapViewport').style.transform = `scale(${currentZoom})`;
+      showToast(`Zoom: ${Math.round(currentZoom * 100)}%`);
+    }
+
+    function recenterMap() {
+      currentZoom = 1;
+      document.getElementById('mapViewport').style.transform = `scale(1) translate(0px, 0px)`;
+      showToast('Centered on vehicle #101');
+    }
+
+    function toggleRouteExplore() {
+      showToast('Loaded full campus 3D overlay');
+    }
+
+    function toggleMapTheme() {
+      showToast('Toggled satellite / vector layer');
+    }
+
+    function selectStop(stopName) {
+      document.getElementById('searchInput').value = stopName;
+      showToast(`Selected stop: ${stopName}`);
+    }
+
+    function locateCurrentGPS() {
+      showToast('Device GPS locked: Lat 12.9692° N, Long 79.1559° E (VIT)');
+    }
+
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchInput').focus();
+    }
+
+    function filterStops(e) {
+      if (e.key === 'Enter') {
+        showToast(`Searching corridors near: ${e.target.value}`);
+      }
+    }
+
+    function walkToSjt() {
+      showToast('Turn left past TT portico. SJT is ~120m away (1.5 min walk).');
+    }
+
+    function toggleQRModal() {
+      const modal = document.getElementById('qrModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function toggleAllStops() {
+      showToast('Showing all 6 stops: Gate 1 ➔ MB ➔ TT ➔ SJT ➔ MH-F/G ➔ Main');
+    }
+
+    function showAlerts() {
+      showToast('Alert: Peak evening fleet boost active until 8:30 PM.');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      toast.classList.remove('hidden');
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 3000);
+    }
+
+    function hideToast() {
+      document.getElementById('toast').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

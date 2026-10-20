@@ -4,6 +4,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/portal",
+      "destination": "/portal.html"
+    },
+    {
+      "source": "/map",
+      "destination": "/map.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIT Shuttle System - Mobile Portal</title>
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            transit: {
+              blue: '#0284c7',
+              dark: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen pb-24">
+  <!-- Top App Bar -->
+  <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between max-w-md mx-auto">
+    <div class="flex items-center gap-2.5">
+      <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-sm">
+        <span class="material-symbols-outlined text-[20px]">directions_bus</span>
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none">VIT Shuttle System</h1>
+      </div>
+    </div>
+    <button onclick="toggleNotification()" class="relative w-9 h-9 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95">
+      <span class="material-symbols-outlined text-[20px]">notifications</span>
+      <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500"></span>
+    </button>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+    <!-- Campus Fleet Header -->
+    <section class="text-center py-2">
+      <div class="w-14 h-14 bg-sky-600 text-white rounded-2xl mx-auto flex items-center justify-center shadow-md mb-2.5">
+        <span class="material-symbols-outlined text-3xl">directions_bus</span>
+      </div>
+      <h2 class="text-xl font-bold text-slate-900">VIT Shuttle System</h2>
+      <p class="text-xs text-slate-500 font-medium">Campus Transit Platform • Select Portal</p>
+      <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-semibold">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Vellore Campus Fleet Active • 3 Routes
+      </div>
+    </section>
+
+    <!-- Live Fleet Telemetry Pill Box -->
+    <section class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm space-y-3">
+      <div class="flex items-center justify-between text-xs">
+        <div class="flex items-center gap-1.5 text-sky-700 font-bold uppercase tracking-wider text-[11px]">
+          <span class="material-symbols-outlined text-[16px]">sensors</span>
+          Live Fleet Telemetry
+        </div>
+        <span id="crowdingStatus" class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-semibold text-[11px]">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          Low Crowding
+        </span>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-center">
+        <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+          <p class="text-[10px] uppercase font-bold text-slate-400">Shuttle ID</p>
+          <p id="telemetryBusId" class="text-xs font-bold text-slate-800">#101</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+          <p class="text-[10px] uppercase font-bold text-slate-400">Speed</p>
+          <p id="telemetrySpeed" class="text-xs font-bold text-slate-800">22 KM/H</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
+          <p class="text-[10px] uppercase font-bold text-slate-400">Next Stop</p>
+          <p id="telemetryStop" class="text-xs font-bold text-slate-800 truncate">MB Main</p>
+        </div>
+        <div class="bg-sky-50 rounded-xl p-2 border border-sky-100">
+          <p class="text-[10px] uppercase font-bold text-sky-600">Live ETA</p>
+          <p id="telemetryEta" class="text-xs font-bold text-sky-700">3 MIN</p>
+        </div>
+      </div>
+
+      <!-- Route Chips -->
+      <div class="flex gap-2 overflow-x-auto pt-1 no-scrollbar">
+        <button onclick="selectRoute('101', '22 KM/H', 'MB Main', '3 MIN', 'Low Crowding')" class="route-chip inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
+          <span class="material-symbols-outlined text-[15px]">directions_bus</span>
+          Bus 101 (Men's Express • ₹20)
+        </button>
+        <button onclick="selectRoute('102', '18 KM/H', 'LH Portico', '5 MIN', 'Medium Crowding')" class="route-chip inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
+          <span class="material-symbols-outlined text-[15px]">directions_bus</span>
+          Bus 102 (Ladies' Loop • ₹20)
+        </button>
+        <button onclick="selectRoute('201', '25 KM/H', 'Tech Tower', '1 MIN', 'Seats Available')" class="route-chip inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
+          <span class="material-symbols-outlined text-[15px]">star</span>
+          Shuttle 201 (VIP Corridor • Free)
+        </button>
+      </div>
+    </section>
+
+    <!-- Portal Cards -->
+    <!-- Student Portal -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
+          <span class="material-symbols-outlined">school</span>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200">₹20</span>
+      </div>
+      <h3 class="text-base font-bold text-slate-900 mt-2">Student Portal</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Access campus transit with your verified @vitstudent.ac.in credentials</p>
+      <a href="map.html" class="w-full mt-3.5 py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+        Sign In / Register
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </a>
+    </div>
+
+    <!-- Faculty Portal -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <span class="material-symbols-outlined">star</span>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">FREE</span>
+      </div>
+      <h3 class="text-base font-bold text-slate-900 mt-2">Faculty Portal</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Complimentary VIP Transit Corridor across all campus blocks</p>
+      <button onclick="openPortalModal('Faculty VIP Portal', 'Logged in as Prof. S. Ramanujan (FAC-8819). Unlimited complimentary rides authorized.')" class="w-full mt-3.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+        Sign In / Register
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Driver Console -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+          <span class="material-symbols-outlined">directions_car</span>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase">SHIFT ACTIVE</span>
+      </div>
+      <h3 class="text-base font-bold text-slate-900 mt-2">Driver Console</h3>
+      <p class="text-xs text-slate-500 mt-0.5">GPS telemetry broadcasting, route progression, &amp; dispatch status</p>
+      <button onclick="openPortalModal('Driver Telemetry Console', 'Operator: Rajesh K. (MH Loop #101). Telemetry Beacon: ACTIVE (4G Live). Next Checkpoint: SJT Portico.')" class="w-full mt-3.5 py-2.5 px-4 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+        Driver Console Login
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Admin Console -->
+    <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+      <div class="flex items-start justify-between">
+        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+          <span class="material-symbols-outlined">shield</span>
+        </div>
+        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">OPS</span>
+      </div>
+      <h3 class="text-base font-bold text-slate-900 mt-2">Admin Console</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Fleet telemetry dispatch, corridors, rosters &amp; audit engine</p>
+      <button onclick="openPortalModal('Transit Operations Admin', 'Campus Transport Control Room. Total Fleet: 8 Shuttles. Peak Mode: ACTIVE. All emergency SOS relays online.')" class="w-full mt-3.5 py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+        Administrator Access
+        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+      </button>
+    </div>
+
+    <!-- Quick Utilities -->
+    <div onclick="openPortalModal('Campus Visitor & Parent Transit Guide', 'Visitors can purchase single-ride ₹20 tokens at Katpadi Gate 1 counter or via UPI QR on board. Operation hours: 6:00 AM - 10:30 PM daily.')" class="bg-white border border-slate-200 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+          <span class="material-symbols-outlined text-lg">account_balance</span>
+        </div>
+        <div>
+          <p class="text-xs font-bold text-slate-800">Campus Visitor &amp; Parent Guide</p>
+          <p class="text-[11px] text-slate-500">Katpadi Gate 1 • Anna Auditorium Parking • Cash/UPI</p>
+        </div>
+      </div>
+      <span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
+    </div>
+
+    <a href="map.html" class="w-full py-2.5 px-4 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-sky-100 transition active:scale-[0.98]">
+      <span class="material-symbols-outlined text-sm">explore</span>
+      Instant Demo Access — Explore Map as Student
+    </a>
+
+    <!-- Digital Transit Pass -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+      <div class="flex items-center justify-between text-xs">
+        <span class="inline-flex items-center gap-1.5 font-bold text-sky-700 text-[11px] uppercase tracking-wide">
+          <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+          NFC &amp; QR Verified Pass
+        </span>
+        <span id="passTimer" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-mono text-[11px] font-bold">
+          VALID 14m 58s
+        </span>
+      </div>
+      <div>
+        <h4 class="text-sm font-bold text-slate-900">Digital Transit Pass</h4>
+        <p class="text-xs text-slate-500">Rushi Raj Meher • 21BCE1042 • #VIT-PASS-2026</p>
+      </div>
+      <button onclick="toggleQRModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+        <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
+        Show QR
+      </button>
+    </div>
+
+    <!-- Live Campus Bulletins -->
+    <div class="pt-2">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Campus Bulletins</span>
+        <button onclick="openPortalModal('Campus Bulletins', '3 Active Announcements: 1) Evening peak frequency boosted; 2) TT portico detour due to symposium; 3) Night owl shuttle extended till 11:30 PM.')" class="text-xs font-bold text-sky-600 hover:underline">View All (3)</button>
+      </div>
+      <div class="space-y-2">
+        <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-amber-500 text-lg">bolt</span>
+          <div>
+            <p class="text-xs font-bold text-slate-800">Frequency Boosted</p>
+            <p class="text-[11px] text-slate-500 leading-snug">Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</p>
+          </div>
+        </div>
+        <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
+          <span class="material-symbols-outlined text-rose-500 text-lg">build</span>
+          <div>
+            <p class="text-xs font-bold text-slate-800">TT Portico Diversion</p>
+            <p class="text-[11px] text-slate-500 leading-snug">Turnaround diversion near Technology Tower portico; alight at SMV junction.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 max-w-md mx-auto">
+    <div class="flex items-center justify-around px-2">
+      <a href="portal.html" class="flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1">
+        <span class="material-symbols-outlined text-xl">grid_view</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Portals</span>
+      </a>
+      <a href="map.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">map</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Live Map</span>
+      </a>
+      <button onclick="openPortalModal('Transit Corridors', 'Corridor 1: Men\'s Hostels Express (Blue) • Corridor 2: Ladies Hostels Loop (Pink) • Corridor 3: TT-PRP Administrative Shuttle (Green)')" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">alt_route</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Corridors</span>
+      </button>
+      <button onclick="toggleQRModal()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">badge</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Pass</span>
+      </button>
+      <button onclick="toggleNotification()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
+        <span class="material-symbols-outlined text-xl">warning</span>
+        <span class="text-[10px] tracking-tight mt-0.5">Alerts</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal: QR Code Transit Pass -->
+  <div id="qrModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+      <button onclick="toggleQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-2xl">qr_code_2</span>
+      </div>
+      <div>
+        <h3 class="text-base font-bold text-slate-900">Student Transit Boarding QR</h3>
+        <p class="text-xs text-slate-500">Scan at shuttle door NFC / Optical Reader</p>
+      </div>
+      <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
+        <!-- SVG Generated QR Simulation -->
+        <svg class="w-44 h-44" viewBox="0 0 100 100" fill="currentColor">
+          <!-- Outer border -->
+          <rect x="5" y="5" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="9" y="9" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="13" y="13" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <rect x="65" y="5" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="69" y="9" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="73" y="13" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <rect x="5" y="65" width="30" height="30" rx="3" fill="#0284c7" />
+          <rect x="9" y="69" width="22" height="22" rx="2" fill="#ffffff" />
+          <rect x="13" y="73" width="14" height="14" rx="1" fill="#0284c7" />
+
+          <!-- QR Data Dots -->
+          <rect x="42" y="8" width="6" height="6" fill="#0f172a" />
+          <rect x="52" y="16" width="6" height="6" fill="#0f172a" />
+          <rect x="44" y="24" width="8" height="6" fill="#0f172a" />
+          <rect x="10" y="44" width="6" height="6" fill="#0f172a" />
+          <rect x="22" y="48" width="8" height="8" fill="#0f172a" />
+          <rect x="36" y="38" width="10" height="10" fill="#0284c7" />
+          <rect x="52" y="40" width="8" height="8" fill="#0f172a" />
+          <rect x="66" y="44" width="12" height="6" fill="#0f172a" />
+          <rect x="84" y="48" width="8" height="8" fill="#0f172a" />
+          <rect x="40" y="60" width="8" height="8" fill="#0f172a" />
+          <rect x="54" y="66" width="6" height="10" fill="#0f172a" />
+          <rect x="68" y="62" width="10" height="8" fill="#0284c7" />
+          <rect x="84" y="70" width="8" height="12" fill="#0f172a" />
+          <rect x="42" y="78" width="14" height="8" fill="#0f172a" />
+          <rect x="62" y="80" width="8" height="10" fill="#0f172a" />
+          <rect x="76" y="84" width="12" height="6" fill="#0f172a" />
+        </svg>
+        <span class="text-[11px] font-mono text-slate-500 font-bold mt-2">ID: VIT-21BCE1042-SJT</span>
+      </div>
+      <div class="flex items-center justify-between text-xs px-2">
+        <span class="text-slate-500">Auto-refresh token:</span>
+        <span class="text-emerald-600 font-bold font-mono">14s</span>
+      </div>
+      <button onclick="toggleQRModal()" class="w-full py-2.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition">
+        Done
+      </button>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="infoModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
+      <button onclick="closeInfoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto">
+        <span id="infoModalIcon" class="material-symbols-outlined text-2xl">info</span>
+      </div>
+      <div>
+        <h3 id="infoModalTitle" class="text-base font-bold text-slate-900">Portal Information</h3>
+        <p id="infoModalText" class="text-xs text-slate-600 mt-2 leading-relaxed"></p>
+      </div>
+      <button onclick="closeInfoModal()" class="w-full py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition">
+        Understood
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Live countdown timer for pass
+    let secondsLeft = 14 * 60 + 58;
+    setInterval(() => {
+      if (secondsLeft > 0) {
+        secondsLeft--;
+        const mins = Math.floor(secondsLeft / 60);
+        const secs = secondsLeft % 60;
+        document.getElementById('passTimer').textContent = `VALID ${mins}m ${secs < 10 ? '0' : ''}${secs}s`;
+      }
+    }, 1000);
+
+    function selectRoute(busId, speed, stop, eta, crowding) {
+      document.getElementById('telemetryBusId').textContent = '#' + busId;
+      document.getElementById('telemetrySpeed').textContent = speed;
+      document.getElementById('telemetryStop').textContent = stop;
+      document.getElementById('telemetryEta').textContent = eta;
+      document.getElementById('crowdingStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${crowding}`;
+    }
+
+    function toggleQRModal() {
+      const modal = document.getElementById('qrModal');
+      modal.classList.toggle('hidden');
+    }
+
+    function openPortalModal(title, text) {
+      document.getElementById('infoModalTitle').textContent = title;
+      document.getElementById('infoModalText').textContent = text;
+      document.getElementById('infoModal').classList.remove('hidden');
+    }
+
+    function closeInfoModal() {
+      document.getElementById('infoModal').classList.add('hidden');
+    }
+
+    function toggleNotification() {
+      openPortalModal('Live Dispatch Alerts', 'Campus fleet currently operating normal schedule. Peak hour headway (4 min) applied to SJT & MB corridors.');
+    }
+  </script>
+</body>
+</html>
