@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>VIT Shuttle System - Mobile Web App</title>
+  <meta name="description" content="VIT Shuttle Tracking & Campus Transit Platform - Live GPS, Routes, Passes, and Fleet Telemetry for Vellore Campus" />
+  <title>VIT Shuttle System - Campus Transit &amp; Operations Hub</title>
+
   <!-- Google Fonts & Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -33,6 +35,38 @@
     }
   </script>
   <style>
+    /* WCAG 2.1 AA Focus-Visible High-Contrast Indicators */
+    :focus-visible {
+      outline: 2.5px solid #0284c7 !important;
+      outline-offset: 2px !important;
+    }
+
+    /* Screen Reader Only Utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+
+    /* Reduced Motion Accessibility Mode */
+    @media (prefers-reduced-motion: reduce) {
+      *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .user-puck-radar, .pulse-radar, .animate-pulse, .animate-ping, .animate-spin {
+        animation: none !important;
+      }
+    }
+
     .material-symbols-outlined {
       font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
     }
@@ -51,11 +85,7 @@
       scrollbar-width: none;
     }
 
-    /* ══════════════════════════════════════════════════════
-       🎨 CRITICAL TAILWIND + LEAFLET CIRCLE FIX
-       Prevents Tailwind max-width:100% on svg/img from
-       distorting Leaflet circles into squished ovals
-    ══════════════════════════════════════════════════════ */
+    /* Critical Leaflet Circle geometry fix */
     .leaflet-pane svg {
       max-width: none !important;
       max-height: none !important;
@@ -78,9 +108,7 @@
       border-radius: 4px;
     }
 
-    /* ══════════════════════════════════════════════════════
-       📍 TRUE GEOMETRIC CIRCLE CURRENT LOCATION PUCK
-    ══════════════════════════════════════════════════════ */
+    /* Accurate Location Puck */
     .user-puck-wrap {
       width: 20px;
       height: 20px;
@@ -134,17 +162,33 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen select-none flex flex-col justify-between">
 
+  <!-- A11y Skip Link for Screen Readers and Keyboard Navigation -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-sky-600 focus:text-white focus:rounded-xl focus:shadow-lg focus:font-bold focus:text-xs">
+    Skip to main transit content
+  </a>
+
+  <!-- Live Network Connectivity Warning Banner (Offline Resilience) -->
+  <aside id="networkOfflineBanner" class="hidden bg-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-between sticky top-0 z-[60] shadow-md" role="status" aria-live="polite">
+    <div class="flex items-center gap-1.5">
+      <span class="material-symbols-outlined text-sm">cloud_off</span>
+      <span>Offline Mode: Live server unreachable. Autonomous on-device campus fleet simulator active.</span>
+    </div>
+    <button onclick="dismissOfflineBanner()" class="text-slate-950 hover:bg-amber-600/30 p-1 rounded transition" aria-label="Dismiss offline banner">
+      <span class="material-symbols-outlined text-sm">close</span>
+    </button>
+  </aside>
+
   <!-- Desktop Device Preview Frame wrapper for optimal showcase -->
   <div class="w-full max-w-md mx-auto bg-slate-50 min-h-screen shadow-2xl relative pb-20 flex flex-col">
 
     <!-- ======================================================== -->
     <!-- SCREEN 1: MOBILE PORTAL TAB -->
     <!-- ======================================================== -->
-    <div id="tab-portal" class="flex-1 flex flex-col">
+    <div id="tab-portal" class="flex-1 flex flex-col" role="region" aria-label="Portal Navigation Hub">
       <!-- Top App Bar -->
       <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-sm">
+          <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-sm" aria-hidden="true">
             <span class="material-symbols-outlined text-[20px]">directions_bus</span>
           </div>
           <div>
@@ -152,152 +196,157 @@
           </div>
         </div>
         <div class="flex items-center gap-1.5">
-          <button onclick="toggleNotificationHubSPA()" class="relative w-9 h-9 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95" title="Bulletins">
+          <button onclick="toggleNotificationHubSPA()" class="relative w-9 h-9 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95" aria-label="Campus Transit Bulletins &amp; Alerts">
             <span class="material-symbols-outlined text-[20px]">notifications</span>
-            <span id="unreadBadgePortal" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+            <span id="unreadBadgePortal" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse" aria-hidden="true"></span>
           </button>
-          <div id="roleBadgePortal" onclick="openStudentPortalModalSPA()" class="px-2.5 py-1 bg-sky-100 text-sky-800 text-[11px] font-bold rounded-lg border border-sky-200 cursor-pointer">
+          <button id="roleBadgePortal" onclick="openUserProfileModal()" class="px-2.5 py-1 bg-sky-100 text-sky-800 text-[11px] font-bold rounded-lg border border-sky-200 cursor-pointer transition hover:bg-sky-200" aria-label="Current Role: Student. Tap to manage session or switch roles.">
             STUDENT
-          </div>
+          </button>
         </div>
       </header>
 
-      <main class="px-4 pt-4 space-y-4 flex-1">
+      <main id="main-content" class="px-4 pt-4 space-y-4 flex-1">
         <!-- Campus Fleet Header -->
-        <section class="text-center py-2">
-          <div class="w-14 h-14 bg-sky-600 text-white rounded-2xl mx-auto flex items-center justify-center shadow-md mb-2.5">
+        <section class="text-center py-2" aria-labelledby="fleetHeaderTitle">
+          <div class="w-14 h-14 bg-sky-600 text-white rounded-2xl mx-auto flex items-center justify-center shadow-md mb-2.5" aria-hidden="true">
             <span class="material-symbols-outlined text-3xl">directions_bus</span>
           </div>
-          <h2 class="text-xl font-bold text-slate-900">VIT Shuttle System</h2>
-          <p class="text-xs text-slate-500 font-medium">Campus Transit Platform • Select Portal</p>
-          <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-semibold">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Vellore Campus Fleet Active • 3 Routes
+          <h2 id="fleetHeaderTitle" class="text-xl font-bold text-slate-900">VIT Shuttle System</h2>
+          <p class="text-xs text-slate-600 font-medium">Campus Transit Platform • Select Persona Console</p>
+          <div class="mt-2 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold" role="status" aria-live="polite">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+            Vellore Campus Fleet Active • 3 Corridors
           </div>
         </section>
 
         <!-- Live Fleet Telemetry Pill Box -->
-        <section class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm space-y-3">
+        <section class="bg-white rounded-2xl p-3.5 border border-slate-200 shadow-sm space-y-3" aria-label="Live Fleet Status">
           <div class="flex items-center justify-between text-xs">
             <div class="flex items-center gap-1.5 text-sky-700 font-bold uppercase tracking-wider text-[11px]">
-              <span class="material-symbols-outlined text-[16px]">sensors</span>
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">sensors</span>
               Live Fleet Telemetry
             </div>
-            <span id="portalCrowdStatus" class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full font-semibold text-[11px]">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span id="portalCrowdStatus" class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-800 rounded-full font-semibold text-[11px]" role="status" aria-live="polite">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span>
               Low Crowding
             </span>
           </div>
 
           <div class="grid grid-cols-4 gap-2 text-center">
             <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
-              <p class="text-[10px] uppercase font-bold text-slate-400">Shuttle ID</p>
+              <p class="text-[10px] uppercase font-bold text-slate-500">Shuttle ID</p>
               <p id="portalBusId" class="text-xs font-bold text-slate-800">#101</p>
             </div>
             <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
-              <p class="text-[10px] uppercase font-bold text-slate-400">Speed</p>
+              <p class="text-[10px] uppercase font-bold text-slate-500">Speed</p>
               <p id="portalSpeed" class="text-xs font-bold text-slate-800">22 KM/H</p>
             </div>
             <div class="bg-slate-50 rounded-xl p-2 border border-slate-100">
-              <p class="text-[10px] uppercase font-bold text-slate-400">Next Stop</p>
+              <p class="text-[10px] uppercase font-bold text-slate-500">Next Stop</p>
               <p id="portalStop" class="text-xs font-bold text-slate-800 truncate">MB Main</p>
             </div>
             <div class="bg-sky-50 rounded-xl p-2 border border-sky-100">
-              <p class="text-[10px] uppercase font-bold text-sky-600">Live ETA</p>
-              <p id="portalEta" class="text-xs font-bold text-sky-700">3 MIN</p>
+              <p class="text-[10px] uppercase font-bold text-sky-700">Live ETA</p>
+              <p id="portalEta" class="text-xs font-bold text-sky-800">3 MIN</p>
             </div>
           </div>
 
           <!-- Route Chips -->
-          <div class="flex gap-2 overflow-x-auto pt-1 no-scrollbar">
-            <button onclick="selectPortalRoute('101', '22 KM/H', 'MB Main', '3 MIN', 'Low Crowding')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
-              <span class="material-symbols-outlined text-[15px]">directions_bus</span>
+          <div class="flex gap-2 overflow-x-auto pt-1 no-scrollbar" role="group" aria-label="Select Active Corridor">
+            <button onclick="selectPortalRoute('101', '22 KM/H', 'MB Main', '3 MIN', 'Low Crowding')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition" aria-label="Select Bus 101 Men's Express">
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">directions_bus</span>
               Bus 101 (Men's Express • ₹20)
             </button>
-            <button onclick="selectPortalRoute('102', '18 KM/H', 'LH Portico', '5 MIN', 'Medium Crowding')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
-              <span class="material-symbols-outlined text-[15px]">directions_bus</span>
+            <button onclick="selectPortalRoute('102', '18 KM/H', 'LH Portico', '5 MIN', 'Medium Crowding')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition" aria-label="Select Bus 102 Ladies' Loop">
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">directions_bus</span>
               Bus 102 (Ladies' Loop • ₹20)
             </button>
-            <button onclick="selectPortalRoute('201', '25 KM/H', 'Tech Tower', '1 MIN', 'Seats Available')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition">
-              <span class="material-symbols-outlined text-[15px]">star</span>
+            <button onclick="selectPortalRoute('201', '25 KM/H', 'Tech Tower', '1 MIN', 'Seats Available')" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold whitespace-nowrap active:scale-95 transition" aria-label="Select Shuttle 201 VIP Loop">
+              <span class="material-symbols-outlined text-[15px]" aria-hidden="true">star</span>
               Shuttle 201 (VIP Loop)
             </button>
           </div>
         </section>
 
-        <!-- Portal Cards -->
-        <!-- Student Portal -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
-          <div class="flex items-start justify-between">
-            <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
-              <span class="material-symbols-outlined">school</span>
+        <!-- Portal Cards Grid -->
+        <section class="space-y-3" aria-label="Role Access Consoles">
+          <!-- Student Portal -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center" aria-hidden="true">
+                <span class="material-symbols-outlined">school</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200">₹20 TICKET</span>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-700 border border-sky-200">₹20</span>
+            <h3 class="text-base font-bold text-slate-900 mt-2">Student Portal</h3>
+            <p class="text-xs text-slate-600 mt-0.5">Access campus transit with your verified @vitstudent.ac.in credentials</p>
+            <div class="flex gap-2 mt-3.5">
+              <button onclick="openStudentPortalModalSPA()" class="flex-1 py-2.5 px-3 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">badge</span> Manage Pass
+              </button>
+              <button onclick="switchTab('map')" class="flex-1 py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+                Live Map <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+              </button>
+            </div>
           </div>
-          <h3 class="text-base font-bold text-slate-900 mt-2">Student Portal</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Access campus transit with your verified @vitstudent.ac.in credentials</p>
-          <div class="flex gap-2 mt-3.5">
-            <button onclick="openStudentPortalModalSPA()" class="flex-1 py-2.5 px-3 bg-sky-50 border border-sky-200 text-sky-700 hover:bg-sky-100 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-              <span class="material-symbols-outlined text-sm">badge</span> Manage Pass
+
+          <!-- Faculty Portal (Gated with Institutional Verification) -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center" aria-hidden="true">
+                <span class="material-symbols-outlined">star</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">FREE VIP</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mt-2">Faculty Portal</h3>
+            <p class="text-xs text-slate-600 mt-0.5">Complimentary VIP Transit Corridor across all campus academic blocks</p>
+            <button onclick="openFacultyModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">lock</span>
+              Launch Faculty Console
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
             </button>
-            <button onclick="switchTab('map')" class="flex-1 py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-              Live Map <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </div>
+
+          <!-- Driver Console (Gated with Driver PIN) -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center" aria-hidden="true">
+                <span class="material-symbols-outlined">directions_car</span>
+              </div>
+              <span id="driverStatusBadgeSPA" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-200 uppercase">SHIFT ACTIVE</span>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mt-2">Driver Console</h3>
+            <p class="text-xs text-slate-600 mt-0.5">GPS telemetry broadcasting, route progression, &amp; dispatch status</p>
+            <button onclick="openDriverModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">key</span>
+              Driver Telemetry Console
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
             </button>
           </div>
-        </div>
 
-        <!-- Faculty Portal -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
-          <div class="flex items-start justify-between">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-              <span class="material-symbols-outlined">star</span>
+          <!-- Admin Console (Gated with Security Key) -->
+          <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
+            <div class="flex items-start justify-between">
+              <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center" aria-hidden="true">
+                <span class="material-symbols-outlined">shield</span>
+              </div>
+              <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-900 border border-rose-200 uppercase">OPS CONTROL</span>
             </div>
-            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">FREE VIP</span>
+            <h3 class="text-base font-bold text-slate-900 mt-2">Admin Console</h3>
+            <p class="text-xs text-slate-600 mt-0.5">Fleet telemetry dispatch, corridors, rosters &amp; audit engine</p>
+            <button onclick="openAdminModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">admin_panel_settings</span>
+              Launch Operations Center
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">arrow_forward</span>
+            </button>
           </div>
-          <h3 class="text-base font-bold text-slate-900 mt-2">Faculty Portal</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Complimentary VIP Transit Corridor across all campus blocks</p>
-          <button onclick="openFacultyModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Launch Faculty Console
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </button>
-        </div>
+        </section>
 
-        <!-- Driver Console -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
-          <div class="flex items-start justify-between">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-              <span class="material-symbols-outlined">directions_car</span>
-            </div>
-            <span id="driverStatusBadgeSPA" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase">SHIFT ACTIVE</span>
-          </div>
-          <h3 class="text-base font-bold text-slate-900 mt-2">Driver Console</h3>
-          <p class="text-xs text-slate-500 mt-0.5">GPS telemetry broadcasting, route progression, &amp; dispatch status</p>
-          <button onclick="openDriverModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-amber-700 hover:bg-amber-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Driver Telemetry Console
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </button>
-        </div>
-
-        <!-- Admin Console -->
-        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm relative overflow-hidden transition hover:shadow-md">
-          <div class="flex items-start justify-between">
-            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
-              <span class="material-symbols-outlined">shield</span>
-            </div>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">OPS CONTROL</span>
-          </div>
-          <h3 class="text-base font-bold text-slate-900 mt-2">Admin Console</h3>
-          <p class="text-xs text-slate-500 mt-0.5">Fleet telemetry dispatch, corridors, rosters &amp; audit engine</p>
-          <button onclick="openAdminModalSPA()" class="w-full mt-3.5 py-2.5 px-4 bg-rose-700 hover:bg-rose-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            Launch Operations Center
-            <span class="material-symbols-outlined text-sm">arrow_forward</span>
-          </button>
-        </div>
-
-        <!-- Quick Utilities -->
-        <div onclick="showVisitorInfoSPA()" class="bg-white border border-slate-200 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer">
+        <!-- Quick Visitor Guide Utility -->
+        <button onclick="showVisitorInfoSPA()" class="w-full text-left bg-white border border-slate-200 rounded-2xl p-3 flex items-center justify-between hover:bg-slate-50 transition cursor-pointer" aria-label="Campus Visitor and Parent Transit Guide">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center">
+            <div class="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center" aria-hidden="true">
               <span class="material-symbols-outlined text-lg">account_balance</span>
             </div>
             <div>
@@ -305,218 +354,212 @@
               <p class="text-[11px] text-slate-500">Katpadi Gate 1 • Anna Auditorium Parking • Cash/UPI</p>
             </div>
           </div>
-          <span class="material-symbols-outlined text-slate-400 text-sm">chevron_right</span>
-        </div>
-
-        <button onclick="switchTab('map')" class="w-full py-2.5 px-4 bg-sky-50 border border-sky-200 text-sky-700 rounded-xl font-semibold text-xs flex items-center justify-center gap-1.5 hover:bg-sky-100 transition active:scale-[0.98]">
-          <span class="material-symbols-outlined text-sm">explore</span>
-          Instant Demo Access — Explore Map on Google Maps
+          <span class="material-symbols-outlined text-slate-400 text-sm" aria-hidden="true">chevron_right</span>
         </button>
 
-        <!-- Digital Transit Pass -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <!-- Digital Transit Pass Card -->
+        <section class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3" aria-label="Digital Transit Pass Preview">
           <div class="flex items-center justify-between text-xs">
             <span class="inline-flex items-center gap-1.5 font-bold text-sky-700 text-[11px] uppercase tracking-wide">
-              <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+              <span class="w-2 h-2 rounded-full bg-sky-600" aria-hidden="true"></span>
               NFC &amp; QR Verified Pass
             </span>
-            <span id="passTimerPortal" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full font-mono text-[11px] font-bold">
+            <span id="passTimerPortal" class="px-2 py-0.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full font-mono text-[11px] font-bold" role="status" aria-live="polite">
               VALID 14m 58s
             </span>
           </div>
           <div>
             <h4 class="text-sm font-bold text-slate-900">Digital Transit Pass</h4>
-            <p class="text-xs text-slate-500">Rushi Raj Meher • 21BCE1042 • #VIT-PASS-2026</p>
+            <p id="portalPassHolderText" class="text-xs text-slate-600">Rushi Raj Meher • 21BCE1042 • #VIT-PASS-2026</p>
           </div>
           <button onclick="toggleQRModal()" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-[0.98]">
-            <span class="material-symbols-outlined text-sm">qr_code_scanner</span>
-            Show QR
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">qr_code_scanner</span>
+            Show QR Boarding Pass
           </button>
-        </div>
+        </section>
 
         <!-- Live Campus Bulletins -->
-        <div class="pt-2">
+        <section class="pt-2" aria-labelledby="bulletinsTitle">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Campus Bulletins</span>
+            <span id="bulletinsTitle" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Live Campus Bulletins</span>
             <button onclick="toggleNotificationHubSPA()" class="text-xs font-bold text-sky-600 hover:underline">View All (<span id="bulletinCountSPA">3</span>)</button>
           </div>
-          <div id="bulletinListSPA" class="space-y-2">
-            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
-              <span class="material-symbols-outlined text-amber-500 text-lg">bolt</span>
+          <div id="bulletinListSPA" class="space-y-2" role="feed" aria-live="polite">
+            <article class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-amber-500 text-lg" aria-hidden="true">bolt</span>
               <div>
                 <p class="text-xs font-bold text-slate-800">Frequency Boosted</p>
-                <p class="text-[11px] text-slate-500 leading-snug">Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</p>
+                <p class="text-[11px] text-slate-600 leading-snug">Headway boosted to 4–6 mins during campus evening peak (5:00 PM – 8:30 PM).</p>
               </div>
-            </div>
-            <div class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
-              <span class="material-symbols-outlined text-rose-500 text-lg">build</span>
+            </article>
+            <article class="p-3 bg-white rounded-xl border border-slate-200 flex items-start gap-2.5">
+              <span class="material-symbols-outlined text-rose-500 text-lg" aria-hidden="true">build</span>
               <div>
                 <p class="text-xs font-bold text-slate-800">TT Portico Diversion</p>
-                <p class="text-[11px] text-slate-500 leading-snug">Turnaround diversion near Technology Tower portico; alight at SMV junction.</p>
+                <p class="text-[11px] text-slate-600 leading-snug">Turnaround diversion near Technology Tower portico; alight at SMV junction.</p>
               </div>
-            </div>
+            </article>
           </div>
-        </div>
+        </section>
       </main>
     </div>
 
     <!-- ======================================================== -->
     <!-- SCREEN 2: LIVE CAMPUS MAP TAB (GOOGLE MAPS POWERED) -->
     <!-- ======================================================== -->
-    <div id="tab-map" class="hidden flex-1 flex flex-col">
+    <div id="tab-map" class="hidden flex-1 flex flex-col" role="region" aria-label="Interactive Campus Map">
       <!-- Top App Bar -->
       <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <button onclick="switchTab('portal')" class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center hover:bg-sky-700 transition">
+          <button onclick="switchTab('portal')" class="w-8 h-8 rounded-lg bg-sky-600 text-white flex items-center justify-center hover:bg-sky-700 transition" aria-label="Back to Portal Home">
             <span class="material-symbols-outlined text-lg">directions_bus</span>
           </button>
           <div>
             <h1 class="text-sm font-bold text-slate-900 leading-tight">VIT Shuttle System</h1>
-            <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Vellore Campus • 3 Shuttles Active
+            <div class="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+              Vellore Campus • 3 Corridors Active
             </div>
           </div>
         </div>
         <div class="flex items-center gap-1.5">
-          <button onclick="toggleNotificationHubSPA()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition active:scale-95" title="Bulletins">
+          <button onclick="toggleNotificationHubSPA()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition active:scale-95" aria-label="Campus Bulletins">
             <span class="material-symbols-outlined text-base">notifications</span>
           </button>
-          <div onclick="switchTab('portal')" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center border border-sky-200 cursor-pointer">
-            RR
-          </div>
+          <button onclick="openUserProfileModal()" class="w-8 h-8 rounded-lg bg-sky-100 text-sky-800 font-bold text-xs flex items-center justify-center border border-sky-200 transition hover:bg-sky-200" aria-label="Account Settings &amp; Role Switcher">
+            <span id="mapUserInitials">RM</span>
+          </button>
         </div>
       </header>
 
       <!-- Search & Route Quick Filters Header -->
       <div class="bg-white/90 backdrop-blur-md border-b border-slate-200 px-4 py-2.5 space-y-2 sticky top-[53px] z-30">
         <div class="relative flex items-center">
-          <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3">search</span>
-          <input id="searchInputSPA" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStopsSPA(event)" class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
+          <span class="material-symbols-outlined text-slate-400 text-lg absolute left-3" aria-hidden="true">search</span>
+          <label for="searchInputSPA" class="sr-only">Search campus building or shuttle stop</label>
+          <input id="searchInputSPA" type="text" value="SJT (Silver Jubilee Tower)" onkeyup="filterStopsSPA(event)" placeholder="Search campus stop..." class="w-full pl-9 pr-20 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:border-sky-500" />
           <div class="absolute right-2 flex items-center gap-1 text-slate-400">
-            <button onclick="focusUserLocationSPA()" class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 hover:bg-sky-200 text-sky-700 px-2 py-0.5 rounded transition flex items-center gap-0.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping"></span> GPS
+            <button onclick="focusUserLocationSPA()" class="text-[10px] font-bold uppercase tracking-wider bg-sky-100 hover:bg-sky-200 text-sky-700 px-2 py-0.5 rounded transition flex items-center gap-0.5" aria-label="Center GPS">
+              <span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-ping" aria-hidden="true"></span> GPS
             </button>
-            <button onclick="document.getElementById('searchInputSPA').value=''"><span class="material-symbols-outlined text-sm">cancel</span></button>
+            <button onclick="document.getElementById('searchInputSPA').value=''" aria-label="Clear search input">
+              <span class="material-symbols-outlined text-sm">cancel</span>
+            </button>
           </div>
         </div>
 
         <!-- Corridor Filter Chips -->
-        <div class="flex gap-2 overflow-x-auto pb-1 text-xs no-scrollbar">
+        <div class="flex gap-2 overflow-x-auto pb-1 text-xs no-scrollbar" role="group" aria-label="Filter Shuttles">
           <button id="spaChipAll" onclick="setShuttleFilterSPA('all')" class="px-3 py-1 rounded-full border border-sky-600 bg-sky-600 text-white font-bold whitespace-nowrap active:scale-95 transition">● All Shuttles</button>
-          <button id="spaChip101" onclick="setShuttleFilterSPA('101')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
-            <span class="material-symbols-outlined text-xs">directions_bus</span>
+          <button id="spaChip101" onclick="setShuttleFilterSPA('101')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-700 font-medium whitespace-nowrap flex items-center gap-1 active:scale-95 transition">
+            <span class="material-symbols-outlined text-xs" aria-hidden="true">directions_bus</span>
             Bus 101 (Men's Express • ₹20)
           </button>
-          <button id="spaChip102" onclick="setShuttleFilterSPA('102')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap active:scale-95 transition">🌸 Bus 102</button>
-          <button id="spaChip201" onclick="setShuttleFilterSPA('201')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap active:scale-95 transition">⭐ Shuttle 201</button>
+          <button id="spaChip102" onclick="setShuttleFilterSPA('102')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-700 font-medium whitespace-nowrap active:scale-95 transition">🌸 Bus 102</button>
+          <button id="spaChip201" onclick="setShuttleFilterSPA('201')" class="px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-700 font-medium whitespace-nowrap active:scale-95 transition">⭐ Shuttle 201</button>
         </div>
 
         <!-- Telemetry status notification pill -->
-        <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg">
+        <div class="flex items-center justify-between text-[11px] bg-sky-50/70 border border-sky-100 px-3 py-1 rounded-lg" role="status" aria-live="polite">
           <span class="flex items-center gap-1 text-sky-800 font-medium">
-            <span class="material-symbols-outlined text-[13px] text-sky-600">my_location</span>
+            <span class="material-symbols-outlined text-[13px] text-sky-600" aria-hidden="true">my_location</span>
             <span id="locStatusTextSPA">Live GPS Location Active</span>
           </span>
-          <span class="text-emerald-700 font-bold font-mono">±2.4m accuracy</span>
+          <span id="locAccuracyBadge" class="text-emerald-800 font-bold font-mono">±2.4m accuracy</span>
         </div>
       </div>
 
       <!-- Interactive Google Maps Viewport Container -->
-      <div id="mapContainerSPA" class="relative h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200">
+      <div id="mapContainerSPA" class="relative h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200" role="region" aria-label="Interactive Leaflet Map">
         <div id="mapSPA" class="w-full h-full z-0"></div>
 
         <!-- Floating Map Controls -->
-        <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
-          <button onclick="focusUserLocationSPA()" title="My Current Location" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 transition active:scale-95">
+        <div class="absolute right-3 top-3 flex flex-col gap-2 z-20" role="toolbar" aria-label="Map Navigation Tools">
+          <button onclick="focusUserLocationSPA()" title="Center My GPS Location" aria-label="Center My GPS Location" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">my_location</span>
           </button>
           <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
-            <button onclick="zoomSPA(1)" title="Zoom In" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
-            <button onclick="zoomSPA(-1)" title="Zoom Out" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold active:scale-95 transition">−</button>
+            <button onclick="zoomSPA(1)" title="Zoom In" aria-label="Zoom In" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
+            <button onclick="zoomSPA(-1)" title="Zoom Out" aria-label="Zoom Out" class="w-8 h-8 flex items-center justify-center text-slate-700 hover:bg-slate-50 font-bold active:scale-95 transition">−</button>
           </div>
-          <button onclick="fitCampusBoundsSPA()" title="View Full Campus" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="fitCampusBoundsSPA()" title="View Full Campus" aria-label="View Full Campus" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">explore</span>
           </button>
-          <button onclick="toggleMapTypeSPA()" title="Toggle Google Satellite / Road" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
+          <button onclick="toggleMapTypeSPA()" title="Toggle Google Satellite / Road" aria-label="Toggle Google Satellite or Roadmap" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg">layers</span>
           </button>
         </div>
       </div>
 
       <!-- Tactile Bottom Sheet Drawer: Actively Tracked Shuttle -->
-      <section class="bg-white rounded-t-3xl shadow-xl border-t border-slate-200 px-4 pt-3 pb-6 -mt-3 relative z-30 space-y-4">
-        <!-- Drag Handle -->
-        <div class="w-10 h-1 rounded-full bg-slate-300 mx-auto"></div>
+      <section class="bg-white rounded-t-3xl shadow-xl border-t border-slate-200 px-4 pt-3 pb-6 -mt-3 relative z-30 space-y-4" aria-label="Tracked Vehicle Information">
+        <div class="w-10 h-1 rounded-full bg-slate-300 mx-auto" aria-hidden="true"></div>
 
         <!-- Active Vehicle Banner -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md">
+            <div class="w-11 h-11 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md" aria-hidden="true">
               <span class="material-symbols-outlined text-2xl">directions_bus</span>
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <h3 id="spaDrawerTitle" class="text-base font-bold text-slate-900 leading-none">MH Bus #101</h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">● In Transit</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">● In Transit</span>
               </div>
-              <p id="spaDrawerSubtitle" class="text-xs text-slate-500 mt-1">Men's Express Loop • Verified Driver Rajesh K.</p>
+              <p id="spaDrawerSubtitle" class="text-xs text-slate-600 mt-1">Men's Express Loop • Verified Driver Rajesh K.</p>
             </div>
           </div>
           <span id="spaDrawerBadge" class="px-2.5 py-1 bg-sky-50 text-sky-700 rounded-lg font-bold text-xs border border-sky-200">₹20 PASS</span>
         </div>
 
         <!-- Telemetry Key Metrics Grid -->
-        <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="grid grid-cols-3 gap-2 text-center" role="region" aria-label="Vehicle Live Metrics">
           <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <p class="text-[10px] uppercase font-bold text-slate-400">Speed</p>
+            <p class="text-[10px] uppercase font-bold text-slate-500">Speed</p>
             <p id="spaDrawerSpeed" class="text-xl font-bold text-slate-900">22 <span class="text-xs font-medium text-slate-500">km/h</span></p>
           </div>
           <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
-            <p class="text-[10px] uppercase font-bold text-slate-400">Crowding</p>
-            <p id="spaDrawerCrowd" class="text-base font-bold text-emerald-600 flex items-center justify-center gap-1">● Low</p>
-            <p id="spaDrawerSeats" class="text-[10px] text-slate-500">14/36 Seats</p>
+            <p class="text-[10px] uppercase font-bold text-slate-500">Crowding</p>
+            <p id="spaDrawerCrowd" class="text-base font-bold text-emerald-700 flex items-center justify-center gap-1">● Low</p>
+            <p id="spaDrawerSeats" class="text-[10px] text-slate-600">14/36 Seats</p>
           </div>
           <div class="p-3 bg-sky-50 rounded-2xl border border-sky-100">
-            <p class="text-[10px] uppercase font-bold text-sky-600">Next ETA</p>
-            <p id="spaDrawerEta" class="text-xl font-bold text-sky-700">2 <span class="text-xs font-semibold">min</span></p>
-            <p id="spaDrawerNextWalk" class="text-[10px] text-sky-600 font-medium">to SJT (380m)</p>
+            <p class="text-[10px] uppercase font-bold text-sky-700">Next ETA</p>
+            <p id="spaDrawerEta" class="text-xl font-bold text-sky-800">2 <span class="text-xs font-semibold">min</span></p>
+            <p id="spaDrawerNextWalk" class="text-[10px] text-sky-700 font-medium">to SJT (380m)</p>
           </div>
         </div>
 
         <!-- Route Progression Stepper -->
-        <div>
+        <div aria-label="Upcoming Stop Progress">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Route Progression &amp; Live Halts</span>
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Route Progression &amp; Live Halts</span>
             <button onclick="triggerToast('Viewing full schedule for Men\'s Express loop')" class="text-xs font-bold text-sky-600 hover:underline">View All 6 Stops</button>
           </div>
           <div class="space-y-3 relative pl-4 border-l-2 border-slate-200 ml-3">
-            <!-- Stop 1 (Departed) -->
             <div class="relative">
-              <span class="w-3 h-3 rounded-full bg-slate-400 absolute -left-[23px] top-1 border-2 border-white"></span>
-              <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="w-3 h-3 rounded-full bg-slate-400 absolute -left-[23px] top-1 border-2 border-white" aria-hidden="true"></span>
+              <div class="flex items-center justify-between text-xs text-slate-500">
                 <span class="line-through font-medium">Main Building (North Portico)</span>
-                <span class="material-symbols-outlined text-sm">check_circle</span>
+                <span class="material-symbols-outlined text-sm text-slate-400" aria-hidden="true">check_circle</span>
               </div>
-              <p class="text-[10px] text-slate-400">Departed 2m ago</p>
+              <p class="text-[10px] text-slate-500">Departed 2m ago</p>
             </div>
-            <!-- Stop 2 (Next Target) -->
             <div class="relative bg-sky-50 -ml-2 p-2 rounded-xl border border-sky-200">
-              <span class="w-3.5 h-3.5 rounded-full bg-sky-600 absolute -left-[19px] top-3 border-2 border-white ring-2 ring-sky-300"></span>
+              <span class="w-3.5 h-3.5 rounded-full bg-sky-600 absolute -left-[19px] top-3 border-2 border-white ring-2 ring-sky-300" aria-hidden="true"></span>
               <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-sky-900">🚏 SJT (Silver Jubilee Tower)</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-600 text-white">NEXT</span>
               </div>
-              <p class="text-[11px] text-sky-700 font-semibold mt-0.5">Arriving Next • ETA 5:42 PM (120m walk)</p>
+              <p class="text-[11px] text-sky-800 font-semibold mt-0.5">Arriving Next • ETA 5:42 PM (120m walk)</p>
             </div>
-            <!-- Stop 3 (Scheduled) -->
             <div class="relative">
-              <span class="w-3 h-3 rounded-full bg-slate-200 border-2 border-slate-400 absolute -left-[23px] top-1"></span>
+              <span class="w-3 h-3 rounded-full bg-slate-200 border-2 border-slate-400 absolute -left-[23px] top-1" aria-hidden="true"></span>
               <div class="flex items-center justify-between text-xs font-semibold text-slate-700">
                 <span>Men's Hostels F/G Block</span>
-                <span class="text-[11px] text-slate-400 font-normal">5:48 PM</span>
+                <span class="text-[11px] text-slate-500 font-normal">5:48 PM</span>
               </div>
-              <p class="text-[10px] text-slate-400">Scheduled • in ~6 mins</p>
+              <p class="text-[10px] text-slate-500">Scheduled • in ~6 mins</p>
             </div>
           </div>
         </div>
@@ -524,11 +567,11 @@
         <!-- Dual Action Buttons -->
         <div class="grid grid-cols-2 gap-2 pt-1">
           <button onclick="walkToSjtSPA()" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 flex items-center justify-center gap-1.5 hover:bg-slate-50 transition active:scale-95">
-            <span class="material-symbols-outlined text-base">directions_walk</span>
+            <span class="material-symbols-outlined text-base" aria-hidden="true">directions_walk</span>
             Walk to SJT (1.5 min)
           </button>
           <button onclick="toggleQRModal()" class="py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 font-bold text-xs text-white flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 transition active:scale-95">
-            <span class="material-symbols-outlined text-base">qr_code_scanner</span>
+            <span class="material-symbols-outlined text-base" aria-hidden="true">qr_code_scanner</span>
             Board (Show ₹20 Pass)
           </button>
         </div>
@@ -536,26 +579,26 @@
     </div>
 
     <!-- Bottom Navigation Bar (Persistent across tabs) -->
-    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 max-w-md mx-auto">
+    <nav class="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 py-2 max-w-md mx-auto" aria-label="Main Navigation">
       <div class="flex items-center justify-around px-2">
-        <button id="navBtnPortal" onclick="switchTab('portal')" class="flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1 transition">
-          <span class="material-symbols-outlined text-xl">grid_view</span>
+        <button id="navBtnPortal" onclick="switchTab('portal')" class="flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1 transition" aria-label="Portal Hub Tab">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">grid_view</span>
           <span class="text-[10px] tracking-tight mt-0.5">Portals</span>
         </button>
-        <button id="navBtnMap" onclick="switchTab('map')" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
-          <span class="material-symbols-outlined text-xl">map</span>
+        <button id="navBtnMap" onclick="switchTab('map')" class="flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition" aria-label="Live Campus Map Tab">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">map</span>
           <span class="text-[10px] tracking-tight mt-0.5">Live Map</span>
         </button>
-        <button onclick="switchTab('map'); setShuttleFilterSPA('all');" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
-          <span class="material-symbols-outlined text-xl">alt_route</span>
+        <button onclick="switchTab('map'); setShuttleFilterSPA('all');" class="flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition" aria-label="All Shuttles Filter">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">alt_route</span>
           <span class="text-[10px] tracking-tight mt-0.5">Corridors</span>
         </button>
-        <button onclick="toggleQRModal()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
-          <span class="material-symbols-outlined text-xl">badge</span>
+        <button onclick="toggleQRModal()" class="flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition" aria-label="Digital Transit Pass">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">badge</span>
           <span class="text-[10px] tracking-tight mt-0.5">Pass</span>
         </button>
-        <button onclick="toggleNotificationHubSPA()" class="flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition">
-          <span class="material-symbols-outlined text-xl">warning</span>
+        <button onclick="toggleNotificationHubSPA()" class="flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition" aria-label="Campus Alerts">
+          <span class="material-symbols-outlined text-xl" aria-hidden="true">warning</span>
           <span class="text-[10px] tracking-tight mt-0.5">Alerts</span>
         </button>
       </div>
@@ -563,13 +606,122 @@
   </div>
 
   <!-- ======================================================== -->
-  <!-- FUNCTIONAL CONSOLES & MODALS -->
+  <!-- FUNCTIONAL CONSOLES & MODALS (WCAG 2.1 AA ACCESSIBLE) -->
   <!-- ======================================================== -->
 
-  <!-- 1. FACULTY MODAL -->
-  <div id="facultyModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 1. ROLE AUTHENTICATION MODAL (Phase 11 Security Guard) -->
+  <div id="roleAuthModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="roleAuthTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeFacultyModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <button onclick="closeRoleAuthModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close authentication modal">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div id="roleAuthIconWrap" class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm">
+          <span id="roleAuthIcon" class="material-symbols-outlined text-2xl">lock</span>
+        </div>
+        <div>
+          <span id="roleAuthBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">SECURITY VERIFICATION</span>
+          <h3 id="roleAuthTitle" class="text-base font-bold text-slate-900 leading-tight mt-0.5">Institutional Access</h3>
+          <p id="roleAuthSubtitle" class="text-xs text-slate-500">Sign in with authorized credentials</p>
+        </div>
+      </div>
+
+      <!-- Error Alert Box -->
+      <div id="roleAuthErrorAlert" class="hidden p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-xs font-medium space-y-1" role="alert">
+        <p id="roleAuthErrorMessage" class="leading-snug">Access Denied: Invalid credentials.</p>
+      </div>
+
+      <!-- Dynamic Credential Form -->
+      <form id="roleAuthForm" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <div id="authEmailGroup" class="space-y-1">
+          <label id="authEmailLabel" for="authEmailInput" class="text-xs font-bold text-slate-700">Official Institutional Email</label>
+          <input id="authEmailInput" type="email" placeholder="name@vit.ac.in" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 font-medium" />
+        </div>
+
+        <div id="authSecretGroup" class="space-y-1">
+          <label id="authSecretLabel" for="authSecretInput" class="text-xs font-bold text-slate-700">Security Key / PIN</label>
+          <input id="authSecretInput" type="password" placeholder="Enter PIN or Passkey" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-sky-500 font-medium" />
+        </div>
+
+        <button type="submit" id="authSubmitBtn" class="w-full py-2.5 px-4 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95 shadow-md">
+          <span class="material-symbols-outlined text-sm">verified_user</span> Verify &amp; Launch Console
+        </button>
+      </form>
+
+      <!-- Fast Evaluation Quick-Test Shortcuts (For testing and pair-programming) -->
+      <div class="pt-2 border-t border-slate-100">
+        <p class="text-[10px] uppercase font-bold text-slate-400 mb-1.5">Evaluation Credentials Shortcut</p>
+        <button id="quickFillAuthBtn" onclick="quickFillCredentials()" class="w-full py-2 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-[11px] font-semibold text-slate-700 flex items-center justify-between transition">
+          <span id="quickFillAuthText">1-Tap Institutional Faculty Login</span>
+          <span class="material-symbols-outlined text-sm text-sky-600">bolt</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. USER PROFILE & SESSION MANAGER MODAL -->
+  <div id="userProfileModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="userProfileTitle">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeUserProfileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close profile modal">
+        <span class="material-symbols-outlined text-sm">close</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center shadow-sm">
+          <span class="material-symbols-outlined text-2xl">account_circle</span>
+        </div>
+        <div>
+          <span id="profileRoleBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 uppercase">STUDENT</span>
+          <h3 id="userProfileTitle" class="text-base font-bold text-slate-900 leading-tight mt-0.5">Rushi Raj Meher</h3>
+          <p id="profileIdentifierText" class="text-xs text-slate-500 font-mono">21BCE1042@vitstudent.ac.in</p>
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-600">
+          <span>Active Role:</span>
+          <span id="profileCurrentRoleText" class="font-bold text-slate-900">Student Transit Account</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>Security Token:</span>
+          <span class="font-mono text-emerald-600 font-bold">VALID • ENCRYPTED</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>Pass Validity:</span>
+          <span class="text-sky-700 font-bold">Semester Active</span>
+        </div>
+      </div>
+
+      <!-- Quick Persona Switcher -->
+      <div class="space-y-1.5">
+        <p class="text-[10px] uppercase font-bold text-slate-400">Switch Transit Persona</p>
+        <div class="grid grid-cols-2 gap-2 text-xs font-bold">
+          <button onclick="switchTransitRole('student')" class="py-2 px-2.5 bg-sky-50 text-sky-700 border border-sky-200 rounded-xl hover:bg-sky-100 flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">school</span> Student
+          </button>
+          <button onclick="switchTransitRole('faculty')" class="py-2 px-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl hover:bg-emerald-100 flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">star</span> Faculty
+          </button>
+          <button onclick="switchTransitRole('driver')" class="py-2 px-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-xl hover:bg-amber-100 flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">directions_car</span> Driver
+          </button>
+          <button onclick="switchTransitRole('admin')" class="py-2 px-2.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-xl hover:bg-rose-100 flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined text-sm">shield</span> Admin
+          </button>
+        </div>
+      </div>
+
+      <button onclick="signoutSession()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
+        <span class="material-symbols-outlined text-sm">logout</span> Reset Session &amp; Sign Out
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. FACULTY MODAL -->
+  <div id="facultyModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="facultyModalTitle">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeFacultyModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close faculty console">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
@@ -579,8 +731,8 @@
         </div>
         <div>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">VIP FAST-TRACK ACTIVE</span>
-          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Faculty VIP Portal</h3>
-          <p class="text-xs text-slate-500">Dr. S. Ramanujan • FAC-8819</p>
+          <h3 id="facultyModalTitle" class="text-base font-bold text-slate-900 leading-tight mt-0.5">Faculty VIP Portal</h3>
+          <p id="facultyNameDisplay" class="text-xs text-slate-500">Dr. S. Ramanujan • FAC-8819</p>
         </div>
       </div>
 
@@ -607,10 +759,10 @@
     </div>
   </div>
 
-  <!-- 2. DRIVER CONSOLE MODAL -->
-  <div id="driverModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 4. DRIVER CONSOLE MODAL -->
+  <div id="driverModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="driverModalTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeDriverModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <button onclick="closeDriverModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close driver console">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
@@ -620,8 +772,8 @@
         </div>
         <div>
           <span id="driverDutyBadgeSPA" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase">ONLINE • BROADCASTING</span>
-          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Driver Console</h3>
-          <p class="text-xs text-slate-500">Rajesh K. • Vehicle #101 (Men's Express)</p>
+          <h3 id="driverModalTitle" class="text-base font-bold text-slate-900 leading-tight mt-0.5">Driver Console</h3>
+          <p id="driverNameDisplay" class="text-xs text-slate-500">Rajesh K. • Vehicle #101 (Men's Express)</p>
         </div>
       </div>
 
@@ -630,8 +782,8 @@
           <p class="text-[10px] uppercase font-bold text-slate-400">Current Speed</p>
           <p id="driverLiveSpeedSPA" class="text-xl font-bold text-slate-900 mt-0.5">22 km/h</p>
           <div class="flex gap-1 justify-center mt-2">
-            <button onclick="adjustDriverSpeedSPA(-2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">−2</button>
-            <button onclick="adjustDriverSpeedSPA(2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">+2</button>
+            <button onclick="adjustDriverSpeedSPA(-2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300" aria-label="Decrease speed by 2">−2</button>
+            <button onclick="adjustDriverSpeedSPA(2)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300" aria-label="Increase speed by 2">+2</button>
           </div>
         </div>
 
@@ -639,8 +791,8 @@
           <p class="text-[10px] uppercase font-bold text-slate-400">Passenger Load</p>
           <p id="driverPassengerCountSPA" class="text-xl font-bold text-slate-900 mt-0.5">14 / 36</p>
           <div class="flex gap-1 justify-center mt-2">
-            <button onclick="adjustPassengersSPA(-1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">−1</button>
-            <button onclick="adjustPassengersSPA(1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300">+1</button>
+            <button onclick="adjustPassengersSPA(-1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300" aria-label="Decrease passenger count by 1">−1</button>
+            <button onclick="adjustPassengersSPA(1)" class="px-2 py-0.5 bg-slate-200 rounded text-slate-700 font-bold hover:bg-slate-300" aria-label="Increase passenger count by 1">+1</button>
           </div>
         </div>
       </div>
@@ -659,10 +811,10 @@
     </div>
   </div>
 
-  <!-- 3. ADMIN OPERATIONS MODAL -->
-  <div id="adminModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 5. ADMIN OPERATIONS MODAL -->
+  <div id="adminModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="adminModalTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="closeAdminModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <button onclick="closeAdminModalSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close admin operations console">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
@@ -672,7 +824,7 @@
         </div>
         <div>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-800 border border-rose-200 uppercase">TRANSIT OPS DISPATCH</span>
-          <h3 class="text-base font-bold text-slate-900 leading-tight mt-0.5">Admin Control Hub</h3>
+          <h3 id="adminModalTitle" class="text-base font-bold text-slate-900 leading-tight mt-0.5">Admin Control Hub</h3>
           <p class="text-xs text-slate-500">Fleet Operations &amp; Route Audit</p>
         </div>
       </div>
@@ -698,7 +850,7 @@
             <p class="font-bold text-slate-800">Evening Peak Headway (4m)</p>
             <p class="text-[10px] text-slate-500">Auto-dispatch reserve fleet</p>
           </div>
-          <button id="adminPeakBtnSPA" onclick="togglePeakSPA()" class="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs">
+          <button id="adminPeakBtnSPA" onclick="togglePeakSPA()" class="px-3 py-1 bg-emerald-600 text-white rounded-lg font-bold text-xs" aria-label="Toggle peak headway boost">
             ENABLED
           </button>
         </div>
@@ -708,19 +860,25 @@
             <p class="font-bold text-slate-800">TT Portico Turnaround Detour</p>
             <p class="text-[10px] text-slate-500">Symposium walkway block</p>
           </div>
-          <button id="adminDetourBtnSPA" onclick="toggleDetourSPA()" class="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold text-xs">
+          <button id="adminDetourBtnSPA" onclick="toggleDetourSPA()" class="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold text-xs" aria-label="Toggle detour status">
             ACTIVE
           </button>
         </div>
       </div>
 
-      <!-- Broadcast Live Bulletin -->
+      <!-- Broadcast Live Bulletin Form with Validation -->
       <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
         <p class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
           <span class="material-symbols-outlined text-sm text-sky-600">podcasts</span> Broadcast Passenger Bulletin
         </p>
-        <input id="broadcastTitleSPA" type="text" placeholder="Bulletin Title (e.g., Rain Speed Protocol)" class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500" />
-        <textarea id="broadcastMsgSPA" rows="2" placeholder="Announcement details..." class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500"></textarea>
+        <div class="space-y-1">
+          <label for="broadcastTitleSPA" class="sr-only">Bulletin Title</label>
+          <input id="broadcastTitleSPA" type="text" placeholder="Bulletin Title (e.g., Rain Speed Protocol)" class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500" />
+        </div>
+        <div class="space-y-1">
+          <label for="broadcastMsgSPA" class="sr-only">Announcement details</label>
+          <textarea id="broadcastMsgSPA" rows="2" placeholder="Announcement details..." class="w-full text-xs p-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-sky-500"></textarea>
+        </div>
         <button onclick="broadcastAdminBulletinSPA()" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition active:scale-95">
           <span class="material-symbols-outlined text-sm">send</span> Broadcast to All Mobile Portals
         </button>
@@ -728,16 +886,16 @@
     </div>
   </div>
 
-  <!-- 4. NOTIFICATIONS HUB MODAL -->
-  <div id="notifHubModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 6. NOTIFICATIONS HUB MODAL -->
+  <div id="notifHubModalSPA" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="bulletinModalTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button onclick="toggleNotificationHubSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <button onclick="toggleNotificationHubSPA()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close notification hub">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
 
       <div class="flex items-center justify-between pr-8">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Campus Transit Bulletins</h3>
+          <h3 id="bulletinModalTitle" class="text-base font-bold text-slate-900">Campus Transit Bulletins</h3>
           <p class="text-xs text-slate-500">Live operational &amp; corridor alerts</p>
         </div>
       </div>
@@ -781,13 +939,13 @@
     </div>
   </div>
 
-  <!-- QR Modal -->
-  <div id="unifiedQrModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+  <!-- 7. UNIFIED QR BOARDING PASS MODAL -->
+  <div id="unifiedQrModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="spaQrTitle">
     <div class="bg-white rounded-3xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl relative">
-      <button onclick="toggleQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200">
+      <button onclick="toggleQRModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200" aria-label="Close QR modal">
         <span class="material-symbols-outlined text-sm">close</span>
       </button>
-      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto">
+      <div class="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto" aria-hidden="true">
         <span class="material-symbols-outlined text-2xl">qr_code_2</span>
       </div>
       <div>
@@ -795,7 +953,7 @@
         <p id="spaQrSub" class="text-xs text-slate-500">Scan at shuttle door NFC / Optical Reader</p>
       </div>
       <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col items-center justify-center">
-        <svg class="w-44 h-44" viewBox="0 0 100 100" fill="currentColor">
+        <svg class="w-44 h-44" viewBox="0 0 100 100" fill="currentColor" aria-label="Transit Boarding Pass QR Code" role="img">
           <rect x="5" y="5" width="30" height="30" rx="3" fill="#0284c7" />
           <rect x="9" y="9" width="22" height="22" rx="2" fill="#ffffff" />
           <rect x="13" y="13" width="14" height="14" rx="1" fill="#0284c7" />
@@ -828,7 +986,7 @@
         <span id="spaQrCodeText" class="text-[11px] font-mono text-slate-500 font-bold mt-2">ID: VIT-21BCE1042-SJT</span>
       </div>
       <div class="flex items-center justify-between text-xs px-2">
-        <span class="text-slate-500">Auto-refresh token:</span>
+        <span class="text-slate-500">Security Auto-refresh:</span>
         <span class="text-emerald-600 font-bold font-mono">14s</span>
       </div>
       <button onclick="toggleQRModal()" class="w-full py-2.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition">
@@ -837,15 +995,375 @@
     </div>
   </div>
 
-  <!-- Floating Toast Notification -->
-  <div id="appToast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 max-w-xs w-full">
-    <span class="material-symbols-outlined text-base text-sky-400">info</span>
+  <!-- Floating Toast Notification (Accessible Live Region) -->
+  <div id="appToast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 max-w-xs w-full" role="status" aria-live="polite">
+    <span class="material-symbols-outlined text-base text-sky-400" aria-hidden="true">info</span>
     <span id="appToastText" class="flex-1">Notification</span>
-    <button onclick="hideAppToast()"><span class="material-symbols-outlined text-sm text-slate-400">close</span></button>
+    <button onclick="hideAppToast()" aria-label="Dismiss message"><span class="material-symbols-outlined text-sm text-slate-400">close</span></button>
   </div>
 
   <script>
-    // Tab switching logic
+    // ══════════════════════════════════════════════════════
+    // 🛡️ PHASE 11: AUTHENTICATION & SESSION MANAGEMENT
+    // ══════════════════════════════════════════════════════
+    const transitAuth = {
+      defaultUser: {
+        role: 'student',
+        name: 'Rushi Raj Meher',
+        identifier: '21BCE1042@vitstudent.ac.in',
+        id: '21BCE1042',
+        token: 'auth_jwt_simulated_std_2026'
+      },
+      currentSession: null,
+
+      init() {
+        try {
+          const stored = localStorage.getItem('vit_transit_session');
+          if (stored) {
+            this.currentSession = JSON.parse(stored);
+          } else {
+            this.currentSession = { ...this.defaultUser };
+            localStorage.setItem('vit_transit_session', JSON.stringify(this.currentSession));
+          }
+        } catch (_) {
+          this.currentSession = { ...this.defaultUser };
+        }
+        this.updateUI();
+      },
+
+      getSession() {
+        return this.currentSession || this.defaultUser;
+      },
+
+      setSession(session) {
+        this.currentSession = session;
+        try {
+          localStorage.setItem('vit_transit_session', JSON.stringify(session));
+        } catch (_) {}
+        this.updateUI();
+      },
+
+      hasRole(targetRole) {
+        if (!this.currentSession) return false;
+        if (this.currentSession.role === 'admin') return true; // Admin has universal access
+        return this.currentSession.role === targetRole;
+      },
+
+      updateUI() {
+        const session = this.getSession();
+        const role = (session.role || 'student').toUpperCase();
+        
+        // Update header role pill
+        const rolePill = document.getElementById('roleBadgePortal');
+        if (rolePill) {
+          rolePill.textContent = role;
+          if (role === 'ADMIN') {
+            rolePill.className = 'px-2.5 py-1 bg-rose-100 text-rose-800 text-[11px] font-bold rounded-lg border border-rose-200 cursor-pointer transition hover:bg-rose-200';
+          } else if (role === 'FACULTY') {
+            rolePill.className = 'px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded-lg border border-emerald-200 cursor-pointer transition hover:bg-emerald-200';
+          } else if (role === 'DRIVER') {
+            rolePill.className = 'px-2.5 py-1 bg-amber-100 text-amber-800 text-[11px] font-bold rounded-lg border border-amber-200 cursor-pointer transition hover:bg-amber-200';
+          } else {
+            rolePill.className = 'px-2.5 py-1 bg-sky-100 text-sky-800 text-[11px] font-bold rounded-lg border border-sky-200 cursor-pointer transition hover:bg-sky-200';
+          }
+        }
+
+        // Update profile modal fields
+        const profBadge = document.getElementById('profileRoleBadge');
+        if (profBadge) profBadge.textContent = role;
+        const profTitle = document.getElementById('userProfileTitle');
+        if (profTitle) profTitle.textContent = session.name;
+        const profId = document.getElementById('profileIdentifierText');
+        if (profId) profId.textContent = session.identifier;
+        const profRoleDesc = document.getElementById('profileCurrentRoleText');
+        if (profRoleDesc) profRoleDesc.textContent = `${role} Verified Account`;
+
+        // Update pass holder text
+        const passText = document.getElementById('portalPassHolderText');
+        if (passText) passText.textContent = `${session.name} • ${session.id || 'VIT-VERIFIED'} • #VIT-PASS-2026`;
+      }
+    };
+
+    let pendingAuthRole = null;
+    let pendingAuthCallback = null;
+
+    function requireRole(targetRole, callback) {
+      if (transitAuth.hasRole(targetRole)) {
+        callback();
+      } else {
+        openRoleAuthModal(targetRole, callback);
+      }
+    }
+
+    function openRoleAuthModal(role, callback) {
+      pendingAuthRole = role;
+      pendingAuthCallback = callback;
+
+      const modal = document.getElementById('roleAuthModal');
+      const icon = document.getElementById('roleAuthIcon');
+      const iconWrap = document.getElementById('roleAuthIconWrap');
+      const badge = document.getElementById('roleAuthBadge');
+      const title = document.getElementById('roleAuthTitle');
+      const sub = document.getElementById('roleAuthSubtitle');
+      const errAlert = document.getElementById('roleAuthErrorAlert');
+      const emailGroup = document.getElementById('authEmailGroup');
+      const secretGroup = document.getElementById('authSecretGroup');
+      const emailInput = document.getElementById('authEmailInput');
+      const secretInput = document.getElementById('authSecretInput');
+      const quickFillText = document.getElementById('quickFillAuthText');
+
+      errAlert.classList.add('hidden');
+      emailInput.value = '';
+      secretInput.value = '';
+
+      if (role === 'faculty') {
+        icon.textContent = 'star';
+        iconWrap.className = 'w-12 h-12 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center shadow-sm';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-800 border border-emerald-200';
+        badge.textContent = 'FACULTY GEOFENCE ACCESS';
+        title.textContent = 'Faculty Transit Verification';
+        sub.textContent = 'Requires official @vit.ac.in institutional email';
+        emailGroup.classList.remove('hidden');
+        secretGroup.classList.remove('hidden');
+        document.getElementById('authEmailLabel').textContent = 'Official VIT Faculty Email (@vit.ac.in)';
+        document.getElementById('authSecretLabel').textContent = 'Staff Portal Password / OTP';
+        emailInput.placeholder = 'dr.raman@vit.ac.in';
+        secretInput.placeholder = 'Enter staff password';
+        quickFillText.textContent = '1-Tap Faculty Login (Dr. Raman • @vit.ac.in)';
+      } else if (role === 'driver') {
+        icon.textContent = 'directions_car';
+        iconWrap.className = 'w-12 h-12 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center shadow-sm';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-900 border border-amber-200';
+        badge.textContent = 'DRIVER DISPATCH TERMINAL';
+        title.textContent = 'Driver Authentication';
+        sub.textContent = 'Requires Driver ID & Security PIN (1010)';
+        emailGroup.classList.remove('hidden');
+        secretGroup.classList.remove('hidden');
+        document.getElementById('authEmailLabel').textContent = 'Driver Badge ID';
+        document.getElementById('authSecretLabel').textContent = 'Security PIN';
+        emailInput.placeholder = 'DRV-101';
+        secretInput.placeholder = '4-digit PIN (Default: 1010)';
+        quickFillText.textContent = '1-Tap Driver Login (Rajesh K. • DRV-101 / 1010)';
+      } else if (role === 'admin') {
+        icon.textContent = 'shield';
+        iconWrap.className = 'w-12 h-12 bg-rose-100 text-rose-700 rounded-2xl flex items-center justify-center shadow-sm';
+        badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-50 text-rose-900 border border-rose-200';
+        badge.textContent = 'OPERATIONS CONTROL ACCESS';
+        title.textContent = 'Transit Administrator Login';
+        sub.textContent = 'Requires Master Operations Security Key';
+        emailGroup.classList.add('hidden');
+        secretGroup.classList.remove('hidden');
+        document.getElementById('authSecretLabel').textContent = 'Master Admin Security Key';
+        secretInput.placeholder = 'Security Key (Default: admin2026)';
+        quickFillText.textContent = '1-Tap Transit Ops Controller Login';
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeRoleAuthModal() {
+      document.getElementById('roleAuthModal').classList.add('hidden');
+      pendingAuthRole = null;
+      pendingAuthCallback = null;
+    }
+
+    function quickFillCredentials() {
+      const emailInput = document.getElementById('authEmailInput');
+      const secretInput = document.getElementById('authSecretInput');
+      if (pendingAuthRole === 'faculty') {
+        emailInput.value = 'dr.raman@vit.ac.in';
+        secretInput.value = 'vitfaculty2026';
+      } else if (pendingAuthRole === 'driver') {
+        emailInput.value = 'DRV-101';
+        secretInput.value = '1010';
+      } else if (pendingAuthRole === 'admin') {
+        secretInput.value = 'admin2026';
+      }
+      triggerToast('Filled authorized verification credentials');
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const errAlert = document.getElementById('roleAuthErrorAlert');
+      const errMsg = document.getElementById('roleAuthErrorMessage');
+      const email = document.getElementById('authEmailInput').value.trim();
+      const secret = document.getElementById('authSecretInput').value.trim();
+
+      errAlert.classList.add('hidden');
+
+      if (pendingAuthRole === 'faculty') {
+        if (!email.toLowerCase().endsWith('@vit.ac.in')) {
+          errAlert.classList.remove('hidden');
+          errMsg.textContent = 'Access Denied: Faculty corridor requires verified institutional email ending in @vit.ac.in (students and non-VIT domains are prohibited).';
+          return;
+        }
+        if (!secret) {
+          errAlert.classList.remove('hidden');
+          errMsg.textContent = 'Password / Security verification code cannot be blank.';
+          return;
+        }
+        transitAuth.setSession({
+          role: 'faculty',
+          name: 'Dr. C. Raman',
+          identifier: email,
+          id: 'FAC-8819',
+          token: 'jwt_faculty_auth_token_verified'
+        });
+        triggerToast('✅ Verified Faculty Credentials: VIP Access Granted');
+      } else if (pendingAuthRole === 'driver') {
+        if (secret !== '1010' && secret !== 'admin2026') {
+          errAlert.classList.remove('hidden');
+          errMsg.textContent = 'Invalid Driver Security PIN. Correct PIN is 1010.';
+          return;
+        }
+        transitAuth.setSession({
+          role: 'driver',
+          name: 'Rajesh Kumar',
+          identifier: email || 'DRV-101',
+          id: 'DRV-101',
+          token: 'jwt_driver_auth_token_verified'
+        });
+        triggerToast('✅ Verified Driver: Telemetry Broadcast Enabled');
+      } else if (pendingAuthRole === 'admin') {
+        if (secret !== 'admin2026') {
+          errAlert.classList.remove('hidden');
+          errMsg.textContent = 'Invalid Admin Passkey. Access rejected by Transit Operations.';
+          return;
+        }
+        transitAuth.setSession({
+          role: 'admin',
+          name: 'Transit Operations Controller',
+          identifier: 'transit-ops@vit.ac.in',
+          id: 'ADMIN-OPS-01',
+          token: 'jwt_admin_auth_token_verified'
+        });
+        triggerToast('✅ Verified Admin: Full Transit Operations Unlocked');
+      }
+
+      const cb = pendingAuthCallback;
+      closeRoleAuthModal();
+      if (typeof cb === 'function') {
+        cb();
+      }
+    }
+
+    function openUserProfileModal() {
+      transitAuth.updateUI();
+      document.getElementById('userProfileModal').classList.remove('hidden');
+    }
+
+    function closeUserProfileModal() {
+      document.getElementById('userProfileModal').classList.add('hidden');
+    }
+
+    function switchTransitRole(role) {
+      if (role === 'student') {
+        transitAuth.setSession({ ...transitAuth.defaultUser });
+        triggerToast('Switched to Student Transit Account');
+        closeUserProfileModal();
+      } else {
+        closeUserProfileModal();
+        requireRole(role, () => {
+          if (role === 'faculty') openFacultyModalSPA();
+          else if (role === 'driver') openDriverModalSPA();
+          else if (role === 'admin') openAdminModalSPA();
+        });
+      }
+    }
+
+    function signoutSession() {
+      transitAuth.setSession({ ...transitAuth.defaultUser });
+      closeUserProfileModal();
+      triggerToast('Session invalidated. Reverted to standard student mode.');
+    }
+
+    // Modal openers wrapped with permission verification
+    function openFacultyModalSPA() {
+      requireRole('faculty', () => {
+        document.getElementById('facultyModalSPA').classList.remove('hidden');
+      });
+    }
+
+    function closeFacultyModalSPA() {
+      document.getElementById('facultyModalSPA').classList.add('hidden');
+    }
+
+    function openDriverModalSPA() {
+      requireRole('driver', () => {
+        document.getElementById('driverModalSPA').classList.remove('hidden');
+      });
+    }
+
+    function closeDriverModalSPA() {
+      document.getElementById('driverModalSPA').classList.add('hidden');
+    }
+
+    function openAdminModalSPA() {
+      requireRole('admin', () => {
+        document.getElementById('adminModalSPA').classList.remove('hidden');
+      });
+    }
+
+    function closeAdminModalSPA() {
+      document.getElementById('adminModalSPA').classList.add('hidden');
+    }
+
+    function closeAllModals() {
+      document.getElementById('roleAuthModal').classList.add('hidden');
+      document.getElementById('userProfileModal').classList.add('hidden');
+      document.getElementById('facultyModalSPA').classList.add('hidden');
+      document.getElementById('driverModalSPA').classList.add('hidden');
+      document.getElementById('adminModalSPA').classList.add('hidden');
+      document.getElementById('notifHubModalSPA').classList.add('hidden');
+      document.getElementById('unifiedQrModal').classList.add('hidden');
+    }
+
+    // Keyboard ESC key closes any open modal (WCAG Requirement)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
+
+    // ══════════════════════════════════════════════════════
+    // 🌐 NETWORK RESILIENCE & OFFLINE DETECTION
+    // ══════════════════════════════════════════════════════
+    function updateNetworkStatus() {
+      const banner = document.getElementById('networkOfflineBanner');
+      if (!navigator.onLine) {
+        if (banner) banner.classList.remove('hidden');
+        triggerToast('⚠️ Offline Mode: On-device simulation active');
+      } else {
+        if (banner) banner.classList.add('hidden');
+      }
+    }
+
+    function dismissOfflineBanner() {
+      const banner = document.getElementById('networkOfflineBanner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    window.addEventListener('online', () => {
+      updateNetworkStatus();
+      triggerToast('🌐 Connection Restored: Live transit network online');
+    });
+
+    window.addEventListener('offline', () => {
+      updateNetworkStatus();
+    });
+
+    // Global Error Boundary (Prevents crashing and logs safely)
+    window.addEventListener('error', (event) => {
+      console.warn('[Handled Error]', event.message);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.warn('[Handled Rejection]', event.reason);
+    });
+
+    // ══════════════════════════════════════════════════════
+    // 📱 TAB & ROUTING LOGIC
+    // ══════════════════════════════════════════════════════
     function switchTab(tab) {
       const tabPortal = document.getElementById('tab-portal');
       const tabMap = document.getElementById('tab-map');
@@ -856,13 +1374,13 @@
         tabPortal.classList.remove('hidden');
         tabMap.classList.add('hidden');
         navBtnPortal.className = 'flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1 transition';
-        navBtnMap.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition';
+        navBtnMap.className = 'flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (tab === 'map') {
         tabPortal.classList.add('hidden');
         tabMap.classList.remove('hidden');
         navBtnMap.className = 'flex flex-col items-center justify-center text-sky-600 font-bold px-2 py-1 transition';
-        navBtnPortal.className = 'flex flex-col items-center justify-center text-slate-400 hover:text-sky-600 font-medium px-2 py-1 transition';
+        navBtnPortal.className = 'flex flex-col items-center justify-center text-slate-500 hover:text-sky-600 font-medium px-2 py-1 transition';
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
         setTimeout(() => {
@@ -874,11 +1392,11 @@
     }
 
     function selectPortalRoute(busId, speed, stop, eta, crowding) {
-      document.getElementById('portalBusId').textContent = '#' + busId;
-      document.getElementById('portalSpeed').textContent = speed;
-      document.getElementById('portalStop').textContent = stop;
-      document.getElementById('portalEta').textContent = eta;
-      document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${crowding}`;
+      document.getElementById('portalBusId').textContent = '#' + escapeHtml(busId);
+      document.getElementById('portalSpeed').textContent = escapeHtml(speed);
+      document.getElementById('portalStop').textContent = escapeHtml(stop);
+      document.getElementById('portalEta').textContent = escapeHtml(eta);
+      document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span> ${escapeHtml(crowding)}`;
       triggerToast(`Selected Bus #${busId} • ${stop} in ${eta}`);
     }
 
@@ -905,7 +1423,7 @@
     let spaMarkers = {};
     let userMarkerSPA = null;
 
-    let userLocationSPA = { lat: 12.971420, lng: 79.163200 };
+    let userLocationSPA = { lat: 12.971420, lng: 79.163200 }; // Default SJT Center
 
     const spaBusProfiles = {
       '101': {
@@ -1010,8 +1528,8 @@
           className: '',
           html: `
             <div class="user-puck-wrap">
-              <div class="user-puck-radar"></div>
-              <div class="user-puck-center"></div>
+              <div class="user-puck-radar" aria-hidden="true"></div>
+              <div class="user-puck-center" aria-hidden="true"></div>
               <div class="user-puck-tag">📍 You Are Here</div>
             </div>
           `,
@@ -1046,6 +1564,11 @@
         attribution: '© Google Maps • VIT Vellore'
       }).addTo(mapSPA);
 
+      // Tile error resilience
+      googleLayerSPA.on('tileerror', function() {
+        console.warn('[Map Engine] Google Maps tile load delayed or blocked.');
+      });
+
       Object.keys(spaRoutes).forEach(id => {
         const r = spaRoutes[id];
         L.polyline(r.coords, {
@@ -1059,9 +1582,9 @@
       spaStops.forEach(s => {
         const stopIcon = L.divIcon({
           className: '',
-          html: `<div style="transform:translate(-50%, -50%); display:flex; align-items:center; gap:3px; background:white; padding:2px 6px; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.15); white-space:nowrap; cursor:pointer;">
-            <span style="font-size:11px;">${s.icon}</span>
-            <span style="font-size:10px; font-weight:700; color:#0f172a;">${s.name.split('(')[0].trim()}</span>
+          html: `<div style="transform:translate(-50%, -50%); display:flex; align-items:center; gap:3px; background:white; padding:2px 6px; border-radius:12px; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.15); white-space:nowrap; cursor:pointer;" role="button" aria-label="Campus Stop: ${escapeHtml(s.name)}">
+            <span style="font-size:11px;" aria-hidden="true">${s.icon}</span>
+            <span style="font-size:10px; font-weight:700; color:#0f172a;">${escapeHtml(s.name.split('(')[0].trim())}</span>
           </div>`,
           iconSize: [0, 0]
         });
@@ -1078,16 +1601,16 @@
         const icon = L.divIcon({
           className: '',
           html: `
-            <div style="transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="setShuttleFilterSPA('${id}')">
+            <div style="transform:translate(-50%, -50%); display:flex; flex-direction:column; align-items:center; cursor:pointer;" onclick="setShuttleFilterSPA('${id}')" role="button" aria-label="Shuttle ${escapeHtml(p.name)}">
               <div style="background:#0f172a; color:white; font-size:10px; font-weight:700; padding:2px 6px; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.3); display:flex; align-items:center; gap:4px; white-space:nowrap; margin-bottom:2px;">
-                <span style="width:6px; height:6px; border-radius:50%; background:#4ade80;"></span>
-                ${p.name} • ${p.speed} km/h
+                <span style="width:6px; height:6px; border-radius:50%; background:#4ade80;" aria-hidden="true"></span>
+                ${escapeHtml(p.name)} • ${p.speed} km/h
               </div>
               <div style="width:34px; height:34px; border-radius:50%; background:${p.color}; color:white; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.35); border:2.5px solid white;">
-                <span class="material-symbols-outlined" style="font-size:18px;">directions_bus</span>
+                <span class="material-symbols-outlined" style="font-size:18px;" aria-hidden="true">directions_bus</span>
               </div>
               <div style="background:rgba(255,255,255,0.92); border:1px solid ${p.color}; color:#0f172a; font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px; margin-top:2px; white-space:nowrap; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
-                ${p.nextPill}
+                ${escapeHtml(p.nextPill)}
               </div>
             </div>
           `,
@@ -1098,6 +1621,7 @@
 
       renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng);
 
+      // Geolocation with Phase 11 Error Handling & Fallbacks
       if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
           pos => {
@@ -1107,14 +1631,22 @@
             renderUserLocationMarkerSPA(lat, lng);
             const el = document.getElementById('locStatusTextSPA');
             if (el) el.textContent = 'Live Device GPS Synced';
+            const acc = document.getElementById('locAccuracyBadge');
+            if (acc) acc.textContent = `±${Math.round(pos.coords.accuracy || 2)}m accuracy`;
           },
           err => {
+            console.warn('[GPS Fallback]', err.message);
             renderUserLocationMarkerSPA(userLocationSPA.lat, userLocationSPA.lng);
+            const el = document.getElementById('locStatusTextSPA');
+            if (el) el.textContent = 'Default GPS: SJT Campus Center';
+            const acc = document.getElementById('locAccuracyBadge');
+            if (acc) acc.textContent = 'Simulated GPS';
           },
-          { enableHighAccuracy: true, timeout: 8000, maximumAge: 15000 }
+          { enableHighAccuracy: true, timeout: 6000, maximumAge: 15000 }
         );
       }
 
+      // Live position updater simulation
       let simTick = 0;
       setInterval(() => {
         simTick = (simTick + 1) % 100;
@@ -1132,7 +1664,7 @@
     function focusUserLocationSPA() {
       if (userLocationSPA && mapSPA) {
         mapSPA.flyTo([userLocationSPA.lat, userLocationSPA.lng], 17.5, { animate: true, duration: 0.8 });
-        triggerToast('📍 Centered on Your Current Location');
+        triggerToast('📍 Centered on Your Location');
       }
     }
 
@@ -1157,7 +1689,7 @@
         '201': document.getElementById('spaChip201'),
       };
       Object.values(chips).forEach(c => {
-        if (c) c.className = 'px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-600 font-medium whitespace-nowrap active:scale-95 transition';
+        if (c) c.className = 'px-3 py-1 rounded-full border border-slate-200 bg-white text-slate-700 font-medium whitespace-nowrap active:scale-95 transition';
       });
 
       if (id === 'all') {
@@ -1202,13 +1734,14 @@
 
     function filterStopsSPA(e) {
       if (e.key === 'Enter') {
-        const query = e.target.value.toLowerCase();
+        const query = e.target.value.toLowerCase().trim();
+        if (!query) return;
         const found = spaStops.find(s => s.name.toLowerCase().includes(query));
         if (found && mapSPA) {
           mapSPA.flyTo([found.lat, found.lng], 17.5, { animate: true });
           triggerToast(`Found: ${found.name}`);
         } else {
-          triggerToast(`Searching corridors near: ${e.target.value}`);
+          triggerToast(`Searching corridors near: ${escapeHtml(e.target.value)}`);
         }
       }
     }
@@ -1223,33 +1756,12 @@
       document.getElementById('unifiedQrModal').classList.toggle('hidden');
     }
 
-    // Functional Modal Openers
     function openStudentPortalModalSPA() {
+      const session = transitAuth.getSession();
       document.getElementById('spaQrTitle').textContent = 'Student Transit Boarding Pass';
-      document.getElementById('spaQrSub').textContent = 'Rushi Raj Meher • 21BCE1042';
-      document.getElementById('spaQrCodeText').textContent = 'ID: VIT-21BCE1042-SJT';
+      document.getElementById('spaQrSub').textContent = `${session.name} • ${session.id || '21BCE1042'}`;
+      document.getElementById('spaQrCodeText').textContent = `ID: VIT-${session.id || '21BCE1042'}-SJT`;
       toggleQRModal();
-    }
-
-    function openFacultyModalSPA() {
-      document.getElementById('facultyModalSPA').classList.remove('hidden');
-    }
-    function closeFacultyModalSPA() {
-      document.getElementById('facultyModalSPA').classList.add('hidden');
-    }
-
-    function openDriverModalSPA() {
-      document.getElementById('driverModalSPA').classList.remove('hidden');
-    }
-    function closeDriverModalSPA() {
-      document.getElementById('driverModalSPA').classList.add('hidden');
-    }
-
-    function openAdminModalSPA() {
-      document.getElementById('adminModalSPA').classList.remove('hidden');
-    }
-    function closeAdminModalSPA() {
-      document.getElementById('adminModalSPA').classList.add('hidden');
     }
 
     function toggleNotificationHubSPA() {
@@ -1264,9 +1776,9 @@
     // Faculty Actions
     function requestVipPickupSPA() {
       const btn = document.getElementById('vipPickupBtnSPA');
-      btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin">refresh</span> Dispatching VIP Shuttle...`;
+      btn.innerHTML = `<span class="material-symbols-outlined text-sm animate-spin" aria-hidden="true">refresh</span> Dispatching VIP Shuttle...`;
       setTimeout(() => {
-        btn.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Dispatched! ETA: 2 mins`;
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm" aria-hidden="true">check_circle</span> Dispatched! ETA: 2 mins`;
         btn.className = "w-full py-2.5 px-4 bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5";
         triggerToast('🚖 Priority VIP Shuttle #201 dispatched to MB Portico');
       }, 1200);
@@ -1289,7 +1801,7 @@
       driverPassengersSPA = Math.max(0, Math.min(36, driverPassengersSPA + delta));
       document.getElementById('driverPassengerCountSPA').textContent = `${driverPassengersSPA} / 36`;
       const crowdStatus = driverPassengersSPA > 28 ? 'High Crowding' : driverPassengersSPA > 18 ? 'Medium Crowding' : 'Low Crowding';
-      document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> ${crowdStatus}`;
+      document.getElementById('portalCrowdStatus').innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true"></span> ${crowdStatus}`;
       document.getElementById('spaDrawerCrowd').textContent = `● ${crowdStatus.split(' ')[0]}`;
       document.getElementById('spaDrawerSeats').textContent = `${driverPassengersSPA}/36 Seats`;
       triggerToast(`Passenger count: ${driverPassengersSPA}/36`);
@@ -1302,16 +1814,16 @@
       const btn = document.getElementById('dutyToggleBtnSPA');
 
       if (isDriverOnDutySPA) {
-        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase";
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase";
         badge.textContent = "ONLINE • BROADCASTING";
         portalBadge.textContent = "SHIFT ACTIVE";
-        btn.innerHTML = `<span class="material-symbols-outlined text-sm">pause_circle</span> Toggle Shift Duty (Take Break)`;
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm" aria-hidden="true">pause_circle</span> Toggle Shift Duty (Take Break)`;
         triggerToast('Driver status: Shift resumed (Online)');
       } else {
-        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 uppercase";
+        badge.className = "px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-200 uppercase";
         badge.textContent = "ON BREAK • PAUSED";
         portalBadge.textContent = "ON BREAK";
-        btn.innerHTML = `<span class="material-symbols-outlined text-sm">play_circle</span> Resume Active Shift Duty`;
+        btn.innerHTML = `<span class="material-symbols-outlined text-sm" aria-hidden="true">play_circle</span> Resume Active Shift Duty`;
         triggerToast('Driver status: On 15-min scheduled break');
       }
     }
@@ -1357,13 +1869,25 @@
     }
 
     function broadcastAdminBulletinSPA() {
-      const title = document.getElementById('broadcastTitleSPA').value.trim();
-      const msg = document.getElementById('broadcastMsgSPA').value.trim();
+      const titleInput = document.getElementById('broadcastTitleSPA');
+      const msgInput = document.getElementById('broadcastMsgSPA');
+      const title = titleInput.value.trim();
+      const msg = msgInput.value.trim();
 
-      if (!title || !msg) {
-        triggerToast('Please enter both title and details');
+      // Form validation with accessible visual cues
+      if (!title || title.length < 3) {
+        titleInput.classList.add('border-rose-500', 'bg-rose-50/50');
+        triggerToast('Please enter a valid bulletin title (min 3 chars)');
         return;
       }
+      titleInput.classList.remove('border-rose-500', 'bg-rose-50/50');
+
+      if (!msg || msg.length < 5) {
+        msgInput.classList.add('border-rose-500', 'bg-rose-50/50');
+        triggerToast('Please enter bulletin announcement details (min 5 chars)');
+        return;
+      }
+      msgInput.classList.remove('border-rose-500', 'bg-rose-50/50');
 
       const hubList = document.getElementById('notifHubListSPA');
       const item = document.createElement('div');
@@ -1378,19 +1902,19 @@
       hubList.prepend(item);
 
       const portalList = document.getElementById('bulletinListSPA');
-      const portalItem = document.createElement('div');
+      const portalItem = document.createElement('article');
       portalItem.className = "p-3 bg-white rounded-xl border border-sky-300 flex items-start gap-2.5";
       portalItem.innerHTML = `
-        <span class="material-symbols-outlined text-sky-600 text-lg">campaign</span>
+        <span class="material-symbols-outlined text-sky-600 text-lg" aria-hidden="true">campaign</span>
         <div>
           <p class="text-xs font-bold text-slate-800">${escapeHtml(title)}</p>
-          <p class="text-[11px] text-slate-500 leading-snug">${escapeHtml(msg)}</p>
+          <p class="text-[11px] text-slate-600 leading-snug">${escapeHtml(msg)}</p>
         </div>
       `;
       portalList.prepend(portalItem);
 
-      document.getElementById('broadcastTitleSPA').value = '';
-      document.getElementById('broadcastMsgSPA').value = '';
+      titleInput.value = '';
+      msgInput.value = '';
       document.getElementById('unreadBadgePortal').classList.remove('hidden');
 
       triggerToast(`🚀 Broadcasted: "${title}" to all mobile portals!`);
@@ -1402,8 +1926,15 @@
       triggerToast('All notifications marked as read');
     }
 
+    // XSS Sanitization helper
     function escapeHtml(str) {
-      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (typeof str !== 'string') return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
 
     function triggerToast(msg) {
@@ -1413,7 +1944,7 @@
       clearTimeout(window.appToastTimer);
       window.appToastTimer = setTimeout(() => {
         toast.classList.add('hidden');
-      }, 3000);
+      }, 3200);
     }
 
     function hideAppToast() {
@@ -1421,7 +1952,9 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      transitAuth.init();
       initGoogleMapsSPA();
+      updateNetworkStatus();
     });
   </script>
 </body>
