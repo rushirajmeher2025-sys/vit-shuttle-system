@@ -18,7 +18,18 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Immediate Theme Initialization (prevents flash of white in dark mode)
+    (function() {
+      const saved = localStorage.getItem('vit_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -233,34 +244,78 @@
     }
 
     /* ══════════════════════════════════════════════════════
-       🚀 120HZ / HIGH REFRESH RATE GPU COMPOSITOR ACCELERATION
+       🌓 DARK MODE / LIGHT MODE DESIGN SYSTEM
        ══════════════════════════════════════════════════════ */
-    .leaflet-pane,
-    .leaflet-map-pane,
-    .leaflet-tile-pane,
-    .leaflet-marker-pane,
-    .leaflet-zoom-animated,
-    .user-puck-wrap,
-    .user-puck-radar,
-    .user-puck-center {
-      will-change: transform;
-      transform: translate3d(0, 0, 0);
-      backface-visibility: hidden;
-    }
-    .leaflet-marker-icon {
-      will-change: transform;
-      backface-visibility: hidden;
-    }
-
-    /* Hardware accelerated momentum touch scrolling */
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
     html, body {
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
+    }
+
+    .dark body {
+      background-color: #0b1120 !important;
+      color: #f1f5f9 !important;
+    }
+    .dark header,
+    .dark nav {
+      background-color: rgba(15, 23, 42, 0.95) !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-white {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-slate-50 {
+      background-color: #0f172a !important;
+      color: #e2e8f0 !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-slate-100 {
+      background-color: #0b1120 !important;
+      color: #cbd5e1 !important;
+    }
+    .dark .bg-slate-200 {
+      background-color: #1e293b !important;
+    }
+    .dark .text-slate-900,
+    .dark .text-slate-800 {
+      color: #f8fafc !important;
+    }
+    .dark .text-slate-700,
+    .dark .text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    .dark .text-slate-500,
+    .dark .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    .dark .border-slate-200,
+    .dark .border-slate-300 {
+      border-color: #334155 !important;
+    }
+    .dark .border-slate-100 {
+      border-color: #1e293b !important;
+    }
+    .dark input {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    .dark input::placeholder {
+      color: #64748b !important;
+    }
+    /* Midnight Dark Filter for Leaflet Tiles */
+    .dark .leaflet-tile-pane {
+      filter: brightness(0.8) invert(1) contrast(1.15) hue-rotate(200deg) saturate(0.35);
+    }
+    .dark .leaflet-container {
+      background: #0f172a !important;
     }
   </style>
 </head>
@@ -301,6 +356,11 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Dark / Light Theme Toggle -->
+          <button onclick="toggleTheme()" class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition active:scale-95" aria-label="Toggle Dark / Light Mode" title="Toggle Theme">
+            <span class="material-symbols-outlined text-[20px] dark:hidden">dark_mode</span>
+            <span class="material-symbols-outlined text-[20px] hidden dark:inline">light_mode</span>
+          </button>
           <button onclick="toggleNotificationHubSPA()" class="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-100 transition active:scale-95" aria-label="Campus Transit Bulletins &amp; Alerts">
             <span class="material-symbols-outlined text-[20px]">notifications</span>
             <span id="unreadBadgePortal" class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 animate-pulse" aria-hidden="true"></span>
@@ -319,15 +379,9 @@
           </div>
           <h2 id="fleetHeaderTitle" class="text-xl sm:text-2xl font-bold text-slate-900">VIT Shuttle System</h2>
           <p class="text-xs sm:text-sm text-slate-600 font-medium">Campus Transit Platform • Select Persona Console</p>
-          <div class="mt-2.5 flex flex-wrap justify-center items-center gap-2">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold" role="status" aria-live="polite">
-              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
-              Vellore Campus Fleet Active • 3 Corridors
-            </div>
-            <div id="portal120HzBadge" class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-700 text-emerald-400 rounded-full text-xs font-mono font-bold shadow-sm" role="status">
-              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping" aria-hidden="true"></span>
-              <span id="portalFpsText">120Hz Motion Engine Active</span>
-            </div>
+          <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold" role="status" aria-live="polite">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+            Vellore Campus Fleet Active • 3 Corridors
           </div>
         </section>
 
@@ -558,6 +612,11 @@
           </div>
         </div>
         <div class="flex items-center gap-2">
+          <!-- Dark / Light Theme Toggle -->
+          <button onclick="toggleTheme()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition active:scale-95" aria-label="Toggle Theme" title="Toggle Dark/Light Mode">
+            <span class="material-symbols-outlined text-base sm:text-lg dark:hidden">dark_mode</span>
+            <span class="material-symbols-outlined text-base sm:text-lg hidden dark:inline">light_mode</span>
+          </button>
           <button onclick="toggleNotificationHubSPA()" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition active:scale-95" aria-label="Campus Bulletins">
             <span class="material-symbols-outlined text-base sm:text-lg">notifications</span>
           </button>
@@ -608,16 +667,8 @@
       <div id="mapContainerSPA" class="relative h-[380px] sm:h-[460px] md:h-[520px] lg:h-[580px] bg-slate-200 overflow-hidden border-b border-slate-200" role="region" aria-label="Interactive Leaflet Map">
         <div id="mapSPA" class="w-full h-full z-0"></div>
 
-        <!-- Live 120Hz High Refresh Rate Performance HUD -->
-        <div class="absolute left-3 top-3 z-20 pointer-events-none flex flex-col gap-1.5">
-          <div id="fpsBadgeHUD" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold border backdrop-blur-md shadow-md transition-all bg-slate-900/90 text-emerald-400 border-emerald-500/50">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping" aria-hidden="true"></span>
-            <span id="fpsCountText">120 FPS</span> • <span id="refreshRateText">120Hz ProMotion Active</span>
-          </div>
-        </div>
-
         <!-- Active Turn-by-Turn Road Walking Navigation Overlay -->
-        <div id="roadNavBanner" class="hidden absolute top-12 left-3 right-16 sm:right-auto sm:max-w-md z-30 bg-slate-900/95 text-white p-3 rounded-2xl border border-emerald-500/50 shadow-2xl backdrop-blur-md transition-all">
+        <div id="roadNavBanner" class="hidden absolute top-3 left-3 right-16 sm:right-auto sm:max-w-md z-30 bg-slate-900/95 text-white p-3 rounded-2xl border border-emerald-500/50 shadow-2xl backdrop-blur-md transition-all">
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-center gap-2.5">
               <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0">
@@ -661,9 +712,6 @@
           </button>
           <button onclick="toggleMapTypeSPA()" title="Toggle Google Satellite / Road" aria-label="Toggle Google Satellite or Roadmap" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg sm:text-xl">layers</span>
-          </button>
-          <button id="simSpeedBtnSPA" onclick="toggleSimSpeedSPA()" title="Toggle Simulation Speed (1x / 2x / 4x)" aria-label="Toggle Simulation Speed" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 shadow-md border border-slate-700 text-emerald-400 font-mono font-bold text-xs flex items-center justify-center hover:bg-slate-800 transition active:scale-95">
-            1x
           </button>
         </div>
       </div>
@@ -1746,15 +1794,7 @@
       };
     }
 
-    window.simSpeedMultiplier = 1;
-    function toggleSimSpeedSPA() {
-      const speeds = [1, 2, 4];
-      const curIdx = speeds.indexOf(window.simSpeedMultiplier || 1);
-      window.simSpeedMultiplier = speeds[(curIdx + 1) % speeds.length];
-      const btn = document.getElementById('simSpeedBtnSPA');
-      if (btn) btn.textContent = `${window.simSpeedMultiplier}x`;
-      triggerToast(`⚡ Motion Simulation: ${window.simSpeedMultiplier}x Speed`);
-    }
+
 
     function initGoogleMapsSPA() {
       if (mapSPA) return;
@@ -1873,76 +1913,19 @@
         );
       }
 
-      // High Refresh Rate (120Hz / 90Hz / 60Hz) rAF LERP Motion Engine with Sub-Pixel Rendering
-      const shuttleMotionTrackers = {
-        '101': { coords: spaRoutes['101'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00035 },
-        '102': { coords: spaRoutes['102'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00028 },
-        '201': { coords: spaRoutes['201'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00042 }
-      };
-
-      let frameCount = 0;
-      let lastFpsTime = performance.now();
-      let lastAnimTimestamp = performance.now();
-
-      function updateFpsCounters(currentTimestamp) {
-        frameCount++;
-        const elapsed = currentTimestamp - lastFpsTime;
-        if (elapsed >= 400) {
-          const fps = Math.round((frameCount * 1000) / elapsed);
-          frameCount = 0;
-          lastFpsTime = currentTimestamp;
-
-          const countText = document.getElementById('fpsCountText');
-          const refreshText = document.getElementById('refreshRateText');
-          const badge = document.getElementById('fpsBadgeHUD');
-          const portalFpsText = document.getElementById('portalFpsText');
-
-          const is120 = fps >= 105;
-          const is90 = fps >= 80 && fps < 105;
-          const label = is120 ? '120Hz ProMotion' : (is90 ? '90Hz High Refresh' : '60Hz Fluid');
-
-          if (countText && refreshText) {
-            countText.textContent = `${fps} FPS`;
-            refreshText.textContent = `${label} Active`;
-          }
-          if (badge) {
-            const colorClass = is120 ? 'text-emerald-400 border-emerald-500/50 bg-slate-900/90' : (is90 ? 'text-cyan-400 border-cyan-500/50 bg-slate-900/90' : 'text-sky-300 border-slate-700 bg-slate-900/90');
-            badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold border backdrop-blur-md shadow-md transition-all ${colorClass}`;
-          }
-          if (portalFpsText) {
-            portalFpsText.textContent = `${fps} FPS • ${label}`;
-          }
+      // Live position updater simulation
+      let simTick = 0;
+      setInterval(() => {
+        simTick = (simTick + 1) % 100;
+        const prog = (simTick % 20) / 20;
+        const st = [12.970500, 79.159200];
+        const en = [12.971847, 79.163585];
+        const cLat = st[0] + (en[0] - st[0]) * prog;
+        const cLng = st[1] + (en[1] - st[1]) * prog;
+        if (spaMarkers['101']) {
+          spaMarkers['101'].setLatLng([cLat, cLng]);
         }
-      }
-
-      function step120HzMotion(currentTimestamp) {
-        updateFpsCounters(currentTimestamp);
-        const delta = Math.min(50, currentTimestamp - lastAnimTimestamp);
-        lastAnimTimestamp = currentTimestamp;
-
-        const mult = window.simSpeedMultiplier || 1;
-
-        Object.keys(shuttleMotionTrackers).forEach(id => {
-          const tracker = shuttleMotionTrackers[id];
-          const marker = spaMarkers[id];
-          if (!marker || !tracker.coords || tracker.coords.length < 2) return;
-
-          tracker.progress += tracker.baseSpeed * mult * delta;
-          while (tracker.progress >= 1.0) {
-            tracker.progress -= 1.0;
-            tracker.segmentIdx = (tracker.segmentIdx + 1) % (tracker.coords.length - 1);
-          }
-
-          const p0 = tracker.coords[tracker.segmentIdx];
-          const p1 = tracker.coords[tracker.segmentIdx + 1];
-          const curLat = p0[0] + (p1[0] - p0[0]) * tracker.progress;
-          const curLng = p0[1] + (p1[1] - p0[1]) * tracker.progress;
-          marker.setLatLng([curLat, curLng]);
-        });
-
-        requestAnimationFrame(step120HzMotion);
-      }
-      requestAnimationFrame(step120HzMotion);
+      }, 2000);
     }
 
     function focusUserLocationSPA() {
@@ -2478,8 +2461,10 @@
       }, 3200);
     }
 
-    function hideAppToast() {
-      document.getElementById('appToast').classList.add('hidden');
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('vit_theme', isDark ? 'dark' : 'light');
+      triggerToast(isDark ? '🌙 Switched to Dark Mode' : '☀️ Switched to Light Mode');
     }
 
     window.addEventListener('DOMContentLoaded', () => {

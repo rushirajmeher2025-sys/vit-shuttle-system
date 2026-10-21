@@ -16,7 +16,18 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    // Immediate Theme Initialization (prevents flash of white in dark mode)
+    (function() {
+      const saved = localStorage.getItem('vit_theme');
+      if (saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    })();
+
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
@@ -66,25 +77,6 @@
     .leaflet-marker-icon {
       overflow: visible !important;
     }
-    /* ══════════════════════════════════════════════════════
-       🚀 120HZ / HIGH REFRESH RATE GPU COMPOSITOR ACCELERATION
-       ══════════════════════════════════════════════════════ */
-    .leaflet-pane,
-    .leaflet-map-pane,
-    .leaflet-tile-pane,
-    .leaflet-marker-pane,
-    .leaflet-zoom-animated,
-    .user-puck-wrap,
-    .user-puck-radar,
-    .user-puck-center {
-      will-change: transform;
-      transform: translate3d(0, 0, 0);
-      backface-visibility: hidden;
-    }
-    .leaflet-marker-icon {
-      will-change: transform;
-      backface-visibility: hidden;
-    }
     html {
       scroll-behavior: smooth;
       -webkit-font-smoothing: antialiased;
@@ -92,6 +84,72 @@
     html, body {
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       🌙 WCAG-COMPLIANT HIGH-CONTRAST DARK MODE TOKENS
+       ══════════════════════════════════════════════════════ */
+    .dark body {
+      background-color: #0b1120 !important;
+      color: #f1f5f9 !important;
+    }
+    .dark header,
+    .dark nav {
+      background-color: rgba(15, 23, 42, 0.95) !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-white,
+    .dark .bg-white\/95,
+    .dark .bg-white\/90 {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-slate-50 {
+      background-color: #0f172a !important;
+      color: #e2e8f0 !important;
+      border-color: #334155 !important;
+    }
+    .dark .bg-slate-100 {
+      background-color: #0b1120 !important;
+      color: #cbd5e1 !important;
+    }
+    .dark .bg-slate-200 {
+      background-color: #1e293b !important;
+    }
+    .dark .text-slate-900,
+    .dark .text-slate-800 {
+      color: #f8fafc !important;
+    }
+    .dark .text-slate-700,
+    .dark .text-slate-600 {
+      color: #cbd5e1 !important;
+    }
+    .dark .text-slate-500,
+    .dark .text-slate-400 {
+      color: #94a3b8 !important;
+    }
+    .dark .border-slate-200,
+    .dark .border-slate-300 {
+      border-color: #334155 !important;
+    }
+    .dark .border-slate-100 {
+      border-color: #1e293b !important;
+    }
+    .dark input {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    .dark input::placeholder {
+      color: #64748b !important;
+    }
+    /* Midnight Dark Filter for Leaflet Tiles */
+    .dark .leaflet-tile-pane {
+      filter: brightness(0.8) invert(1) contrast(1.15) hue-rotate(200deg) saturate(0.35);
+    }
+    .dark .leaflet-container {
+      background: #0f172a !important;
     }
 
     .leaflet-control-attribution {
@@ -171,6 +229,11 @@
       </div>
     </div>
     <div class="flex items-center gap-1.5">
+      <!-- Dark / Light Theme Toggle -->
+      <button onclick="toggleTheme()" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-amber-400 flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition active:scale-95" aria-label="Toggle Theme" title="Toggle Dark/Light Mode">
+        <span class="material-symbols-outlined text-base dark:hidden">dark_mode</span>
+        <span class="material-symbols-outlined text-base hidden dark:inline">light_mode</span>
+      </button>
       <button onclick="toggleNotificationHub()" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:scale-95 transition" title="Bulletins">
         <span class="material-symbols-outlined text-base">notifications</span>
       </button>
@@ -1094,6 +1157,12 @@
 
     function hideToast() {
       document.getElementById('toast').classList.add('hidden');
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('vit_theme', isDark ? 'dark' : 'light');
+      showToast(isDark ? '🌙 Switched to Dark Mode' : '☀️ Switched to Light Mode');
     }
 
     window.addEventListener('DOMContentLoaded', () => {
