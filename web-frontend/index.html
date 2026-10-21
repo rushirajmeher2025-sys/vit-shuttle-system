@@ -231,6 +231,30 @@
       min-height: var(--touch-target-min);
       min-width: var(--touch-target-min);
     }
+
+    /* ══════════════════════════════════════════════════════
+       🚀 120HZ / HIGH REFRESH RATE GPU COMPOSITOR ACCELERATION
+       ══════════════════════════════════════════════════════ */
+    .leaflet-pane,
+    .leaflet-map-pane,
+    .leaflet-tile-pane,
+    .leaflet-marker-pane,
+    .leaflet-zoom-animated,
+    .user-puck-wrap,
+    .user-puck-radar,
+    .user-puck-center,
+    .leaflet-marker-icon {
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
+      perspective: 1000px;
+    }
+
+    /* Hardware accelerated momentum touch scrolling */
+    html, body {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased min-h-screen select-none flex flex-col justify-between overflow-x-hidden">
@@ -1652,7 +1676,13 @@
       if (mapSPA) return;
       mapSPA = L.map('mapSPA', {
         zoomControl: false,
-        attributionControl: true
+        attributionControl: true,
+        inertia: true,
+        inertiaDeceleration: 3000,
+        inertiaMaxSpeed: 2000,
+        zoomAnimation: true,
+        fadeAnimation: true,
+        markerZoomAnimation: true
       }).setView([12.9718, 79.1625], 16.2);
       window.mapSPAInstance = mapSPA;
 
@@ -1760,19 +1790,39 @@
         );
       }
 
-      // Live position updater simulation
-      let simTick = 0;
-      setInterval(() => {
-        simTick = (simTick + 1) % 100;
-        const prog = (simTick % 20) / 20;
-        const st = [12.970500, 79.159200];
-        const en = [12.971847, 79.163585];
-        const cLat = st[0] + (en[0] - st[0]) * prog;
-        const cLng = st[1] + (en[1] - st[1]) * prog;
-        if (spaMarkers['101']) {
-          spaMarkers['101'].setLatLng([cLat, cLng]);
-        }
-      }, 2000);
+      // High Refresh Rate (120Hz / 90Hz / 60Hz) rAF LERP Motion Engine
+      const shuttleMotionTrackers = {
+        '101': { coords: spaRoutes['101'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00012 },
+        '102': { coords: spaRoutes['102'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00009 },
+        '201': { coords: spaRoutes['201'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00014 }
+      };
+
+      let lastAnimTimestamp = performance.now();
+      function step120HzMotion(currentTimestamp) {
+        const delta = Math.min(50, currentTimestamp - lastAnimTimestamp);
+        lastAnimTimestamp = currentTimestamp;
+
+        Object.keys(shuttleMotionTrackers).forEach(id => {
+          const tracker = shuttleMotionTrackers[id];
+          const marker = spaMarkers[id];
+          if (!marker || !tracker.coords || tracker.coords.length < 2) return;
+
+          tracker.progress += tracker.speedFactor * delta;
+          if (tracker.progress >= 1.0) {
+            tracker.progress = 0;
+            tracker.segmentIdx = (tracker.segmentIdx + 1) % (tracker.coords.length - 1);
+          }
+
+          const p0 = tracker.coords[tracker.segmentIdx];
+          const p1 = tracker.coords[tracker.segmentIdx + 1];
+          const curLat = p0[0] + (p1[0] - p0[0]) * tracker.progress;
+          const curLng = p0[1] + (p1[1] - p0[1]) * tracker.progress;
+          marker.setLatLng([curLat, curLng]);
+        });
+
+        requestAnimationFrame(step120HzMotion);
+      }
+      requestAnimationFrame(step120HzMotion);
     }
 
     function focusUserLocationSPA() {
