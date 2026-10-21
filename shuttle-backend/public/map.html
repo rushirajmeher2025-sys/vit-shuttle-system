@@ -222,10 +222,41 @@
   <div id="mapContainer" class="relative max-w-md mx-auto h-[380px] bg-slate-200 overflow-hidden border-b border-slate-200">
     <div id="map" class="w-full h-full z-0"></div>
 
+    <!-- Active Turn-by-Turn Road Walking Navigation Overlay -->
+    <div id="roadNavBanner" class="hidden absolute top-3 left-3 right-16 z-30 bg-slate-900/95 text-white p-3 rounded-2xl border border-emerald-500/50 shadow-2xl backdrop-blur-md transition-all">
+      <div class="flex items-start justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/40 text-emerald-400 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-xl">directions_walk</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-emerald-500 text-slate-950 uppercase">ROAD ROUTE</span>
+              <p id="roadNavDestTitle" class="text-xs font-bold text-white truncate">SJT (Silver Jubilee Tower)</p>
+            </div>
+            <p id="roadNavMetrics" class="text-[11px] text-emerald-400 font-mono font-semibold">199m by road • ~2.5 mins walk</p>
+          </div>
+        </div>
+        <button onclick="clearRoadWalkingRoute()" class="w-7 h-7 rounded-lg bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center shrink-0 transition" aria-label="End Walking Navigation">
+          <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+      </div>
+      <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px]">
+        <span id="roadNavStepText" class="text-slate-300 flex items-center gap-1 truncate">
+          <span class="material-symbols-outlined text-sm text-emerald-400">turn_right</span>
+          <span>Follow campus road towards stop</span>
+        </span>
+        <span id="roadComparisonBadge" class="text-[10px] text-amber-300 font-mono shrink-0">By Road</span>
+      </div>
+    </div>
+
     <!-- Floating Map Controls -->
     <div class="absolute right-3 top-3 flex flex-col gap-2 z-20">
       <button onclick="focusUserLocation()" title="My Current Location" class="w-8 h-8 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 active:scale-95 transition">
         <span class="material-symbols-outlined text-lg">my_location</span>
+      </button>
+      <button onclick="navigateToClosestStopByRoad()" title="Navigate to Closest Bus Stop by Road" class="w-8 h-8 rounded-lg bg-emerald-600 shadow-md border border-emerald-500 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-95 transition">
+        <span class="material-symbols-outlined text-lg">directions_walk</span>
       </button>
       <div class="bg-white rounded-lg shadow-md border border-slate-200 flex flex-col">
         <button onclick="zoomMap(1)" title="Zoom In" class="w-8 h-8 flex items-center justify-center text-slate-700 border-b border-slate-100 hover:bg-slate-50 font-bold active:scale-95 transition">+</button>
@@ -319,9 +350,9 @@
 
     <!-- Dual Action Buttons -->
     <div class="grid grid-cols-2 gap-2 pt-1">
-      <button onclick="walkToSjt()" class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white font-bold text-xs text-slate-800 flex items-center justify-center gap-1.5 hover:bg-slate-50 transition active:scale-95">
-        <span class="material-symbols-outlined text-base">directions_walk</span>
-        Walk to SJT (1.5 min)
+      <button id="navClosestStopBtn" onclick="navigateToClosestStopByRoad()" class="py-2.5 px-3 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 font-bold text-xs text-emerald-950 flex items-center justify-center gap-1.5 transition active:scale-95 shadow-sm">
+        <span class="material-symbols-outlined text-base text-emerald-600">directions_walk</span>
+        <span id="closestStopBtnLabel">Closest Stop (By Road)</span>
       </button>
       <button onclick="toggleQRModal()" class="py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 font-bold text-xs text-white flex items-center justify-center gap-1.5 shadow-md shadow-sky-600/20 transition active:scale-95">
         <span class="material-symbols-outlined text-base">qr_code_scanner</span>
@@ -617,8 +648,7 @@
       const m = L.marker([s.lat, s.lng], { icon: stopIcon }).addTo(map);
       m.on('click', () => {
         document.getElementById('searchInput').value = s.name;
-        showToast(`Selected stop: ${s.name}`);
-        map.flyTo([s.lat, s.lng], 17.5, { animate: true });
+        navigateToSpecificStopByRoad(s.name);
       });
     });
 
@@ -816,9 +846,224 @@
       }
     }
 
+    // ══════════════════════════════════════════════════════
+    // 🚶 CAMPUS ROAD-BASED WALKING NAVIGATION ENGINE
+    // Calculates distance by road/pedestrian network and NOT direct straight line
+    // ══════════════════════════════════════════════════════
+    let activeWalkingPolyline = null;
+    let activeWalkingMarker = null;
+
+    function calculateDirectDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    }
+
+    const campusRoadWaypoints = [
+      { id: 'gate1', lat: 12.968634, lng: 79.156367, name: 'Main Gate 1' },
+      { id: 'lh', lat: 12.968256, lng: 79.159605, name: 'Ladies Hostels' },
+      { id: 'mb', lat: 12.969800, lng: 79.157800, name: 'Main Building' },
+      { id: 'tt', lat: 12.970500, lng: 79.159200, name: 'Tech Tower' },
+      { id: 'smv', lat: 12.971200, lng: 79.161500, name: 'SMV Road' },
+      { id: 'sjt', lat: 12.971847, lng: 79.163585, name: 'SJT Portico' },
+      { id: 'mh_corridor', lat: 12.973066, lng: 79.163866, name: 'MH Circle' },
+      { id: 'mh_qp', lat: 12.973810, lng: 79.164065, name: "Men's Hostels Q/P" },
+      { id: 'gandhi', lat: 12.972703, lng: 79.167738, name: 'Gandhi Block' }
+    ];
+
+    async function fetchRoadRouteOSRM(origin, destination) {
+      const url = `https://router.project-osrm.org/route/v1/foot/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2800);
+        const res = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+          const route = data.routes[0];
+          const latLngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
+          let stepText = 'Follow campus roads directly to stop';
+          if (route.legs && route.legs[0] && route.legs[0].steps && route.legs[0].steps.length > 0) {
+            const steps = route.legs[0].steps;
+            const valid = steps.find(st => st.name && st.name.trim().length > 0);
+            if (valid) stepText = `Follow ${valid.name} towards stop`;
+          }
+          return {
+            distance: Math.round(route.distance),
+            duration: Math.round(route.duration),
+            coordinates: latLngs,
+            stepText: stepText,
+            isOnlineOSRM: true
+          };
+        }
+      } catch (err) {
+        console.warn('[Road Routing OSRM Fallback]', err.message);
+      }
+      return null;
+    }
+
+    function calculateCampusRoadFallback(origin, destination) {
+      const roadCoords = [[origin.lat, origin.lng]];
+      let direct = calculateDirectDistanceMeters(origin.lat, origin.lng, destination.lat, destination.lng);
+      let estimatedRoadDist = Math.round(direct * 1.35);
+
+      const sortedByOrigin = [...campusRoadWaypoints].sort((a,b) => 
+        calculateDirectDistanceMeters(origin.lat, origin.lng, a.lat, a.lng) - 
+        calculateDirectDistanceMeters(origin.lat, origin.lng, b.lat, b.lng)
+      );
+      const sortedByDest = [...campusRoadWaypoints].sort((a,b) => 
+        calculateDirectDistanceMeters(destination.lat, destination.lng, a.lat, a.lng) - 
+        calculateDirectDistanceMeters(destination.lat, destination.lng, b.lat, b.lng)
+      );
+
+      const wp1 = sortedByOrigin[0];
+      const wp2 = sortedByDest[0];
+
+      if (wp1 && (wp1.lat !== origin.lat || wp1.lng !== origin.lng)) roadCoords.push([wp1.lat, wp1.lng]);
+      if (wp2 && wp2.id !== wp1.id) roadCoords.push([wp2.lat, wp2.lng]);
+      roadCoords.push([destination.lat, destination.lng]);
+
+      let roadSum = 0;
+      for (let i = 0; i < roadCoords.length - 1; i++) {
+        roadSum += calculateDirectDistanceMeters(roadCoords[i][0], roadCoords[i][1], roadCoords[i+1][0], roadCoords[i+1][1]);
+      }
+      estimatedRoadDist = Math.max(estimatedRoadDist, roadSum);
+
+      return {
+        distance: estimatedRoadDist,
+        duration: Math.round(estimatedRoadDist / 1.3),
+        coordinates: roadCoords,
+        stepText: `Follow pedestrian road corridor via ${wp1 ? wp1.name : 'Campus Avenue'}`,
+        isOnlineOSRM: false
+      };
+    }
+
+    async function getRoadRoute(origin, destination) {
+      const osrmRoute = await fetchRoadRouteOSRM(origin, destination);
+      if (osrmRoute) return osrmRoute;
+      return calculateCampusRoadFallback(origin, destination);
+    }
+
+    async function findClosestStopByRoad() {
+      const user = userLocation || { lat: 12.971420, lng: 79.163200 };
+      showToast('🔍 Calculating road distances to all campus stops...');
+
+      const stopEvaluations = await Promise.all(
+        stops.map(async stop => {
+          const direct = calculateDirectDistanceMeters(user.lat, user.lng, stop.lat, stop.lng);
+          const road = await getRoadRoute(user, stop);
+          return {
+            stop: stop,
+            directDistance: direct,
+            roadDistance: road.distance,
+            duration: road.duration,
+            route: road
+          };
+        })
+      );
+
+      stopEvaluations.sort((a, b) => a.roadDistance - b.roadDistance);
+      return stopEvaluations[0];
+    }
+
+    async function navigateToClosestStopByRoad() {
+      const closest = await findClosestStopByRoad();
+      if (!closest) {
+        showToast('Unable to calculate road route.');
+        return;
+      }
+      renderRoadWalkingRoute(closest);
+    }
+
+    async function navigateToSpecificStopByRoad(stopName) {
+      const stop = stops.find(s => s.name === stopName) || stops[0];
+      const user = userLocation || { lat: 12.971420, lng: 79.163200 };
+      const direct = calculateDirectDistanceMeters(user.lat, user.lng, stop.lat, stop.lng);
+      const road = await getRoadRoute(user, stop);
+      renderRoadWalkingRoute({
+        stop: stop,
+        directDistance: direct,
+        roadDistance: road.distance,
+        duration: road.duration,
+        route: road
+      });
+    }
+
+    function renderRoadWalkingRoute(result) {
+      if (!map) return;
+      clearRoadWalkingRoute();
+
+      const user = userLocation || { lat: 12.971420, lng: 79.163200 };
+      const stop = result.stop;
+      const roadCoords = result.route.coordinates;
+
+      activeWalkingPolyline = L.featureGroup([
+        L.polyline(roadCoords, { color: '#064e3b', weight: 7, opacity: 0.65 }),
+        L.polyline(roadCoords, { color: '#10b981', weight: 4, opacity: 0.95, dashArray: '6, 8' })
+      ]).addTo(map);
+
+      const destBeaconIcon = L.divIcon({
+        className: '',
+        html: `
+          <div style="transform:translate(-50%, -50%); position:relative; display:flex; align-items:center; justify-content:center;">
+            <div style="position:absolute; width:48px; height:48px; border-radius:50%; background:rgba(16,185,129,0.35); animation:radar-pulse 1.8s infinite;"></div>
+            <div style="width:26px; height:26px; border-radius:50%; background:#10b981; border:3px solid white; display:flex; align-items:center; justify-content:center; color:white; font-size:12px; font-weight:bold; box-shadow:0 3px 8px rgba(0,0,0,0.3);">
+              🎯
+            </div>
+          </div>
+        `,
+        iconSize: [0, 0]
+      });
+      activeWalkingMarker = L.marker([stop.lat, stop.lng], { icon: destBeaconIcon, zIndexOffset: 2500 }).addTo(map);
+
+      const allPoints = [[user.lat, user.lng], [stop.lat, stop.lng], ...roadCoords];
+      map.fitBounds(L.latLngBounds(allPoints), { padding: [50, 50], maxZoom: 18 });
+
+      const banner = document.getElementById('roadNavBanner');
+      const destTitle = document.getElementById('roadNavDestTitle');
+      const metrics = document.getElementById('roadNavMetrics');
+      const stepText = document.getElementById('roadNavStepText');
+      const compBadge = document.getElementById('roadComparisonBadge');
+
+      const mins = Math.max(1, Math.round(result.duration / 60));
+      const ratio = (result.roadDistance / Math.max(1, result.directDistance)).toFixed(1);
+
+      if (destTitle) destTitle.textContent = stop.name;
+      if (metrics) metrics.textContent = `${result.roadDistance}m by road • ~${mins} min walk`;
+      if (stepText) stepText.innerHTML = `<span class="material-symbols-outlined text-sm text-emerald-400">directions_walk</span> <span>${result.route.stepText}</span>`;
+      if (compBadge) compBadge.textContent = `${ratio}x road vs straight-line (${result.directDistance}m direct)`;
+      if (banner) banner.classList.remove('hidden');
+
+      const btnLabel = document.getElementById('closestStopBtnLabel');
+      if (btnLabel) btnLabel.textContent = `Walking: ${stop.name.split('(')[0].trim()} (${result.roadDistance}m)`;
+
+      showToast(`🚶 Navigating to ${stop.name}: ${result.roadDistance}m by road (~${mins}m walk)`);
+    }
+
+    function clearRoadWalkingRoute() {
+      if (activeWalkingPolyline && map) {
+        map.removeLayer(activeWalkingPolyline);
+        activeWalkingPolyline = null;
+      }
+      if (activeWalkingMarker && map) {
+        map.removeLayer(activeWalkingMarker);
+        activeWalkingMarker = null;
+      }
+      const banner = document.getElementById('roadNavBanner');
+      if (banner) banner.classList.add('hidden');
+      const btnLabel = document.getElementById('closestStopBtnLabel');
+      if (btnLabel) btnLabel.textContent = 'Closest Stop (By Road)';
+    }
+
     function walkToSjt() {
-      map.flyTo([12.971847, 79.163585], 17.8, { animate: true });
-      showToast('Turn left past TT portico. SJT is ~120m away (1.5 min walk).');
+      navigateToSpecificStopByRoad("SJT (Silver Jubilee Tower)");
     }
 
     function toggleQRModal() {
