@@ -242,15 +242,22 @@
     .leaflet-zoom-animated,
     .user-puck-wrap,
     .user-puck-radar,
-    .user-puck-center,
-    .leaflet-marker-icon {
+    .user-puck-center {
       will-change: transform;
       transform: translate3d(0, 0, 0);
       backface-visibility: hidden;
-      perspective: 1000px;
+    }
+    .leaflet-marker-icon {
+      will-change: transform;
+      backface-visibility: hidden;
     }
 
     /* Hardware accelerated momentum touch scrolling */
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
     html, body {
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-y: contain;
@@ -312,9 +319,15 @@
           </div>
           <h2 id="fleetHeaderTitle" class="text-xl sm:text-2xl font-bold text-slate-900">VIT Shuttle System</h2>
           <p class="text-xs sm:text-sm text-slate-600 font-medium">Campus Transit Platform • Select Persona Console</p>
-          <div class="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold" role="status" aria-live="polite">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
-            Vellore Campus Fleet Active • 3 Corridors
+          <div class="mt-2.5 flex flex-wrap justify-center items-center gap-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-semibold" role="status" aria-live="polite">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true"></span>
+              Vellore Campus Fleet Active • 3 Corridors
+            </div>
+            <div id="portal120HzBadge" class="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900 border border-slate-700 text-emerald-400 rounded-full text-xs font-mono font-bold shadow-sm" role="status">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping" aria-hidden="true"></span>
+              <span id="portalFpsText">120Hz Motion Engine Active</span>
+            </div>
           </div>
         </section>
 
@@ -595,6 +608,14 @@
       <div id="mapContainerSPA" class="relative h-[380px] sm:h-[460px] md:h-[520px] lg:h-[580px] bg-slate-200 overflow-hidden border-b border-slate-200" role="region" aria-label="Interactive Leaflet Map">
         <div id="mapSPA" class="w-full h-full z-0"></div>
 
+        <!-- Live 120Hz High Refresh Rate Performance HUD -->
+        <div class="absolute left-3 top-3 z-20 pointer-events-none flex flex-col gap-1.5">
+          <div id="fpsBadgeHUD" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold border backdrop-blur-md shadow-md transition-all bg-slate-900/90 text-emerald-400 border-emerald-500/50">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping" aria-hidden="true"></span>
+            <span id="fpsCountText">120 FPS</span> • <span id="refreshRateText">120Hz ProMotion Active</span>
+          </div>
+        </div>
+
         <!-- Floating Map Controls -->
         <div class="absolute right-3 top-3 flex flex-col gap-2 z-20" role="toolbar" aria-label="Map Navigation Tools">
           <button onclick="focusUserLocationSPA()" title="Center My GPS Location" aria-label="Center My GPS Location" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white shadow-md border border-slate-200 text-sky-600 flex items-center justify-center hover:bg-sky-50 transition active:scale-95">
@@ -609,6 +630,9 @@
           </button>
           <button onclick="toggleMapTypeSPA()" title="Toggle Google Satellite / Road" aria-label="Toggle Google Satellite or Roadmap" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-white shadow-md border border-slate-200 text-slate-700 flex items-center justify-center hover:bg-slate-50 transition active:scale-95">
             <span class="material-symbols-outlined text-lg sm:text-xl">layers</span>
+          </button>
+          <button id="simSpeedBtnSPA" onclick="toggleSimSpeedSPA()" title="Toggle Simulation Speed (1x / 2x / 4x)" aria-label="Toggle Simulation Speed" class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-slate-900 shadow-md border border-slate-700 text-emerald-400 font-mono font-bold text-xs flex items-center justify-center hover:bg-slate-800 transition active:scale-95">
+            1x
           </button>
         </div>
       </div>
@@ -1672,6 +1696,35 @@
       }
     }
 
+    // ══════════════════════════════════════════════════════
+    // 🚀 120HZ SUB-PIXEL FLOATING POINT LEAFLET COMPOSITOR
+    // Removes Leaflet's built-in .round() pixel quantization to enable
+    // continuous sub-pixel hardware floating-point GPU interpolation
+    // ══════════════════════════════════════════════════════
+    if (typeof L !== 'undefined' && L.Marker) {
+      L.Marker.prototype.update = function () {
+        if (this._icon && this._map) {
+          var pos = this._map.latLngToLayerPoint(this._latlng); // Continuous sub-pixel (no .round() snapping)
+          this._setPos(pos);
+        }
+        if (this._shadow && this._map) {
+          var pos = this._map.latLngToLayerPoint(this._latlng);
+          this._setPos(pos);
+        }
+        this._setZIndex(this.options.zIndexOffset);
+      };
+    }
+
+    window.simSpeedMultiplier = 1;
+    function toggleSimSpeedSPA() {
+      const speeds = [1, 2, 4];
+      const curIdx = speeds.indexOf(window.simSpeedMultiplier || 1);
+      window.simSpeedMultiplier = speeds[(curIdx + 1) % speeds.length];
+      const btn = document.getElementById('simSpeedBtnSPA');
+      if (btn) btn.textContent = `${window.simSpeedMultiplier}x`;
+      triggerToast(`⚡ Motion Simulation: ${window.simSpeedMultiplier}x Speed`);
+    }
+
     function initGoogleMapsSPA() {
       if (mapSPA) return;
       mapSPA = L.map('mapSPA', {
@@ -1790,26 +1843,63 @@
         );
       }
 
-      // High Refresh Rate (120Hz / 90Hz / 60Hz) rAF LERP Motion Engine
+      // High Refresh Rate (120Hz / 90Hz / 60Hz) rAF LERP Motion Engine with Sub-Pixel Rendering
       const shuttleMotionTrackers = {
-        '101': { coords: spaRoutes['101'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00012 },
-        '102': { coords: spaRoutes['102'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00009 },
-        '201': { coords: spaRoutes['201'].coords, segmentIdx: 0, progress: 0, speedFactor: 0.00014 }
+        '101': { coords: spaRoutes['101'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00035 },
+        '102': { coords: spaRoutes['102'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00028 },
+        '201': { coords: spaRoutes['201'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00042 }
       };
 
+      let frameCount = 0;
+      let lastFpsTime = performance.now();
       let lastAnimTimestamp = performance.now();
+
+      function updateFpsCounters(currentTimestamp) {
+        frameCount++;
+        const elapsed = currentTimestamp - lastFpsTime;
+        if (elapsed >= 400) {
+          const fps = Math.round((frameCount * 1000) / elapsed);
+          frameCount = 0;
+          lastFpsTime = currentTimestamp;
+
+          const countText = document.getElementById('fpsCountText');
+          const refreshText = document.getElementById('refreshRateText');
+          const badge = document.getElementById('fpsBadgeHUD');
+          const portalFpsText = document.getElementById('portalFpsText');
+
+          const is120 = fps >= 105;
+          const is90 = fps >= 80 && fps < 105;
+          const label = is120 ? '120Hz ProMotion' : (is90 ? '90Hz High Refresh' : '60Hz Fluid');
+
+          if (countText && refreshText) {
+            countText.textContent = `${fps} FPS`;
+            refreshText.textContent = `${label} Active`;
+          }
+          if (badge) {
+            const colorClass = is120 ? 'text-emerald-400 border-emerald-500/50 bg-slate-900/90' : (is90 ? 'text-cyan-400 border-cyan-500/50 bg-slate-900/90' : 'text-sky-300 border-slate-700 bg-slate-900/90');
+            badge.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-mono font-bold border backdrop-blur-md shadow-md transition-all ${colorClass}`;
+          }
+          if (portalFpsText) {
+            portalFpsText.textContent = `${fps} FPS • ${label}`;
+          }
+        }
+      }
+
       function step120HzMotion(currentTimestamp) {
+        updateFpsCounters(currentTimestamp);
         const delta = Math.min(50, currentTimestamp - lastAnimTimestamp);
         lastAnimTimestamp = currentTimestamp;
+
+        const mult = window.simSpeedMultiplier || 1;
 
         Object.keys(shuttleMotionTrackers).forEach(id => {
           const tracker = shuttleMotionTrackers[id];
           const marker = spaMarkers[id];
           if (!marker || !tracker.coords || tracker.coords.length < 2) return;
 
-          tracker.progress += tracker.speedFactor * delta;
-          if (tracker.progress >= 1.0) {
-            tracker.progress = 0;
+          tracker.progress += tracker.baseSpeed * mult * delta;
+          while (tracker.progress >= 1.0) {
+            tracker.progress -= 1.0;
             tracker.segmentIdx = (tracker.segmentIdx + 1) % (tracker.coords.length - 1);
           }
 

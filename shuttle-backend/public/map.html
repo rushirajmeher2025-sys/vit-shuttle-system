@@ -66,10 +66,34 @@
     .leaflet-marker-icon {
       overflow: visible !important;
     }
-    .leaflet-container {
-      background: #e5e7eb;
-      font-family: 'Space Grotesk', sans-serif;
+    /* ══════════════════════════════════════════════════════
+       🚀 120HZ / HIGH REFRESH RATE GPU COMPOSITOR ACCELERATION
+       ══════════════════════════════════════════════════════ */
+    .leaflet-pane,
+    .leaflet-map-pane,
+    .leaflet-tile-pane,
+    .leaflet-marker-pane,
+    .leaflet-zoom-animated,
+    .user-puck-wrap,
+    .user-puck-radar,
+    .user-puck-center {
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      backface-visibility: hidden;
     }
+    .leaflet-marker-icon {
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+    html, body {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+
     .leaflet-control-attribution {
       font-size: 9px !important;
       background: rgba(255, 255, 255, 0.85) !important;
@@ -671,18 +695,58 @@
       shuttleMarkers[id] = L.marker([p.lat, p.lng], { icon: icon, zIndexOffset: 1000 }).addTo(map);
     });
 
-    let simStep = 0;
-    setInterval(() => {
-      simStep = (simStep + 1) % 100;
-      const progress = (simStep % 20) / 20;
-      const start = [12.970500, 79.159200];
-      const end = [12.971847, 79.163585];
-      const curLat = start[0] + (end[0] - start[0]) * progress;
-      const curLng = start[1] + (end[1] - start[1]) * progress;
-      if (shuttleMarkers['101']) {
-        shuttleMarkers['101'].setLatLng([curLat, curLng]);
-      }
-    }, 2000);
+    // ══════════════════════════════════════════════════════
+    // 🚀 120HZ SUB-PIXEL FLOATING POINT LEAFLET COMPOSITOR
+    // Removes Leaflet's built-in .round() pixel quantization to enable
+    // continuous sub-pixel hardware floating-point GPU interpolation
+    // ══════════════════════════════════════════════════════
+    if (typeof L !== 'undefined' && L.Marker) {
+      L.Marker.prototype.update = function () {
+        if (this._icon && this._map) {
+          var pos = this._map.latLngToLayerPoint(this._latlng);
+          this._setPos(pos);
+        }
+        if (this._shadow && this._map) {
+          var pos = this._map.latLngToLayerPoint(this._latlng);
+          this._setPos(pos);
+        }
+        this._setZIndex(this.options.zIndexOffset);
+      };
+    }
+
+    // 120Hz rAF Motion Trackers with calibrated fluid speeds
+    const shuttleMotionTrackers = {
+      '101': { coords: routesData['101'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00035 },
+      '102': { coords: routesData['102'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00028 },
+      '201': { coords: routesData['201'].coords, segmentIdx: 0, progress: 0, baseSpeed: 0.00042 }
+    };
+
+    let lastAnimTimestamp = performance.now();
+    function step120HzMotion(currentTimestamp) {
+      const delta = Math.min(50, currentTimestamp - lastAnimTimestamp);
+      lastAnimTimestamp = currentTimestamp;
+
+      Object.keys(shuttleMotionTrackers).forEach(id => {
+        const tracker = shuttleMotionTrackers[id];
+        const marker = shuttleMarkers[id];
+        if (!marker || !tracker.coords || tracker.coords.length < 2) return;
+
+        tracker.progress += tracker.baseSpeed * delta;
+        while (tracker.progress >= 1.0) {
+          tracker.progress -= 1.0;
+          tracker.segmentIdx = (tracker.segmentIdx + 1) % (tracker.coords.length - 1);
+        }
+
+        const p0 = tracker.coords[tracker.segmentIdx];
+        const p1 = tracker.coords[tracker.segmentIdx + 1];
+        const curLat = p0[0] + (p1[0] - p0[0]) * tracker.progress;
+        const curLng = p0[1] + (p1[1] - p0[1]) * tracker.progress;
+        marker.setLatLng([curLat, curLng]);
+      });
+
+      requestAnimationFrame(step120HzMotion);
+    }
+    requestAnimationFrame(step120HzMotion);
 
     function setShuttleFilter(id) {
       const chips = {
